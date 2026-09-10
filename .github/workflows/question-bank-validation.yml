@@ -33,6 +33,9 @@ jobs:
       - name: Validate research-informed option quality
         run: node tests/option-quality-validation.js
 
+      - name: Validate Item Quality QA v2 metrics
+        run: node tests/item-quality-v2-validation.js
+
       - name: Validate local item analytics
         run: node tests/item-analytics-validation.js
 

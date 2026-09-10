@@ -23,13 +23,30 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。
 
 目前 `easy / medium / hard` 是設計難度標籤，尚未經人口樣本與 IRT 校準，因此不能視為正式心理計量難度。
 
+## Single-Screen Edition
+
+目前介面採「一個 application state = 一個 viewport」的精簡設計：首頁、單題作答與結果摘要都以 `100dvh` 為主要舞台，文件本身不依賴垂直頁面捲動。逐題解析、測驗說明與題庫品質 QA 改成 viewport overlay，需要詳細內容時才打開。
+
+這個方向參考 `slidefirm/NESA-SLIDE` 的 content-first / stage-based 設計原則：先確立單一主要訊息、閱讀軸與資訊密度，再決定構圖；不以大量等寬卡片把內容塞滿畫面。
+
+介面重點：
+
+- 首頁一屏：只保留主標、300/30/6/混合計時四個核心訊息、開始按鈕與簡短測驗說明
+- 手機使用 `100dvh`、safe-area 與短高度 breakpoint，避免網址列／瀏海區把內容推出 viewport
+- 測驗一題一屏：快速跳題列在精簡模式下隱藏，保留進度、構面、題目時間、總時間、答案、上一題與跳過
+- 結果一屏：保留 Cognitive Index、六構面摘要與主要圖表；逐題解析與 Local QA 使用覆蓋式面板
+- 深度面板可以在自身內容區滾動，但不會把主頁面拉長
+- 顯示較輕鬆的非標準化標語：`不構成任何標準，好玩就好。內容僅供參考；若有出入，以你的想像力為準。`
+
+`tests/single-screen-validation.js` 會確認單頁必要控制項、手機／短高度規則、標語、`100dvh` stage 與 overlay detail surfaces 是否仍存在。
+
 ## v6 功能
 
 - 正式測評風格首頁
 - 原創 matrix reasoning 類型題目
 - 點選答案後自動前往下一題
 - 可回上一題修改答案
-- 快速跳題
+- 快速跳題資料仍保留；Single-Screen 精簡 UI 預設不佔用主畫面
 - 每題切換動畫
 - 工作記憶與處理速度題型
 - 題目旁明確標示「限時」或「不限時」
@@ -46,7 +63,7 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。
 
 ## Local Item Quality QA
 
-結果頁新增「題庫品質 QA」。目前採本機優先設計：資料只儲存在使用者瀏覽器的 `localStorage`，不會自動傳送到任何伺服器。
+結果頁提供「題庫品質 QA」。目前採本機優先設計：資料只儲存在使用者瀏覽器的 `localStorage`，不會自動傳送到任何伺服器。
 
 每題會累積以下聚合資料：
 
@@ -94,6 +111,8 @@ Question Bank v3.1 目前包含多個原創生成模型，例如：
 
 `tests/item-analytics-validation.js` 會驗證 Local Item Quality QA 的樣本門檻、過易／過難訊號、干擾選項檢查與限時題警示邏輯。
 
+`tests/single-screen-validation.js` 會驗證精簡單屏 UI 的必要結構與 viewport 規則。
+
 GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 
 ## 執行方式
@@ -103,7 +122,9 @@ GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 ## 檔案結構
 
 - `index.html` — 首頁、測驗與結果頁結構
-- `styles.css` — UI、RWD、題目切換動畫與圖表樣式
+- `styles.css` — 原始 UI、RWD、題目切換動畫與圖表樣式
+- `single-screen.css` — Single-Screen viewport stage、手機／短高度適配、精簡結果與 overlay 規則
+- `single-screen.js` — overlay 關閉行為與單屏 runtime metadata
 - `questions.js` — 舊版 30 題基礎題組，保留作為版本沿革
 - `question-bank.js` — Question Bank v3.1、300 題原創生成器、平衡抽題、曝光週期與 runtime validation
 - `app.js` — 基礎答題流程、返回上一題、結果計算與圖表繪製
@@ -112,6 +133,7 @@ GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 - `item-analytics.js` — 本機題目品質聚合、QA 訊號、結果頁報告與 JSON 匯出
 - `tests/question-bank-validation.js` — Node 題庫驗證
 - `tests/item-analytics-validation.js` — Local Item Quality QA 邏輯驗證
+- `tests/single-screen-validation.js` — 單屏介面結構驗證
 - `.github/workflows/question-bank-validation.yml` — GitHub Actions 品質閘門
 - `QUESTION_BANK_RESEARCH.md` — 題庫研究依據、授權與設計決策
 
@@ -127,6 +149,7 @@ GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 - Question Bank v3：300 題原創受控生成題庫、每構面 50 題、最近 8 份題組曝光控制
 - Question Bank v3.1：移除重複題面、改善生成參數、加入 300 題完整曝光週期、單次記憶呈現、速度計分修正與 CI 驗證
 - Local Item Quality QA：以瀏覽器本機聚合資料開始累積題目通過率、時間、跳過、逾時與干擾選項使用情況
+- Single-Screen Edition：首頁／題目／結果以單 viewport 呈現，詳細內容改用 overlay，加入手機與短高度適配
 
 ## 重要限制
 

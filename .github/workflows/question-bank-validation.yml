@@ -1,0 +1,25 @@
+name: Question Bank Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/cognitive-iq-lab-v6
+
+jobs:
+  validate-question-bank:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check question-bank.js
+          node --check assessment-quality.js
+          node --check app.js
+          node --check timeout-lock.js
+
+      - name: Validate 300-item bank
+        run: node tests/question-bank-validation.js

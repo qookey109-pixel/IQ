@@ -1,0 +1,260 @@
+/* Cognitive IQ Lab — Heritage Paper palette
+   Color direction inspired by the user's warm editorial reference:
+   ivory paper, ink-black typography, bronze/caramel accents, soft khaki rules.
+   This file only changes visual tone; assessment logic/layout remain unchanged. */
+
+:root {
+  --bg:#e9dfcf;
+  --bg2:#f5efe4;
+  --card:#f7f0e3;
+  --card-soft:#efe5d6;
+  --line:#cfbea5;
+  --line-2:#bda889;
+  --text:#241f1a;
+  --text-soft:#574d42;
+  --muted:#817261;
+  --navy:#3a2b20;
+  --blue:#9a6840;
+  --blue-soft:#eadbc7;
+  --gold:#a96f3e;
+  --gold-soft:#efe0c8;
+  --mint:#66725d;
+  --danger:#9f4f42;
+  --shadow:0 18px 46px rgba(64,45,29,.10);
+  --shadow-soft:0 7px 20px rgba(64,45,29,.075);
+
+  --ink-strong:#231d18;
+  --ink-soft:#6c5b4a;
+  --surface-soft:#efe4d4;
+  --accent-soft:#ead8c1;
+}
+
+body {
+  color:var(--text);
+  background:
+    radial-gradient(circle at 12% 9%, rgba(255,255,255,.58), transparent 26%),
+    radial-gradient(circle at 86% 14%, rgba(173,120,73,.10), transparent 24%),
+    repeating-linear-gradient(0deg, rgba(91,68,44,.018) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg,#f3ecdf 0%,#e8dece 100%);
+}
+
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.34;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(78,55,34,.055) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 70% 60%, rgba(78,55,34,.04) 0 1px, transparent 1.3px);
+  background-size:19px 21px, 27px 31px;
+}
+
+.screenPanel.card,
+.card,
+.questionCard,
+.scoreCard,
+.chartCard,
+.metric,
+.metricCard,
+.infoCard,
+.process,
+.itemQaPanel {
+  background:rgba(248,241,229,.96);
+  border-color:rgba(178,153,119,.58);
+  box-shadow:var(--shadow-soft);
+}
+
+.topbar .pill,
+.pill,
+.timer,
+.option,
+.screenClose {
+  background:#f8f1e5;
+  border-color:#ccb99d;
+  color:#382d24;
+}
+
+.brandMark {
+  background:linear-gradient(145deg,#2c241e,#6f4b31);
+  box-shadow:0 10px 25px rgba(74,49,31,.20);
+}
+
+.brandTitle,
+.counter,
+.question,
+.resultDesc,
+.bigScore,
+.metricTop,
+.chartTitle,
+.screenModal h3,
+#start h1,
+#result .resultHeading h2 {
+  color:#211b17;
+}
+
+.brandSub,
+.quizMeta,
+.help,
+.hint,
+.resultMicrocopy,
+.metricMeta,
+.scoreTitle,
+.chartNote,
+.playfulDisclaimer,
+.quickFacts span {
+  color:#7b6b5a;
+}
+
+.sectionKicker,
+.domainBadge,
+.questionTimeBadge.untimed {
+  background:#eadbc8;
+  color:#704b2d;
+  border-color:#d8c0a1;
+}
+
+.questionTimeBadge.timed,
+.timerWrap.timed,
+.timer.timed {
+  background:#ead4bd;
+  border-color:#b87d4e;
+  color:#6f4023;
+}
+
+.timerWrap,
+.totalTimeWrap {
+  background:rgba(244,234,218,.92);
+  border-color:#d4c2a7;
+}
+
+.progress {
+  background:#d9cbb8;
+}
+
+.progressBar,
+.fill {
+  background:linear-gradient(90deg,#6b4930,#b47a49);
+}
+
+.primary {
+  background:linear-gradient(135deg,#30261e,#7e5536);
+  color:#fffaf2;
+  box-shadow:0 10px 24px rgba(76,50,31,.20);
+}
+
+.primary:hover {
+  background:linear-gradient(135deg,#261f19,#8e5d39);
+}
+
+.secondary {
+  background:#f5ecdd;
+  color:#392d23;
+  border-color:#c8b394;
+}
+
+.ghost {
+  background:#eee2d1;
+  color:#675746;
+  border-color:#c7b493;
+}
+
+.option:hover {
+  border-color:#aa825e;
+  background:#fbf5eb;
+}
+
+.option.selected {
+  outline-color:#9a6840;
+  background:#eadbc7;
+}
+
+.visual,
+.matrixCell {
+  color:#2b231d;
+  background:linear-gradient(180deg,#faf3e7,#efe3d3);
+  border-color:#cdb99c;
+}
+
+.matrixCell.missing {
+  background:linear-gradient(180deg,#ead9c3,#dfc6a7);
+  color:#794d2b;
+  border-color:#b98659;
+}
+
+.dialRing {
+  color:#755f4b;
+  border-color:#cdb99e;
+  background:
+    radial-gradient(circle at 50% 50%, #f7efe2 0 48%, transparent 49%),
+    conic-gradient(from 225deg,#ddc5a7,#f5ebdc 31%,#cfa77e 57%,#f5ebdc 79%,#dfc9ad);
+  box-shadow:inset 0 0 0 14px rgba(255,250,242,.66),0 24px 60px rgba(71,47,29,.10);
+}
+
+.dialRing::after {
+  border-color:#bda688;
+}
+
+.dialLegend > div {
+  color:#6e5b49;
+}
+
+.dialLegend i {
+  color:#a57852;
+}
+
+.quickFacts > div,
+.modalFoot,
+.reviewItem {
+  border-color:#d8c7af;
+}
+
+.playfulDisclaimer strong,
+.tinyDisclaimer {
+  color:#5d4938;
+}
+
+.screenModal:not(.hidden),
+#itemQaPanel.screenModal:not(.hidden) {
+  background:rgba(248,241,229,.992);
+  border-color:#cbb699;
+  box-shadow:0 0 0 100vmax rgba(44,33,24,.31),0 30px 80px rgba(57,39,25,.24);
+}
+
+.screenModal p,
+.itemQaNotice {
+  color:#665646;
+}
+
+.itemQaCard,
+.itemQaTable th {
+  background:#efe4d4;
+}
+
+.qaFlag {
+  background:#e6d6c2;
+  color:#6d4a31;
+}
+
+.itemQaNotice,
+.notice {
+  background:#efe0c8;
+  border-color:#d3b58b;
+  color:#6a5135;
+}
+
+.track {
+  background:#d8c9b5;
+}
+
+.ok {
+  color:#5f7258;
+}
+
+/* Warm editorial focus ring for keyboard users. */
+button:focus-visible,
+.option:focus-visible {
+  outline:3px solid rgba(164,109,62,.42);
+  outline-offset:2px;
+}

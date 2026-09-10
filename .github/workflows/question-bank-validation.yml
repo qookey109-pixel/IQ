@@ -17,8 +17,10 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check question-bank.js
+          node --check answer-quality.js
           node --check assessment-quality.js
           node --check item-analytics.js
+          node --check item-quality-v2.js
           node --check single-screen.js
           node --check navigation-layout-fix.js
           node --check app.js
@@ -26,6 +28,9 @@ jobs:
 
       - name: Validate 300-item bank
         run: node tests/question-bank-validation.js
+
+      - name: Validate research-informed option quality
+        run: node tests/option-quality-validation.js
 
       - name: Validate local item analytics
         run: node tests/item-analytics-validation.js

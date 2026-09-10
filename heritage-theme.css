@@ -1,7 +1,6 @@
 /* Cognitive IQ Lab — Heritage Paper palette
-   Color direction inspired by the user's warm editorial reference:
-   ivory paper, ink-black typography, bronze/caramel accents, soft khaki rules.
-   This file only changes visual tone; assessment logic/layout remain unchanged. */
+   Warm editorial direction: ivory paper, ink-brown typography, bronze/caramel
+   accents and soft khaki rules. This is the active visual theme. */
 
 :root {
   --bg:#e9dfcf;
@@ -64,6 +63,11 @@ body::before {
   background:rgba(248,241,229,.96);
   border-color:rgba(178,153,119,.58);
   box-shadow:var(--shadow-soft);
+}
+
+.topbar {
+  background:rgba(245,238,226,.82);
+  border-bottom-color:rgba(111,75,49,.10);
 }
 
 .topbar .pill,
@@ -167,7 +171,9 @@ body::before {
 
 .option.selected {
   outline-color:#9a6840;
-  background:#eadbc7;
+  border-color:#a97a52;
+  background:linear-gradient(90deg,#eadbc7,#f8f1e5 78%,#f1dfc8);
+  box-shadow:inset 3px 0 0 #a96f3e;
 }
 
 .visual,
@@ -181,6 +187,13 @@ body::before {
   background:linear-gradient(180deg,#ead9c3,#dfc6a7);
   color:#794d2b;
   border-color:#b98659;
+}
+
+.visual.memory,
+.memory {
+  color:#5e402c;
+  background:linear-gradient(135deg,#f7eddd,#ead6bc);
+  border-color:#cfb28c;
 }
 
 .dialRing {
@@ -251,6 +264,89 @@ body::before {
 .ok {
   color:#5f7258;
 }
+
+/* timeout-lock.js injects timing styles at runtime. Important theme overrides keep
+   those controls inside the same warm editorial palette. */
+.timerWrap,
+.totalTimeWrap {
+  background:rgba(244,234,218,.96) !important;
+  border-color:#d4c2a7 !important;
+  box-shadow:0 6px 18px rgba(64,45,29,.055) !important;
+}
+
+.timer.timedTimer,
+.timer.timedTimer.urgent {
+  background:#efe0c8 !important;
+  border-color:#b87d4e !important;
+  color:#7b4026 !important;
+}
+
+.timer.untimedTimer {
+  background:#f3eadc !important;
+  color:#776655 !important;
+  border-color:#d8c5aa !important;
+}
+
+.timer.memoryTimer {
+  background:linear-gradient(135deg,#eadbc7,#f4e9da) !important;
+  color:#704b2d !important;
+  border-color:#c8aa84 !important;
+}
+
+.timer.totalTimer {
+  background:linear-gradient(180deg,#f8f1e5,#eee1cf) !important;
+  color:#3a2b20 !important;
+  border-color:#cfbaa0 !important;
+}
+
+.questionTimeBadge.timed {
+  background:#ead4bd !important;
+  border-color:#b87d4e !important;
+  color:#6f4023 !important;
+  box-shadow:0 6px 18px rgba(111,64,35,.08) !important;
+}
+
+.questionTimeBadge.untimed {
+  background:#eee3d3 !important;
+  border-color:#d2bfa4 !important;
+  color:#76624f !important;
+}
+
+.questionTimeBadge.memoryMode {
+  background:#eadbc8 !important;
+  border-color:#cba984 !important;
+  color:#704b2d !important;
+}
+
+.timeoutState {
+  background:#efe5d6 !important;
+  border-color:#d2bfa4 !important;
+  color:#6e5b49 !important;
+}
+
+#quiz .footerActions {
+  background:linear-gradient(180deg,rgba(248,241,226,0),rgba(248,241,226,.96) 28%,rgba(248,241,226,.99)) !important;
+}
+
+/* Result charts inherit the warm palette instead of the legacy blue SVG colors. */
+#radarChart polygon { stroke:#d8c7af !important; }
+#radarChart polygon:last-of-type {
+  fill:rgba(169,111,62,.16) !important;
+  stroke:#6b4930 !important;
+}
+#radarChart line { stroke:#dccdb8 !important; }
+#radarChart circle { fill:#a96f3e !important; }
+#radarChart text,
+#donutChart text,
+#barChart text { fill:#574d42 !important; }
+#donutChart circle { stroke:#e4d7c5 !important; }
+#donutChart path:nth-of-type(1) { stroke:#4f392b !important; }
+#donutChart path:nth-of-type(2) { stroke:#a96f3e !important; }
+#donutChart path:nth-of-type(3) { stroke:#cbb89d !important; }
+#barChart line { stroke:#e6d9c7 !important; }
+#barChart rect[fill="#edf2f8"] { fill:#e6d9c7 !important; }
+#barGrad stop:first-child { stop-color:#5b4030 !important; }
+#barGrad stop:last-child { stop-color:#b47a49 !important; }
 
 /* Warm editorial focus ring for keyboard users. */
 button:focus-visible,

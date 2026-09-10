@@ -80,11 +80,17 @@
           <div id="counter" class="counter">第 1 題 / 30</div>
           <div id="domain" class="domainBadge">流體推理</div>
         </div>
-        <div style="color:var(--muted);font-size:15px;font-weight:700">你仍可回到上一題修正答案；選答案後會自動切換。</div>
+        <div style="color:var(--muted);font-size:15px;font-weight:700">只有標示「限時」的題目會倒數；其他題目可依自己的節奏作答。</div>
       </div>
-      <div class="timerWrap">
-        <div class="timerLabel">剩餘時間</div>
-        <div id="timer" class="timer">00:30</div>
+      <div class="timersPanel">
+        <div class="timerWrap">
+          <div id="timerLabel" class="timerLabel">本題時間</div>
+          <div id="timer" class="timer untimedTimer">不限時</div>
+        </div>
+        <div class="timerWrap totalTimeWrap">
+          <div class="timerLabel">總測驗時間</div>
+          <div id="totalTimer" class="timer totalTimer">00:00</div>
+        </div>
       </div>
     </div>
 
@@ -104,6 +110,7 @@
     <div class="stage">
       <div id="questionCard" class="questionCard">
         <div id="visualHolder"></div>
+        <div id="questionTimeBadge" class="questionTimeBadge untimed">不限時</div>
         <div id="question" class="question"></div>
         <div id="help" class="help"></div>
         <div id="options" class="options"></div>

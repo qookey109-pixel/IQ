@@ -19,6 +19,7 @@ jobs:
           node --check question-bank.js
           node --check assessment-quality.js
           node --check item-analytics.js
+          node --check single-screen.js
           node --check app.js
           node --check timeout-lock.js
 
@@ -27,3 +28,6 @@ jobs:
 
       - name: Validate local item analytics
         run: node tests/item-analytics-validation.js
+
+      - name: Validate single-screen experience
+        run: node tests/single-screen-validation.js

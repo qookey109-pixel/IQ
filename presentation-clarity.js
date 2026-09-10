@@ -1,6 +1,6 @@
 // Cognitive IQ Lab — low-fatigue presentation layer
 // Presentation-only rewrite: keeps item IDs, answer keys and scoring intact while
-// removing redundant visual clutter from spatial items and structuring speed items.
+// removing redundant visual clutter from spatial and processing-speed items.
 
 (() => {
   const directionName = {
@@ -8,15 +8,6 @@
     "↓":"向下", "↙":"左下", "←":"向左", "↖":"左上"
   };
   const arrowRx = /[↑↗→↘↓↙←↖]/g;
-
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
 
   function wordsOnly(value) {
     return String(value ?? "").replace(arrowRx, token => directionName[token] || token);
@@ -45,6 +36,19 @@
       .filter(Boolean);
   }
 
+  function ordinalFromLabel(label) {
+    const m = String(label ?? "").match(/([1-4])/);
+    return m ? Number(m[1]) : null;
+  }
+
+  function mapBalancedLabelsToValues(labels, values, formatter = value => value) {
+    return labels.map((label, fallbackIndex) => {
+      const ordinal = ordinalFromLabel(label);
+      const sourceIndex = ordinal ? ordinal - 1 : fallbackIndex;
+      return formatter(values[sourceIndex], sourceIndex);
+    });
+  }
+
   function simplifySpeed(q) {
     const raw = String(q.visual ?? "");
     if (!raw) return;
@@ -54,14 +58,15 @@
       const target = (lines.shift() || "").replace(/^目標：/, "").trim();
       const candidates = parseVisualGroups(lines.join("   "));
       if (target && candidates.length === 4) {
-        q.visual = `
-          <div class="speedPrompt" aria-label="快速比對題">
-            <div class="speedTarget"><span>目標</span><strong>${escapeHtml(target)}</strong></div>
-            <div class="speedChoiceGrid">
-              ${candidates.map((value, i) => `<div class="speedChoice"><b>${i+1}</b>${escapeHtml(value)}</div>`).join("")}
-            </div>
-          </div>`;
-        q.presentationMode = "structured-speed";
+        // answer-position-balance.js may already have shuffled the semantic
+        // labels (第 1 個 / 第 2 個 ...). Map that exact order to the actual
+        // candidate strings so the balanced answer index remains valid.
+        q.o = mapBalancedLabelsToValues(q.o, candidates, value => String(value));
+        q.q = `目標：${target}。找出完全相同的字串。`;
+        q.visual = null;
+        q.e = `正確答案是 ${target}。`;
+        q.presentationMode = "direct-speed";
+        q.presentationReason = "candidate-values-moved-into-answer-buttons";
       }
       return;
     }
@@ -69,13 +74,19 @@
     if (q.model === "speed-odd-group") {
       const groups = parseVisualGroups(raw);
       if (groups.length === 4) {
-        q.visual = `
-          <div class="speedPrompt" aria-label="快速辨識題">
-            <div class="speedChoiceGrid">
-              ${groups.map((value, i) => `<div class="speedChoice"><b>${i+1}</b>${escapeHtml(value)}</div>`).join("")}
-            </div>
-          </div>`;
-        q.presentationMode = "structured-speed";
+        // Three groups intentionally share the same symbols. Keep a compact
+        // ordinal in each answer so all four controls remain distinct while
+        // the user compares the actual groups directly.
+        q.o = mapBalancedLabelsToValues(
+          q.o,
+          groups,
+          (value, sourceIndex) => `${sourceIndex + 1} · ${String(value)}`
+        );
+        q.q = "找出與其他三組不同的一組。";
+        q.visual = null;
+        q.e = `正確答案是 ${q.o[q.a]}；其中符號順序與其他三組不同。`;
+        q.presentationMode = "direct-speed";
+        q.presentationReason = "symbol-groups-moved-into-answer-buttons";
       }
     }
   }
@@ -96,10 +107,10 @@
   }
 
   window.IQ_PRESENTATION_CLARITY = {
-    version: "1.0",
+    version: "1.1",
     palette: ["white", "blue", "orange"],
     spatialTextOnly: true,
-    structuredSpeed: true,
-    principle: "show only information required to solve the item"
+    directSpeedOptions: true,
+    principle: "show each piece of information once, where the user acts on it"
   };
 })();

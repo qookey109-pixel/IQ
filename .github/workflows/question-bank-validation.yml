@@ -31,3 +31,6 @@ jobs:
 
       - name: Validate single-screen experience
         run: node tests/single-screen-validation.js
+
+      - name: Validate matrix viewport safety
+        run: node tests/matrix-layout-validation.js

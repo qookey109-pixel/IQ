@@ -64,7 +64,9 @@
 
   function mutateOne(correct, model, seed) {
     const out = [...correct];
-    const pos = ((seed * 2 + correct.length) % correct.length + correct.length) % correct.length;
+    // Walk every response position instead of repeatedly hitting only the same
+    // parity positions on 4-token items.
+    const pos = ((seed % correct.length) + correct.length) % correct.length;
     const used = new Set(correct);
     const current = out[pos];
 
@@ -81,14 +83,14 @@
 
   function buildDistractors(correct, model, seed) {
     const values = [];
-    for (let attempt = 0; attempt < 24 && values.length < 3; attempt++) {
+    for (let attempt = 0; attempt < 32 && values.length < 3; attempt++) {
       const candidate = join(mutateOne(correct, model, seed + attempt));
       if (candidate !== join(correct) && !values.includes(candidate)) values.push(candidate);
     }
 
     // Defensive fallback: use a two-position near miss only if three unique
     // one-position variants were not possible.
-    for (let attempt = 0; values.length < 3 && attempt < 24; attempt++) {
+    for (let attempt = 0; values.length < 3 && attempt < 32; attempt++) {
       let candidate = mutateOne(correct, model, seed + attempt + 31);
       candidate = mutateOne(candidate, model, seed + attempt + 67);
       const value = join(candidate);
@@ -131,7 +133,7 @@
   }
 
   window.IQ_MEMORY_OPTION_QUALITY = {
-    version: "2.0",
+    version: "2.1",
     upgradedItems: [...seen].filter(q => q?.d === "工作記憶" && q?.memoryOptionQuality).length,
     principle: "all choices follow the task; distractors contain small recall errors",
     deriveCorrect

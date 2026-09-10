@@ -44,6 +44,30 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。
 - 處理速度構面只有「答對」的限時題才可取得速度加分，答錯但很快不會被獎勵
 - 高級結果圖表：能力分布雷達圖、答題結構環形圖、構面比較長條圖
 
+## Local Item Quality QA
+
+結果頁新增「題庫品質 QA」。目前採本機優先設計：資料只儲存在使用者瀏覽器的 `localStorage`，不會自動傳送到任何伺服器。
+
+每題會累積以下聚合資料：
+
+- 題目曝光次數
+- 答對次數與答對率
+- 跳過次數與跳過率
+- 限時題逾時次數與逾時率
+- 累積／平均作答時間
+- 四個選項各自被選擇的次數
+
+目前 QA 規則至少要有 10 次題目曝光才開始判定，避免極小樣本直接貼標籤。可能產生的工程 QA 訊號包括：
+
+- 可能過易
+- 可能過難／規則不清
+- 跳過率偏高
+- 限時題逾時率偏高
+- 平均作答時間接近時限
+- 干擾選項偏弱
+
+這些是本機工程 QA 訊號，不是正式的 IRT item difficulty、discrimination、信效度或人口常模。使用者可以從報告匯出聚合 JSON，也可以自行清除本機統計。
+
 ## 題型模型
 
 Question Bank v3.1 目前包含多個原創生成模型，例如：
@@ -68,6 +92,8 @@ Question Bank v3.1 目前包含多個原創生成模型，例如：
 - 正確答案 index 必須有效
 - 前 10 份題組應完整覆蓋 300 題且不重複
 
+`tests/item-analytics-validation.js` 會驗證 Local Item Quality QA 的樣本門檻、過易／過難訊號、干擾選項檢查與限時題警示邏輯。
+
 GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 
 ## 執行方式
@@ -83,7 +109,9 @@ GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 - `app.js` — 基礎答題流程、返回上一題、結果計算與圖表繪製
 - `timeout-lock.js` — 限時／不限時模式、總測驗時間與逾時鎖定
 - `assessment-quality.js` — 工作記憶單次呈現、處理速度正確性條件與結果品質保護
+- `item-analytics.js` — 本機題目品質聚合、QA 訊號、結果頁報告與 JSON 匯出
 - `tests/question-bank-validation.js` — Node 題庫驗證
+- `tests/item-analytics-validation.js` — Local Item Quality QA 邏輯驗證
 - `.github/workflows/question-bank-validation.yml` — GitHub Actions 品質閘門
 - `QUESTION_BANK_RESEARCH.md` — 題庫研究依據、授權與設計決策
 
@@ -98,6 +126,7 @@ GitHub Actions workflow：`.github/workflows/question-bank-validation.yml`。
 - Question Bank v2：60 題母題庫、每構面 10 題、降低立即重測的題目重複
 - Question Bank v3：300 題原創受控生成題庫、每構面 50 題、最近 8 份題組曝光控制
 - Question Bank v3.1：移除重複題面、改善生成參數、加入 300 題完整曝光週期、單次記憶呈現、速度計分修正與 CI 驗證
+- Local Item Quality QA：以瀏覽器本機聚合資料開始累積題目通過率、時間、跳過、逾時與干擾選項使用情況
 
 ## 重要限制
 

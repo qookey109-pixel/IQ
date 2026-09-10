@@ -18,8 +18,12 @@ jobs:
         run: |
           node --check question-bank.js
           node --check assessment-quality.js
+          node --check item-analytics.js
           node --check app.js
           node --check timeout-lock.js
 
       - name: Validate 300-item bank
         run: node tests/question-bank-validation.js
+
+      - name: Validate local item analytics
+        run: node tests/item-analytics-validation.js

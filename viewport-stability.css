@@ -1,0 +1,101 @@
+/* Final viewport stability layer.
+   Loaded after the heritage palette so functional containment wins over theme styling. */
+
+/* Dense symbol strings must stay inside their own Raven-like matrix cell. */
+#quiz #visualHolder .matrixCell {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  contain: paint;
+  letter-spacing: -0.035em;
+}
+
+#quiz #visualHolder .matrixCell.density-3 {
+  font-size: clamp(15px, 1.45vw, 21px);
+}
+
+#quiz #visualHolder .matrixCell.density-4 {
+  font-size: clamp(12px, 1.12vw, 16px);
+  letter-spacing: -0.07em;
+}
+
+#quiz #visualHolder .matrixCell.density-5 {
+  font-size: clamp(10px, .92vw, 13px);
+  letter-spacing: -0.08em;
+}
+
+#quiz #visualHolder .matrixCell.density-6 {
+  font-size: clamp(9px, .78vw, 11px);
+  letter-spacing: -0.09em;
+}
+
+/* The quiz remains one-screen first, but never sacrifices the navigation row. */
+#quiz .stage,
+#quiz .compactQuestionCard {
+  min-height: 0;
+  max-height: 100%;
+}
+
+#quiz .compactQuestionCard {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 91, 54, .28) transparent;
+}
+
+#quiz .footerActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  padding-bottom: max(2px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(248, 241, 226, 0), rgba(248, 241, 226, .96) 28%, rgba(248, 241, 226, .99));
+}
+
+#quiz .forwardBtn {
+  min-width: 82px;
+}
+
+@media (max-width: 760px) {
+  #quiz #visualHolder .matrixCell.density-3 {
+    font-size: clamp(14px, 4vw, 19px);
+  }
+
+  #quiz #visualHolder .matrixCell.density-4 {
+    font-size: clamp(11px, 3.25vw, 15px);
+  }
+
+  #quiz #visualHolder .matrixCell.density-5 {
+    font-size: clamp(9px, 2.65vw, 12px);
+  }
+
+  #quiz #visualHolder .matrixCell.density-6 {
+    font-size: clamp(8px, 2.25vw, 10px);
+  }
+
+  #quiz .footerActions .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 6px;
+  }
+
+  #quiz .footerActions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-height: 700px) {
+  #quiz #visualHolder .matrixGrid {
+    width: min(190px, 38vw, 21dvh);
+  }
+
+  #quiz .compactQuestionCard {
+    padding: 8px 11px;
+    gap: 3px;
+  }
+
+  #quiz .footerActions {
+    min-height: 36px;
+  }
+}

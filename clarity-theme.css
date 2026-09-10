@@ -1,0 +1,332 @@
+/* Cognitive IQ Lab — Clarity theme
+   White-first, soft blue structure, restrained orange emphasis.
+   Loaded last so this visual layer can simplify the heritage palette without
+   changing assessment logic or viewport safety. */
+
+:root {
+  --clarity-white:#ffffff;
+  --clarity-bg:#f7faff;
+  --clarity-blue:#2f6fe4;
+  --clarity-blue-2:#73a7ff;
+  --clarity-blue-soft:#eaf3ff;
+  --clarity-orange:#f28a3d;
+  --clarity-orange-2:#ffb36b;
+  --clarity-orange-soft:#fff1e6;
+  --clarity-ink:#172033;
+  --clarity-muted:#6f7f93;
+  --clarity-line:#dce7f3;
+
+  --bg:var(--clarity-bg);
+  --bg2:#ffffff;
+  --card:#ffffff;
+  --card-soft:#f8fbff;
+  --line:var(--clarity-line);
+  --line-2:#cbd9e9;
+  --text:var(--clarity-ink);
+  --text-soft:#42526a;
+  --muted:var(--clarity-muted);
+  --navy:#235bbd;
+  --blue:var(--clarity-blue);
+  --blue-soft:var(--clarity-blue-soft);
+  --gold:var(--clarity-orange);
+  --gold-soft:var(--clarity-orange-soft);
+  --shadow:0 18px 44px rgba(37,76,128,.08);
+  --shadow-soft:0 6px 20px rgba(37,76,128,.06);
+}
+
+body {
+  color:var(--clarity-ink);
+  background:
+    radial-gradient(circle at 8% 6%, rgba(83,146,255,.12), transparent 29%),
+    radial-gradient(circle at 94% 8%, rgba(255,157,78,.10), transparent 28%),
+    linear-gradient(180deg,#ffffff 0%,#f7faff 55%,#fffaf6 100%);
+}
+
+body::before { display:none !important; }
+
+.topbar {
+  background:rgba(255,255,255,.82);
+  border-bottom-color:rgba(47,111,228,.08);
+}
+
+.screenPanel.card,
+.card,
+.questionCard,
+.scoreCard,
+.chartCard,
+.metric,
+.metricCard,
+.infoCard,
+.process,
+.itemQaPanel {
+  background:rgba(255,255,255,.96);
+  border-color:var(--clarity-line);
+  box-shadow:var(--shadow-soft);
+}
+
+.brandMark {
+  color:#fff;
+  background:linear-gradient(145deg,var(--clarity-blue) 0%,#5b91f2 62%,var(--clarity-orange) 100%);
+  box-shadow:0 8px 22px rgba(47,111,228,.18);
+}
+
+.brandTitle,
+.counter,
+.question,
+.resultDesc,
+.bigScore,
+.metricTop,
+.chartTitle,
+.screenModal h3,
+#start h1,
+#result .resultHeading h2 { color:var(--clarity-ink); }
+
+.brandSub,
+.quizMeta,
+.help,
+.hint,
+.resultMicrocopy,
+.metricMeta,
+.scoreTitle,
+.chartNote,
+.playfulDisclaimer,
+.quickFacts span { color:var(--clarity-muted); }
+
+.topbar .pill,
+.pill {
+  color:#27589f;
+  background:linear-gradient(135deg,#f5f9ff,#fff7f0);
+  border-color:#d9e5f3;
+}
+
+.sectionKicker,
+.domainBadge,
+.questionTimeBadge.untimed {
+  color:#275eb7;
+  background:var(--clarity-blue-soft);
+  border-color:#cfe0f6;
+}
+
+.questionTimeBadge.timed,
+.timerWrap.timed,
+.timer.timed {
+  color:#a54b18;
+  background:var(--clarity-orange-soft);
+  border-color:#f3c49f;
+}
+
+.timerWrap,
+.totalTimeWrap,
+.timer,
+.screenClose {
+  color:#294766;
+  background:rgba(255,255,255,.92);
+  border-color:#d5e3f1;
+  box-shadow:none;
+}
+
+.progress { background:#e9f0f7; }
+.progressBar,
+.fill {
+  background:linear-gradient(90deg,var(--clarity-blue) 0%,#6da3fb 72%,var(--clarity-orange) 100%);
+}
+
+.primary {
+  color:#fff;
+  background:linear-gradient(135deg,#2e6fe3 0%,#4e89ee 72%,#f39a54 125%);
+  border-color:transparent;
+  box-shadow:0 9px 22px rgba(47,111,228,.18);
+}
+.primary:hover { background:linear-gradient(135deg,#275fc7 0%,#4380e6 72%,#ed8a3d 125%); }
+
+.secondary,
+.ghost {
+  color:#305b92;
+  background:#fff;
+  border-color:#d5e2ef;
+}
+
+.btn,
+.option {
+  transition:transform 130ms cubic-bezier(.23,1,.32,1), border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.btn:active,
+.option:active { transform:scale(.985); }
+
+.questionCard {
+  border-color:#dbe7f2;
+  background:rgba(255,255,255,.985);
+}
+
+.question {
+  max-width:980px;
+  font-weight:760;
+  line-height:1.24;
+  letter-spacing:-.025em;
+}
+
+.help {
+  font-size:13px;
+  line-height:1.45;
+  font-weight:560;
+}
+
+.option {
+  position:relative;
+  color:#243247;
+  background:#fff;
+  border-color:#dce6f1;
+  box-shadow:none;
+  font-weight:650;
+}
+.option:hover {
+  border-color:#a9c8f1;
+  background:#f8fbff;
+}
+.option.selected {
+  outline:none;
+  border-color:#7ba9ee;
+  background:linear-gradient(90deg,rgba(76,137,238,.12),rgba(255,255,255,.98) 64%,rgba(242,138,61,.07));
+  box-shadow:inset 3px 0 0 var(--clarity-orange);
+}
+
+.visual {
+  color:#1c2a3d;
+  background:#fbfdff;
+  border-color:#dce7f2;
+  box-shadow:none;
+}
+
+.matrixGrid { gap:5px; }
+.matrixCell {
+  color:#21334b;
+  background:#f8fbff;
+  border-color:#dbe6f1;
+  box-shadow:none;
+}
+.matrixCell.missing {
+  color:#b65c20;
+  background:var(--clarity-orange-soft);
+  border-color:#f0bc93;
+}
+
+/* Processing-speed items keep necessary information but split it into calm,
+   scannable chunks instead of one long symbol/string row. */
+.speedPrompt {
+  display:grid;
+  gap:10px;
+  width:min(680px,100%);
+  margin-inline:auto;
+}
+.speedTarget {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:52px;
+  padding:10px 16px;
+  border:1px solid #cfe0f3;
+  border-radius:16px;
+  background:linear-gradient(135deg,#f5f9ff,#ffffff);
+}
+.speedTarget span {
+  color:#6681a5;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.speedTarget strong {
+  color:#1e4f9c;
+  font-size:clamp(20px,3vw,28px);
+  letter-spacing:.08em;
+}
+.speedChoiceGrid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.speedChoice {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:52px;
+  padding:9px 8px;
+  border:1px solid #e0e8f1;
+  border-radius:14px;
+  background:#fff;
+  color:#2b384b;
+  font-weight:750;
+  overflow:hidden;
+}
+.speedChoice b {
+  margin-right:5px;
+  color:var(--clarity-orange);
+  font-size:11px;
+}
+
+.visual.memory,
+.memory {
+  color:#245aab;
+  background:linear-gradient(135deg,#f2f7ff,#fff8f2);
+  border-color:#d5e4f5;
+  letter-spacing:.12em;
+  box-shadow:none;
+}
+
+.quickFacts > div,
+.modalFoot,
+.reviewItem { border-color:#e1eaf3; }
+
+.playfulDisclaimer strong,
+.tinyDisclaimer { color:#315d91; }
+
+.screenModal:not(.hidden),
+#itemQaPanel.screenModal:not(.hidden) {
+  background:rgba(255,255,255,.985);
+  border-color:#d8e5f2;
+  box-shadow:0 0 0 100vmax rgba(30,53,84,.20),0 24px 70px rgba(31,74,132,.16);
+}
+
+.itemQaCard,
+.itemQaTable th { background:#f6f9fd; }
+.qaFlag { background:#edf4ff; color:#3d68a2; }
+.itemQaNotice,
+.notice {
+  color:#925020;
+  background:#fff5ed;
+  border-color:#f4d2b6;
+}
+
+button:focus-visible,
+.option:focus-visible {
+  outline:3px solid rgba(47,111,228,.28);
+  outline-offset:2px;
+}
+
+@media (max-width:760px) {
+  .question {
+    font-size:clamp(21px,5.6vw,27px);
+    line-height:1.22;
+  }
+  .help { font-size:12px; }
+  .option {
+    min-height:54px;
+    font-size:clamp(17px,4.6vw,20px);
+  }
+  .speedChoiceGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .speedChoice { min-height:46px; }
+  .speedTarget { min-height:48px; }
+}
+
+@media (max-height:700px) {
+  .question { font-size:clamp(19px,3.7vh,25px); }
+  .option { min-height:42px; }
+  .speedPrompt { gap:6px; }
+  .speedChoice { min-height:38px; padding:6px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .btn,.option { transition:none !important; transform:none !important; }
+}

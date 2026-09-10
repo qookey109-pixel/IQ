@@ -211,8 +211,8 @@ body::before { display:none !important; }
   border-color:#f0bc93;
 }
 
-/* Processing-speed items keep necessary information but split it into calm,
-   scannable chunks instead of one long symbol/string row. */
+/* Legacy structured-speed styles remain harmless for older cached questions,
+   but current v1.1 presentation moves candidates directly into answer buttons. */
 .speedPrompt {
   display:grid;
   gap:10px;
@@ -297,6 +297,11 @@ body::before { display:none !important; }
   color:#925020;
   background:#fff5ed;
   border-color:#f4d2b6;
+}
+
+/* Override the legacy warm sticky footer from viewport-stability.css. */
+#quiz .footerActions {
+  background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.96) 28%,rgba(255,255,255,.995));
 }
 
 button:focus-visible,

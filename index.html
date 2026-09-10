@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="single-screen.css">
 <link rel="stylesheet" href="matrix-layout-fix.css">
 <link rel="stylesheet" href="heritage-theme.css">
+<link rel="stylesheet" href="viewport-stability.css">
 </head>
 <body>
 <main class="appShell">
@@ -20,7 +21,7 @@
         <div class="brandSub">300 題母題庫 · 每次平衡抽 30 題</div>
       </div>
     </div>
-    <div class="pill">QB v3.1</div>
+    <div class="pill">QB v3.2</div>
   </div>
 
   <section id="start" class="card screenPanel">
@@ -78,7 +79,7 @@
           <div id="counter" class="counter">第 1 題 / 30</div>
           <div id="domain" class="domainBadge">流體推理</div>
         </div>
-        <div class="quizMeta">QB-2026.09.3 · 只有標示「限時」的題目會倒數</div>
+        <div class="quizMeta">QB-2026.09.3 · rev 3.2 · 只有標示「限時」的題目會倒數</div>
       </div>
       <div class="timersPanel">
         <div class="timerWrap">
@@ -117,9 +118,9 @@
         <div class="footerActions">
           <div class="actions" style="margin-top:0">
             <button id="prevBtn" class="btn secondary">上一題</button>
-            <button id="skipBtn" class="btn ghost">跳過</button>
+            <button id="skipBtn" class="btn secondary">下一題</button>
           </div>
-          <div class="hint">選答案後自動下一題</div>
+          <div class="hint">選答案後自動下一題 · 也可手動前後瀏覽</div>
         </div>
       </div>
     </div>
@@ -128,7 +129,7 @@
   <section id="result" class="card screenPanel hidden">
     <div class="resultHeading">
       <div>
-        <div class="sectionKicker">RESULT · QB-2026.09.3</div>
+        <div class="sectionKicker">RESULT · QB-2026.09.3 · rev 3.2</div>
         <h2>你的認知快照</h2>
       </div>
       <div class="resultMicrocopy">不是標準答案，只是一張今天的腦內地圖。</div>
@@ -176,15 +177,18 @@
     <div id="review" class="review screenModal hidden"></div>
   </section>
 
-  <div class="footer">Cognitive IQ Lab · QB v3.1</div>
+  <div class="footer">Cognitive IQ Lab · QB v3.2</div>
 </main>
 
 <script src="questions.js"></script>
 <script src="question-bank.js"></script>
+<script src="answer-quality.js"></script>
 <script src="app.js"></script>
 <script src="timeout-lock.js"></script>
 <script src="assessment-quality.js"></script>
 <script src="item-analytics.js"></script>
+<script src="item-quality-v2.js"></script>
+<script src="navigation-layout-fix.js"></script>
 <script src="single-screen.js"></script>
 </body>
 </html>

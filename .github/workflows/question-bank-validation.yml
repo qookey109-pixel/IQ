@@ -27,6 +27,7 @@ jobs:
           node --check navigation-layout-fix.js
           node --check app.js
           node --check timeout-lock.js
+          node --check memory-exposure.js
 
       - name: Validate 300-item bank
         run: node tests/question-bank-validation.js
@@ -39,6 +40,9 @@ jobs:
 
       - name: Validate low-fatigue presentation
         run: node tests/presentation-clarity-validation.js
+
+      - name: Validate adaptive memory exposure
+        run: node tests/memory-exposure-validation.js
 
       - name: Validate local item analytics
         run: node tests/item-analytics-validation.js

@@ -20,6 +20,7 @@ jobs:
           node --check assessment-quality.js
           node --check item-analytics.js
           node --check single-screen.js
+          node --check navigation-layout-fix.js
           node --check app.js
           node --check timeout-lock.js
 
@@ -34,3 +35,6 @@ jobs:
 
       - name: Validate matrix viewport safety
         run: node tests/matrix-layout-validation.js
+
+      - name: Validate forward navigation and dense matrix containment
+        run: node tests/navigation-layout-validation.js

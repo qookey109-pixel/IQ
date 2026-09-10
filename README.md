@@ -12,7 +12,7 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。�
 - 每次平衡抽 30 題；每構面固定 5 題（2 基礎 + 2 中等 + 1 進階）
 - 最近 8 份題組曝光控制；目前比例可讓前 10 份題組先走完 300 題再重複
 - 300 個唯一 task signature
-- 只有處理速度題有硬性倒數；工作記憶刺激顯示 3 秒，其餘主要推理題不限時
+- 只有處理速度題有硬性倒數；工作記憶刺激依難度呈現 4–6 秒，其餘主要推理題不限時
 
 ### v3.2 選項品質
 
@@ -59,10 +59,12 @@ QA+ 會累積／分析：
 - `100dvh`、safe-area、手機與短高度 breakpoint
 - 詳細說明、逐題解析與 QA 使用 overlay
 - Matrix 依 viewport 縮放；密集符號會依格子內容縮字，避免 Safari 溢出
+- 視覺空間題保留箭頭文字與箭頭選項，只移除重複的上方視覺框
+- 處理速度題把候選內容直接放進答案按鈕，不重複顯示候選 panel
 - 底部保留「上一題 / 下一題」導覽
 - 未作答按下一題只會往前，不會清掉已存在答案
 - 逾時題回看仍鎖定，但可再次往下一題
-- 暖米白／紙張奶油色／深墨棕／古銅色 editorial palette
+- 介面使用暖米白／紙張奶油色／深墨棕／古銅色 editorial palette；白／藍／橘 clarity theme 不再載入
 
 ## 計時模型
 
@@ -70,11 +72,13 @@ QA+ 會累積／分析：
 - 流體推理：不限時
 - 視覺空間：不限時
 - 量化推理：不限時
-- 工作記憶：刺激只呈現 3 秒，作答不限時
+- 工作記憶：刺激只呈現一次；基礎 4 秒、中等 5 秒、進階 6 秒；消失後作答不限時
 - 處理速度：明確倒數；倒數到 0 永久鎖定，不能補答
 - 顯示整份測驗總時間
 - 不限時題不因慢而扣速度分
 - 處理速度只有答對的限時題才可能取得速度因素加分
+
+工作記憶採 4/5/6 秒不是正式臨床常模，而是目前產品版的呈現政策：較長、較複雜的刺激給略多編碼時間，降低把閱讀速度混進記憶分數的程度。刺激仍只顯示一次，以保留工作記憶挑戰。
 
 ## 自動品質閘門
 
@@ -84,6 +88,8 @@ GitHub Actions `.github/workflows/question-bank-validation.yml` 會驗證：
 - 300 題題庫結構與 10-form 完整覆蓋週期
 - Question Bank v3.2 option quality
 - Item Quality QA v2 計算邏輯
+- Low-fatigue presentation 與暖米白／墨棕／古銅 active theme
+- Adaptive memory exposure（4 / 5 / 6 秒）
 - Local item analytics
 - Single-Screen UI 結構
 - Matrix viewport safety
@@ -95,12 +101,14 @@ GitHub Actions `.github/workflows/question-bank-validation.yml` 會驗證：
 - `question-bank.js` — 300 題原始生成器與平衡抽題
 - `answer-quality.js` — v3.2 原創 near-miss / distractor quality pass
 - `answer-position-balance.js` — A/B/C/D 全庫平衡
+- `presentation-clarity.js` — 低疲勞呈現：移除重複視覺但保留必要箭頭／矩陣
+- `memory-exposure.js` — 工作記憶 4/5/6 秒自適應呈現政策
 - `item-analytics.js` — 第一代本機聚合統計
 - `item-quality-v2.js` — QA+ / item-rest / distractor efficiency / preflight
 - `timeout-lock.js` — 混合計時、總時間、逾時鎖定
 - `navigation-layout-fix.js` — 非破壞式上一題／下一題導覽
 - `matrix-layout-fix.css` / `viewport-stability.css` — Matrix 與短 viewport 安全
-- `heritage-theme.css` — 暖色 editorial 視覺
+- `heritage-theme.css` — 暖米白／墨棕／古銅 active editorial theme
 - `OPTION_QUALITY_RESEARCH.md` — 選項／干擾選項研究與授權界線
 
 ## 執行方式

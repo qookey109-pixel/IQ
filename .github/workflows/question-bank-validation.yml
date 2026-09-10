@@ -19,6 +19,7 @@ jobs:
           node --check question-bank.js
           node --check answer-quality.js
           node --check answer-position-balance.js
+          node --check memory-answer-quality.js
           node --check presentation-clarity.js
           node --check assessment-quality.js
           node --check item-analytics.js
@@ -34,6 +35,9 @@ jobs:
 
       - name: Validate research-informed option quality
         run: node tests/option-quality-validation.js
+
+      - name: Validate harder working-memory choices
+        run: node tests/memory-answer-quality-validation.js
 
       - name: Validate Item Quality QA v2 metrics
         run: node tests/item-quality-v2-validation.js

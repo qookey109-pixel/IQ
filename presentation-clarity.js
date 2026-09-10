@@ -42,9 +42,6 @@
       const target = (lines.shift() || "").replace(/^目標：/, "").trim();
       const candidates = parseVisualGroups(lines.join("   "));
       if (target && candidates.length === 4) {
-        // answer-position-balance.js may already have shuffled the semantic
-        // labels (第 1 個 / 第 2 個 ...). Map that exact order to the actual
-        // candidate strings so the balanced answer index remains valid.
         q.o = mapBalancedLabelsToValues(q.o, candidates, value => String(value));
         q.q = `目標：${target}。找出完全相同的字串。`;
         q.visual = null;
@@ -58,9 +55,6 @@
     if (q.model === "speed-odd-group") {
       const groups = parseVisualGroups(raw);
       if (groups.length === 4) {
-        // Three groups intentionally share the same symbols. Keep a compact
-        // ordinal in each answer so all four controls remain distinct while
-        // the user compares the actual groups directly.
         q.o = mapBalancedLabelsToValues(
           q.o,
           groups,
@@ -91,8 +85,8 @@
   }
 
   window.IQ_PRESENTATION_CLARITY = {
-    version: "1.2",
-    palette: ["white", "blue", "orange"],
+    version: "1.3",
+    palette: ["warm-ivory", "ink-brown", "bronze"],
     spatialTextOnly: true,
     spatialArrowsPreserved: true,
     directSpeedOptions: true,

@@ -23,9 +23,9 @@
   <section id="start" class="card">
     <div class="hero">
       <div>
-        <div class="sectionKicker">QUESTION BANK v3 · QB-2026.09.3</div>
+        <div class="sectionKicker">QUESTION BANK v3.1 · QB-2026.09.3</div>
         <h1>300 題母題庫，<br>每次重新組卷。</h1>
-        <p class="lead">題庫已升級成 300 題原創母題庫，每個認知構面 50 題。每次測驗仍只抽 30 題，並維持固定構面與難度比例；系統也會盡量避開最近數次已出現的題目，降低重測時的記憶效應。</p>
+        <p class="lead">題庫維持 300 題原創母題庫，每個認知構面 50 題。每次測驗只抽 30 題，固定維持六個構面與難度比例；目前也加入完整曝光週期控制，前 10 份題組會優先走完 300 題後才重新使用舊題。</p>
         <div class="actions">
           <button class="btn primary" id="startBtn">開始完整測驗</button>
           <button class="btn secondary" id="aboutBtn">測驗說明</button>
@@ -39,9 +39,9 @@
               <div class="metricNum">300</div>
               <div class="metricLabel">母題庫題數</div>
             </div>
-            <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">QUESTION BANK v3</div>
+            <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">QUESTION BANK v3.1</div>
           </div>
-          <div class="metricDesc">六個構面各 50 題；每構面配置 20 基礎、20 中等、10 進階，支援後續題目分析與校準。</div>
+          <div class="metricDesc">六個構面各 50 題；每構面配置 20 基礎、20 中等、10 進階，並檢查重複題面、答案與計時規則。</div>
         </div>
         <div class="metricCard">
           <div class="metricTop">
@@ -51,25 +51,25 @@
             </div>
             <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">BALANCED FORM</div>
           </div>
-          <div class="metricDesc">每個構面固定抽 5 題：2 基礎、2 中等、1 進階；不需要一次做完 300 題。</div>
+          <div class="metricDesc">每個構面固定抽 5 題：2 基礎、2 中等、1 進階；前 10 份題組優先不重複，之後再循環。</div>
         </div>
       </div>
     </div>
 
     <div class="infoGrid">
       <div class="infoCard"><strong>受控原創題型</strong><span>以數列、矩陣規律、空間旋轉、工作記憶、快速比對與量化推理等通用能力題型建立原創 item models。</span></div>
-      <div class="infoCard"><strong>近期題目避重</strong><span>系統記錄最近 8 份題組，抽題時優先使用近期未出現的題目，降低重測記憶效應。</span></div>
+      <div class="infoCard"><strong>完整曝光週期</strong><span>系統除了避開最近 8 份題組，也記錄本輪已使用題目；在目前配置下可先走完 300 題再開始重複。</span></div>
       <div class="infoCard"><strong>混合計時</strong><span>一般推理題不限時；工作記憶限制刺激呈現；處理速度題才使用明顯倒數與逾時鎖定。</span></div>
     </div>
 
     <div class="processGrid">
       <div class="process"><div class="processNum">1</div><strong>平衡抽題</strong><p style="font-size:16px;margin:0">從 300 題母題庫組出一份新的 30 題測驗。</p></div>
-      <div class="process"><div class="processNum">2</div><strong>完成作答</strong><p style="font-size:16px;margin:0">依題型使用不限時、記憶呈現時間或限時處理速度模式。</p></div>
+      <div class="process"><div class="processNum">2</div><strong>完成作答</strong><p style="font-size:16px;margin:0">依題型使用不限時、單次記憶呈現或限時處理速度模式。</p></div>
       <div class="process"><div class="processNum">3</div><strong>產生報告</strong><p style="font-size:16px;margin:0">查看能力分布、答題結構、構面比較與總作答時間。</p></div>
     </div>
 
     <div id="about" class="notice hidden" style="margin-top:20px">
-      Question Bank v3 共有 300 題，每個構面 50 題；每次抽取 30 題，每構面固定 5 題，難度比例為 2 基礎、2 中等、1 進階。題庫架構參考公開的心理計量、Automatic Item Generation、IRT/CAT 與題目曝光控制方法，但題目內容為本站原創生成。現在的「基礎／中等／進階」仍是設計難度，不是經人口樣本校準後的心理計量難度。
+      Question Bank v3.1 共有 300 題，每個構面 50 題；每次抽取 30 題，每構面固定 5 題，難度比例為 2 基礎、2 中等、1 進階。工作記憶刺激在一次測驗中只顯示一次；處理速度的速度加分只有答對時才成立。現在的「基礎／中等／進階」仍是設計難度，不是經人口樣本校準後的心理計量難度。
     </div>
   </section>
 
@@ -155,7 +155,7 @@
           <div class="chartCard full">
             <div class="chartTitle">構面表現比較</div>
             <svg id="barChart" viewBox="0 0 620 280" width="100%" height="260" aria-label="bar chart"></svg>
-            <div class="chartNote">不限時構面以正確率為主；真正限時的處理速度題才納入速度表現。</div>
+            <div class="chartNote">不限時構面以正確率為主；處理速度題只有在答對時，速度才會增加該構面表現。</div>
           </div>
         </div>
 
@@ -171,12 +171,13 @@
     <div class="notice">300 題只是題庫規模，不代表已標準化。若要把分數做成可正式解釋的 IQ，仍需要真實受測資料、題目難度與鑑別度分析、信效度、測量偏誤／不變性檢驗、年齡分層常模與標準分數換算。</div>
   </section>
 
-  <div class="footer">Cognitive IQ Lab v6 · Question Bank v3 · QB-2026.09.3</div>
+  <div class="footer">Cognitive IQ Lab v6 · Question Bank v3.1 · QB-2026.09.3</div>
 </main>
 
 <script src="questions.js"></script>
 <script src="question-bank.js"></script>
 <script src="app.js"></script>
 <script src="timeout-lock.js"></script>
+<script src="assessment-quality.js"></script>
 </body>
 </html>

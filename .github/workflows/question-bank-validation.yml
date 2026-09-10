@@ -19,6 +19,7 @@ jobs:
           node --check question-bank.js
           node --check answer-quality.js
           node --check answer-position-balance.js
+          node --check presentation-clarity.js
           node --check assessment-quality.js
           node --check item-analytics.js
           node --check item-quality-v2.js
@@ -35,6 +36,9 @@ jobs:
 
       - name: Validate Item Quality QA v2 metrics
         run: node tests/item-quality-v2-validation.js
+
+      - name: Validate low-fatigue presentation
+        run: node tests/presentation-clarity-validation.js
 
       - name: Validate local item analytics
         run: node tests/item-analytics-validation.js

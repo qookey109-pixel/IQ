@@ -17,15 +17,15 @@
         <div class="brandSub">Assessment Edition · 正式測評 + Raven 類圖形矩陣 + 平衡題庫</div>
       </div>
     </div>
-    <div class="pill">42 題題庫 · 每次 30 題 · 6 構面</div>
+    <div class="pill">60 題題庫 · 每次 30 題 · 6 構面</div>
   </div>
 
   <section id="start" class="card">
     <div class="hero">
       <div>
-        <div class="sectionKicker">QUESTION BANK v1 · QB-2026.09.1</div>
+        <div class="sectionKicker">QUESTION BANK v2 · QB-2026.09.2</div>
         <h1>每次測驗，<br>不再完全一樣。</h1>
-        <p class="lead">題庫已從固定 30 題升級成 42 題母題庫。每次開始會平衡抽出 30 題，維持六個構面與難度比例，讓重複測驗比較不容易只是在背答案。</p>
+        <p class="lead">題庫已擴充成 60 題母題庫。每次開始會平衡抽出 30 題，維持六個構面與難度比例；重測時還會優先避開上一份題目，降低只是記住答案的影響。</p>
         <div class="actions">
           <button class="btn primary" id="startBtn">開始完整測驗</button>
           <button class="btn secondary" id="aboutBtn">測驗說明</button>
@@ -36,12 +36,12 @@
         <div class="metricCard">
           <div class="metricTop">
             <div>
-              <div class="metricNum">42</div>
+              <div class="metricNum">60</div>
               <div class="metricLabel">母題庫題數</div>
             </div>
             <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">QUESTION BANK</div>
           </div>
-          <div class="metricDesc">題目已獨立版本化，可持續增加、替換與調整難度，不必重做整個網站。</div>
+          <div class="metricDesc">六個構面各 10 題，題目已版本化，可持續增加、替換與校準，不必重做整個網站。</div>
         </div>
         <div class="metricCard">
           <div class="metricTop">
@@ -51,25 +51,25 @@
             </div>
             <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">BALANCED FORM</div>
           </div>
-          <div class="metricDesc">每個構面固定 5 題，並維持 2 基礎、2 中等、1 進階的難度比例。</div>
+          <div class="metricDesc">每個構面固定 5 題，維持 2 基礎、2 中等、1 進階；重測優先抽未出現於上一份的題目。</div>
         </div>
       </div>
     </div>
 
     <div class="infoGrid">
       <div class="infoCard"><strong>平衡抽題</strong><span>不是單純隨機亂抽；六個構面都會維持固定題數與難度結構。</span></div>
+      <div class="infoCard"><strong>降低重複</strong><span>重新抽題時優先避開上一份測驗，減少短期記憶答案造成的干擾。</span></div>
       <div class="infoCard"><strong>混合計時</strong><span>一般推理題不限時；處理速度題才使用明顯倒數與逾時鎖定。</span></div>
-      <div class="infoCard"><strong>可持續擴充</strong><span>未來可以把 42 題繼續擴成 60、100 或更多題，並保留題庫版本。</span></div>
     </div>
 
     <div class="processGrid">
-      <div class="process"><div class="processNum">1</div><strong>平衡抽題</strong><p style="font-size:16px;margin:0">開始前從母題庫組出一份新的 30 題測驗。</p></div>
+      <div class="process"><div class="processNum">1</div><strong>平衡抽題</strong><p style="font-size:16px;margin:0">開始前從 60 題母題庫組出一份新的 30 題測驗。</p></div>
       <div class="process"><div class="processNum">2</div><strong>完成作答</strong><p style="font-size:16px;margin:0">依題型使用不限時、記憶呈現時間或限時壓力模式。</p></div>
       <div class="process"><div class="processNum">3</div><strong>產生報告</strong><p style="font-size:16px;margin:0">查看能力分布、答題結構、構面比較與總作答時間。</p></div>
     </div>
 
     <div id="about" class="notice hidden" style="margin-top:20px">
-      Question Bank v1 目前共有 42 題，每次抽取 30 題。抽題會固定六個構面各 5 題，難度比例為 2 基礎、2 中等、1 進階。真正要把分數標準化成可正式解釋的 IQ，仍需要大型年齡分層常模、信度效度分析、題目難度與鑑別度校準。
+      Question Bank v2 目前共有 60 題，每次抽取 30 題。六個構面各有 10 題，每份測驗固定各抽 5 題，難度比例為 2 基礎、2 中等、1 進階；重新測驗時會優先避開上一份已出現題目。真正要把分數標準化成可正式解釋的 IQ，仍需要大型年齡分層常模、信度效度分析、題目難度與鑑別度校準。
     </div>
   </section>
 
@@ -80,7 +80,7 @@
           <div id="counter" class="counter">第 1 題 / 30</div>
           <div id="domain" class="domainBadge">流體推理</div>
         </div>
-        <div style="color:var(--muted);font-size:15px;font-weight:700">本次從 QB-2026.09.1 平衡抽出 30 題；只有標示「限時」的題目會倒數。</div>
+        <div style="color:var(--muted);font-size:15px;font-weight:700">本次從 QB-2026.09.2 平衡抽出 30 題；只有標示「限時」的題目會倒數。</div>
       </div>
       <div class="timersPanel">
         <div class="timerWrap">
@@ -127,7 +127,7 @@
   </section>
 
   <section id="result" class="card hidden">
-    <div class="sectionKicker">RESULT REPORT · QB-2026.09.1</div>
+    <div class="sectionKicker">RESULT REPORT · QB-2026.09.2</div>
     <h2>認知能力報告</h2>
     <p>這份結果適合觀察能力分布與題型表現；單一分數仍不應視為正式臨床 IQ。</p>
 
@@ -171,7 +171,7 @@
     <div class="notice">若後續真的要標準化，下一步仍是建立年齡分層常模、題目難度與鑑別度、信效度分析，以及百分位與標準分數換算。</div>
   </section>
 
-  <div class="footer">Cognitive IQ Lab v6 · Question Bank v1 · QB-2026.09.1</div>
+  <div class="footer">Cognitive IQ Lab v6 · Question Bank v2 · QB-2026.09.2</div>
 </main>
 
 <script src="questions.js"></script>

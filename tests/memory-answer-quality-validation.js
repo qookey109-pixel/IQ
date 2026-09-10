@@ -25,7 +25,7 @@ for (const file of files) vm.runInContext(fs.readFileSync(file, 'utf8'), context
 const bank = window.IQ_QUESTION_BANK;
 const meta = window.IQ_MEMORY_OPTION_QUALITY;
 assert.ok(meta, 'memory option quality metadata missing');
-assert.strictEqual(meta.version, '2.0');
+assert.strictEqual(meta.version, '2.1');
 assert.strictEqual(meta.upgradedItems, 50, 'all 50 memory items should be upgraded');
 
 const memory = bank.filter(q => q.d === '工作記憶');

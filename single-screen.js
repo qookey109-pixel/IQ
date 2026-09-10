@@ -4,6 +4,23 @@
 (() => {
   const byId = id => document.getElementById(id);
 
+  function loadStabilityLayer() {
+    if (!document.querySelector('link[data-viewport-stability]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'viewport-stability.css';
+      link.dataset.viewportStability = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-navigation-layout-fix]')) {
+      const script = document.createElement('script');
+      script.src = 'navigation-layout-fix.js';
+      script.dataset.navigationLayoutFix = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
   function ensureCloseButton(panel) {
     if (!panel || panel.querySelector(':scope > .screenClose')) return;
     const close = document.createElement('button');
@@ -54,6 +71,7 @@
   });
 
   function install() {
+    loadStabilityLayer();
     ensureCloseButton(byId('about'));
     ensureCloseButton(byId('review'));
     prepareQaPanel();
@@ -64,10 +82,12 @@
 
     // Expose a tiny QA surface for future layout smoke tests.
     window.IQ_SINGLE_SCREEN_META = {
-      version: '1.0',
+      version: '1.1',
       documentScrollLocked: true,
       detailPanelsUseViewportModal: true,
-      target: 'one viewport per application state'
+      target: 'one viewport per application state',
+      viewportStabilityLayer: true,
+      forwardNavigationRecovery: true
     };
   }
 

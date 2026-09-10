@@ -6,7 +6,7 @@ const bankCode = fs.readFileSync('question-bank.js', 'utf8');
 const qualityCode = fs.readFileSync('answer-quality.js', 'utf8');
 const balanceCode = fs.readFileSync('answer-position-balance.js', 'utf8');
 const clarityCode = fs.readFileSync('presentation-clarity.js', 'utf8');
-const css = fs.readFileSync('clarity-theme.css', 'utf8');
+const css = fs.readFileSync('heritage-theme.css', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 const store = {};
 
@@ -71,15 +71,16 @@ const matrix = bank.filter(q => q.type === 'matrix');
 assert.ok(matrix.length > 0, 'matrix items should remain available');
 assert.ok(matrix.every(q => Array.isArray(q.cells) && q.cells.length === 9), 'matrix essentials must be preserved');
 
-assert.ok(css.includes('--clarity-white:#ffffff'), 'white palette token missing');
-assert.ok(css.includes('--clarity-blue:#2f6fe4'), 'blue palette token missing');
-assert.ok(css.includes('--clarity-orange:#f28a3d'), 'orange palette token missing');
-assert.ok(css.includes('.btn:active'), 'press feedback missing');
-assert.ok(css.includes('prefers-reduced-motion'), 'reduced motion support missing');
+assert.ok(css.includes('--bg:#e9dfcf'), 'warm ivory background token missing');
+assert.ok(css.includes('--text:#241f1a'), 'ink-brown text token missing');
+assert.ok(css.includes('--gold:#a96f3e'), 'bronze accent token missing');
+assert.ok(css.includes('.timer.memoryTimer'), 'warm memory timer styling missing');
+assert.ok(css.includes('#radarChart polygon:last-of-type'), 'warm result-chart override missing');
 
-const clarityCssAt = html.indexOf('clarity-theme.css');
+const heritageCssAt = html.indexOf('heritage-theme.css');
 const viewportCssAt = html.indexOf('viewport-stability.css');
-assert.ok(clarityCssAt > viewportCssAt, 'clarity theme must load after viewport safety');
+assert.ok(heritageCssAt > viewportCssAt, 'heritage theme must load after viewport safety');
+assert.strictEqual(html.includes('clarity-theme.css'), false, 'white/blue/orange clarity theme must not be loaded');
 const presentationAt = html.indexOf('presentation-clarity.js');
 const appAt = html.indexOf('app.js');
 assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation rewrite must run before app binds questions');
@@ -87,6 +88,11 @@ assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation rewrite m
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly, true);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialArrowsPreserved, true);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions, true);
+assert.deepStrictEqual(
+  Array.from(window.IQ_PRESENTATION_CLARITY.palette),
+  ['warm-ivory', 'ink-brown', 'bronze'],
+  'active palette metadata must be warm ivory / ink brown / bronze'
+);
 
 console.log('Presentation clarity validation PASS');
-console.log('50 spatial items keep arrow text while removing duplicate visuals; 50 speed items use direct answer choices; matrix visuals preserved; white/blue/orange palette verified.');
+console.log('Low-fatigue presentation preserved; active interface palette is warm ivory / ink brown / bronze.');

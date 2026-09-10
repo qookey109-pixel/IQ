@@ -3,29 +3,13 @@
 // removing redundant visual clutter from spatial and processing-speed items.
 
 (() => {
-  const directionName = {
-    "↑":"向上", "↗":"右上", "→":"向右", "↘":"右下",
-    "↓":"向下", "↙":"左下", "←":"向左", "↖":"左上"
-  };
-  const arrowRx = /[↑↗→↘↓↙←↖]/g;
-
-  function wordsOnly(value) {
-    return String(value ?? "").replace(arrowRx, token => directionName[token] || token);
-  }
-
   function simplifySpatial(q) {
-    q.q = wordsOnly(q.q)
-      .replace(/^箭頭\s*/, "起始方向：")
-      .replace(/先做左右鏡像/g, "先左右鏡像")
-      .replace(/後會指向哪裡？$/, "後，最後方向？")
-      .replace(/最後是哪個方向？$/, "最後方向？")
-      .replace(/最後方向是？$/, "最後方向？");
-
-    q.o = q.o.map(option => wordsOnly(option));
-    q.e = wordsOnly(q.e);
+    // Spatial prompts already contain the information needed to solve the item.
+    // Keep their arrow glyphs and wording exactly as authored; remove only the
+    // duplicated visual panel that repeated the same transformation sequence.
     q.visual = null;
     q.presentationMode = "text-only";
-    q.presentationReason = "redundant-spatial-visual-removed";
+    q.presentationReason = "duplicate-spatial-visual-removed-arrows-preserved";
   }
 
   function parseVisualGroups(visual) {
@@ -107,9 +91,10 @@
   }
 
   window.IQ_PRESENTATION_CLARITY = {
-    version: "1.1",
+    version: "1.2",
     palette: ["white", "blue", "orange"],
     spatialTextOnly: true,
+    spatialArrowsPreserved: true,
     directSpeedOptions: true,
     principle: "show each piece of information once, where the user acts on it"
   };

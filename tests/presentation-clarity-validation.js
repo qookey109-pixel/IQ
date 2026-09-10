@@ -24,6 +24,13 @@ vm.createContext(context);
 vm.runInContext(bankCode, context);
 vm.runInContext(qualityCode, context);
 vm.runInContext(balanceCode, context);
+
+const spatialBefore = new Map(
+  window.IQ_QUESTION_BANK
+    .filter(q => q.d === '視覺空間')
+    .map(q => [q.id, { q: q.q, o: [...q.o], e: q.e }])
+);
+
 vm.runInContext(clarityCode, context);
 
 const bank = window.IQ_QUESTION_BANK;
@@ -33,11 +40,15 @@ const arrows = /[↑↗→↘↓↙←↖]/;
 const spatial = bank.filter(q => q.d === '視覺空間');
 assert.strictEqual(spatial.length, 50, 'expected 50 spatial items');
 for (const q of spatial) {
+  const before = spatialBefore.get(q.id);
   assert.strictEqual(q.visual, null, `${q.id}: redundant spatial visual must be removed`);
   assert.strictEqual(q.presentationMode, 'text-only', `${q.id}: spatial presentation mode`);
-  assert.strictEqual(arrows.test(q.q), false, `${q.id}: prompt must use direction words, not arrow glyphs`);
-  assert.strictEqual(q.o.some(opt => arrows.test(String(opt))), false, `${q.id}: answers must use direction words`);
+  assert.strictEqual(q.q, before.q, `${q.id}: authored prompt text, including arrows, must be preserved`);
+  assert.deepStrictEqual([...q.o], before.o, `${q.id}: authored answer choices, including arrows, must be preserved`);
+  assert.strictEqual(q.e, before.e, `${q.id}: explanation text must be preserved`);
 }
+assert.ok(spatial.some(q => arrows.test(q.q)), 'spatial prompts should retain arrow glyphs');
+assert.ok(spatial.some(q => q.o.some(opt => arrows.test(String(opt)))), 'spatial answer choices should retain arrow glyphs');
 
 const speed = bank.filter(q => q.d === '處理速度');
 assert.strictEqual(speed.length, 50, 'expected 50 speed items');
@@ -74,7 +85,8 @@ const appAt = html.indexOf('app.js');
 assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation rewrite must run before app binds questions');
 
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly, true);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialArrowsPreserved, true);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions, true);
 
 console.log('Presentation clarity validation PASS');
-console.log('50 spatial items are text-only; 50 speed items use direct answer choices; matrix visuals preserved; white/blue/orange palette verified.');
+console.log('50 spatial items keep arrow text while removing duplicate visuals; 50 speed items use direct answer choices; matrix visuals preserved; white/blue/orange palette verified.');

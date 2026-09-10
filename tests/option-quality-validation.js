@@ -4,6 +4,7 @@ const assert = require('assert');
 
 const bankCode = fs.readFileSync('question-bank.js', 'utf8');
 const qualityCode = fs.readFileSync('answer-quality.js', 'utf8');
+const balanceCode = fs.readFileSync('answer-position-balance.js', 'utf8');
 const store = {};
 const window = { addEventListener() {} };
 const context = {
@@ -20,11 +21,12 @@ vm.runInContext(bankCode, context);
 
 const selectedIdsBefore = window.IQ_QUESTIONS.map(q => q.id);
 vm.runInContext(qualityCode, context);
+vm.runInContext(balanceCode, context);
 
 assert.strictEqual(window.IQ_BANK_META.revision, '3.2');
 assert.strictEqual(window.IQ_QUESTION_BANK.length, 300);
 assert.strictEqual(window.IQ_QUESTIONS.length, 30);
-assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS, q => q.id), Array.from(selectedIdsBefore), 'option pass must not change selected items');
+assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS, q => q.id), Array.from(selectedIdsBefore), 'quality pass must not change selected items');
 
 let curatedAnalogies = 0;
 let nearMissItems = 0;
@@ -37,6 +39,7 @@ for (const q of window.IQ_QUESTION_BANK) {
   assert.strictEqual(new Set(Array.from(q.o, String)).size, 4, `${q.id}: options unique`);
   assert.ok(Number.isInteger(q.a) && q.a >= 0 && q.a < 4, `${q.id}: answer key`);
   assert.ok(['original-aig', 'original-research-informed'].includes(q.source), `${q.id}: source must remain original`);
+  assert.strictEqual(q.answerPositionBalanced, true, `${q.id}: position balancing marker`);
   positions[q.a] += 1;
 
   if (q.model === 'verbal-analogy') {
@@ -49,12 +52,13 @@ for (const q of window.IQ_QUESTION_BANK) {
 
 assert.strictEqual(curatedAnalogies, 20, 'all 20 analogy items must use curated distractors');
 assert.ok(nearMissItems >= 60, `expected broad near-miss coverage, got ${nearMissItems}`);
-assert.ok(Math.max(...positions) - Math.min(...positions) <= 12, `answer positions too imbalanced: ${positions.join('/')}`);
+assert.deepStrictEqual(positions, [75,75,75,75], `answer positions must be exactly balanced: ${positions.join('/')}`);
 assert.ok(cueRisk <= 12, `too many static option cue risks: ${cueRisk}`);
 
 const report = window.IQ_OPTION_QUALITY_REPORT;
 assert.strictEqual(report.totalItems, 300);
 assert.strictEqual(report.revision, '3.2');
+assert.strictEqual(report.answerPositionStrategy, 'hash-quota-balanced');
 assert.deepStrictEqual(Array.from(report.correctPositionCounts), positions);
 
 console.log('Option Quality v3.2 validation PASS');

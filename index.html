@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cognitive IQ Lab v6</title>
+<meta name="description" content="正式測評風格的多構面 IQ-style 認知測驗網站">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brandMark">Ψ</div>
+      <div>
+        <div class="brandTitle">Cognitive IQ Lab</div>
+        <div class="brandSub">Assessment Edition · 正式測評風格首頁 + Raven 類圖形矩陣題 + 高級圖表</div>
+      </div>
+    </div>
+    <div class="pill">30 題 · 6 構面 · 自動下一題 · Raven-like Matrix</div>
+  </div>
+
+  <section id="start" class="card">
+    <div class="hero">
+      <div>
+        <div class="sectionKicker">ASSESSMENT LANDING PAGE</div>
+        <h1>更像正式測評，<br>也更有完成度。</h1>
+        <p class="lead">這一版把網站升級成更像正式認知測評產品的首頁，並加入更多原創的 Raven 類圖形矩陣題與高級結果圖表，讓整體體驗更完整。</p>
+        <div class="actions">
+          <button class="btn primary" id="startBtn">開始完整測驗</button>
+          <button class="btn secondary" id="aboutBtn">測驗說明</button>
+        </div>
+        <div class="notice"><strong>重要：</strong>這仍然不是 WAIS、Stanford–Binet 或 Raven’s Progressive Matrices 的正式線上版本。本站沒有使用它們的正式題目、常模或專有計分演算法；所有圖形矩陣題皆為原創、靈感式設計。</div>
+      </div>
+      <div class="heroPanel">
+        <div class="metricCard">
+          <div class="metricTop">
+            <div>
+              <div class="metricNum">30</div>
+              <div class="metricLabel">總題數</div>
+            </div>
+            <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">MULTI-DOMAIN</div>
+          </div>
+          <div class="metricDesc">涵蓋語文理解、流體推理、視覺空間、工作記憶、處理速度、量化推理。</div>
+        </div>
+        <div class="metricCard">
+          <div class="metricTop">
+            <div>
+              <div class="metricNum">7</div>
+              <div class="metricLabel">矩陣題</div>
+            </div>
+            <div class="sectionKicker" style="font-size:11px;padding:7px 10px;">RAVEN-LIKE</div>
+          </div>
+          <div class="metricDesc">加入更多原創的圖形矩陣推理題，整體感受更接近抽象圖形推理測驗。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="infoGrid">
+      <div class="infoCard"><strong>正式測評風格首頁</strong><span>更穩重的版面、資訊層級、產品感視覺與說明架構。</span></div>
+      <div class="infoCard"><strong>Raven-like 題型</strong><span>採 3×3 視覺矩陣呈現規律，強化抽象歸納與圖形推理體驗。</span></div>
+      <div class="infoCard"><strong>高級結果圖表</strong><span>加入雷達圖、環形圖與比較長條圖，更容易看出能力分布。</span></div>
+    </div>
+
+    <div class="processGrid">
+      <div class="process"><div class="processNum">1</div><strong>完成作答</strong><p style="font-size:16px;margin:0">逐題完成測驗，仍可回到上一題修正答案。</p></div>
+      <div class="process"><div class="processNum">2</div><strong>產生報告</strong><p style="font-size:16px;margin:0">系統會依各構面的正確率與反應時間計算結果。</p></div>
+      <div class="process"><div class="processNum">3</div><strong>查看圖表</strong><p style="font-size:16px;margin:0">以更高級的視覺化方式呈現你的強弱分布與答題結構。</p></div>
+    </div>
+
+    <div id="about" class="notice hidden" style="margin-top:20px">
+      真正的標準化智力測驗若要產生可正式解釋的 IQ，需要大型年齡分層常模、信度與效度分析、題目難度與偏誤檢驗。這一版先聚焦在產品感、題型完整度與結果視覺化。
+    </div>
+  </section>
+
+  <section id="quiz" class="card hidden">
+    <div class="quizTop">
+      <div>
+        <div class="quizHeaderTop">
+          <div id="counter" class="counter">第 1 題 / 30</div>
+          <div id="domain" class="domainBadge">流體推理</div>
+        </div>
+        <div style="color:var(--muted);font-size:15px;font-weight:700">你仍可回到上一題修正答案；選答案後會自動切換。</div>
+      </div>
+      <div class="timerWrap">
+        <div class="timerLabel">剩餘時間</div>
+        <div id="timer" class="timer">00:30</div>
+      </div>
+    </div>
+
+    <div class="progressBlock">
+      <div class="progressLabel">
+        <span>作答進度</span>
+        <span id="progressText">1 / 30</span>
+      </div>
+      <div class="progress"><div id="progressBar" class="progressBar"></div></div>
+    </div>
+
+    <div class="navigator">
+      <div class="navigatorTitle">快速跳題</div>
+      <div id="miniNav" class="miniNav"></div>
+    </div>
+
+    <div class="stage">
+      <div id="questionCard" class="questionCard">
+        <div id="visualHolder"></div>
+        <div id="question" class="question"></div>
+        <div id="help" class="help"></div>
+        <div id="options" class="options"></div>
+
+        <div class="footerActions">
+          <div class="actions" style="margin-top:0">
+            <button id="prevBtn" class="btn secondary">上一題</button>
+            <button id="skipBtn" class="btn ghost">跳過</button>
+          </div>
+          <div class="hint">點選答案後會自動切換到下一題</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="card hidden">
+    <div class="sectionKicker">RESULT REPORT</div>
+    <h2>認知能力報告</h2>
+    <p>這份結果更適合看你的能力分布與題型表現；單一分數仍不建議當成正式臨床 IQ。</p>
+
+    <div class="resultGrid">
+      <div class="scoreCard">
+        <div class="scoreTitle">IQ-style Cognitive Index</div>
+        <div id="indexScore" class="bigScore">100</div>
+        <div id="resultDesc" class="resultDesc"></div>
+        <p id="resultSummary"></p>
+        <div class="scoreTitle">實驗性網站分數 · 非正式 IQ</div>
+      </div>
+
+      <div>
+        <div class="chartGrid">
+          <div class="chartCard">
+            <div class="chartTitle">能力分布雷達圖</div>
+            <svg id="radarChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="radar chart"></svg>
+            <div class="chartNote">用來快速看六個構面的相對強弱分布。</div>
+          </div>
+          <div class="chartCard">
+            <div class="chartTitle">答題結構環形圖</div>
+            <svg id="donutChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="donut chart"></svg>
+            <div class="chartNote">顯示答對、答錯與未作答比例。</div>
+          </div>
+          <div class="chartCard full">
+            <div class="chartTitle">構面表現比較</div>
+            <svg id="barChart" viewBox="0 0 620 280" width="100%" height="260" aria-label="bar chart"></svg>
+            <div class="chartNote">每個構面的綜合表現由正確率與作答速度共同形成。</div>
+          </div>
+        </div>
+
+        <div id="metrics" class="metrics"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="restartBtn" class="btn primary">重新測驗</button>
+      <button id="reviewBtn" class="btn secondary">查看逐題解析</button>
+    </div>
+    <div id="review" class="review hidden"></div>
+    <div class="notice">若後續真的要標準化，下一步應該是：建立年齡分層常模、題目難度與鑑別度、信效度分析，以及百分位與標準分數換算。</div>
+  </section>
+
+  <div class="footer">Cognitive IQ Lab v6 · Assessment Edition</div>
+</main>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

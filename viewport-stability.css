@@ -12,6 +12,48 @@
   letter-spacing: -0.035em;
 }
 
+/* Question-bank normalized repeated-symbol cells use compact mini-clusters.
+   This avoids relying on one long line like ●●●●, which Safari can clip. */
+#quiz #visualHolder .matrixCell.cluster-cell {
+  padding: 3px;
+  white-space: normal;
+  letter-spacing: 0;
+}
+
+#quiz #visualHolder .matrixSymbolCluster {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  place-items: center;
+  gap: 1px 2px;
+  line-height: .9;
+}
+
+#quiz #visualHolder .matrixSymbolCluster.count-2 {
+  grid-template-columns: repeat(2, max-content);
+}
+
+#quiz #visualHolder .matrixSymbolCluster.count-3 {
+  grid-template-columns: repeat(3, max-content);
+}
+
+#quiz #visualHolder .matrixSymbolCluster.count-4 {
+  grid-template-columns: repeat(2, max-content);
+  grid-template-rows: repeat(2, max-content);
+}
+
+#quiz #visualHolder .matrixSymbolCluster.count-5,
+#quiz #visualHolder .matrixSymbolCluster.count-6 {
+  grid-template-columns: repeat(3, max-content);
+}
+
+#quiz #visualHolder .matrixSymbolGlyph {
+  display:block;
+  font-size: clamp(12px, 1.35vw, 19px);
+  line-height:.9;
+}
+
 #quiz #visualHolder .matrixCell.density-3 {
   font-size: clamp(14px, 1.35vw, 20px);
   letter-spacing: -0.055em;
@@ -64,6 +106,14 @@
     width: min(228px, 70vw, 25dvh);
   }
 
+  #quiz #visualHolder .matrixCell.cluster-cell {
+    padding: 2px;
+  }
+
+  #quiz #visualHolder .matrixSymbolGlyph {
+    font-size: clamp(11px, 3.6vw, 16px);
+  }
+
   #quiz #visualHolder .matrixCell.density-3 {
     font-size: clamp(12px, 3.35vw, 17px);
     letter-spacing: -0.075em;
@@ -106,8 +156,14 @@
     width: min(224px, 72vw, 25dvh);
   }
 
-  /* iPhone Safari can render geometric glyphs wider than the nominal font box.
-     Give dense cells extra breathing room so the last symbol never gets clipped. */
+  #quiz #visualHolder .matrixSymbolCluster {
+    gap: 1px;
+  }
+
+  #quiz #visualHolder .matrixSymbolGlyph {
+    font-size: clamp(10px, 3.25vw, 14px);
+  }
+
   #quiz #visualHolder .matrixCell.density-4 {
     font-size: 9px;
     letter-spacing: -0.17em;
@@ -130,6 +186,10 @@
 @media (max-height: 700px) {
   #quiz #visualHolder .matrixGrid {
     width: min(190px, 38vw, 21dvh);
+  }
+
+  #quiz #visualHolder .matrixSymbolGlyph {
+    font-size: clamp(9px, 1.2vw, 12px);
   }
 
   #quiz .compactQuestionCard {

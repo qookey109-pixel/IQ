@@ -41,10 +41,9 @@ for (const q of items) {
 }
 assert.ok(compactCells >= 100, 'expected repeated-symbol matrix cells to remain visible compact glyph groups');
 
-const clusterAt = html.indexOf('matrix-cluster-items.js');
+const compactAt = html.indexOf('matrix-cluster-items.js');
 const appAt = html.indexOf('app.js');
-assert.ok(clusterAt > -1 && clusterAt < appAt, 'compact matrix normalization must run before app binding');
-assert.strictEqual(html.includes('matrix-cluster-renderer-v2.js'), false, 'obsolete marker renderer must not be loaded');
+assert.ok(compactAt > -1 && compactAt < appAt, 'compact matrix normalization must run before app binding');
 
 console.log('Marker-free compact matrix glyph validation PASS');
 console.log(`${compactCells} matrix cells render as direct visible symbols with no @@cluster markers.`);

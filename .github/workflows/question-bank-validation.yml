@@ -22,6 +22,7 @@ jobs:
           node --check memory-answer-quality.js
           node --check presentation-clarity.js
           node --check matrix-cluster-items.js
+          node --check matrix-cluster-renderer-v2.js
           node --check assessment-quality.js
           node --check item-analytics.js
           node --check item-quality-v2.js
@@ -60,6 +61,9 @@ jobs:
 
       - name: Validate structured matrix symbol clusters
         run: node tests/matrix-cluster-items-validation.js
+
+      - name: Validate cache-safe matrix cluster renderer
+        run: node tests/matrix-cluster-renderer-validation.js
 
       - name: Validate forward navigation and dense matrix containment
         run: node tests/navigation-layout-validation.js

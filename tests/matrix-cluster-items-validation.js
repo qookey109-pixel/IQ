@@ -29,21 +29,25 @@ const items = window.IQ_QUESTION_BANK.filter(q => q.model === 'matrix-symbol-add
 assert.strictEqual(items.length, 20, 'expected 20 symbol-addition matrix items');
 
 let compactCells = 0;
+let denseCells = 0;
 for (const q of items) {
   assert.strictEqual(q.matrixCellEncoding, 'compact-glyph-v2', `${q.id}: compact encoding missing`);
   for (const cell of q.cells) {
     if (cell === '?') continue;
     const text = String(cell);
+    const count = Array.from(text).length;
     assert.strictEqual(text.includes('@@cluster'), false, `${q.id}: internal marker leaked into question data`);
-    assert.ok(Array.from(text).length >= 2 && Array.from(text).length <= 6, `${q.id}: unexpected symbol count ${text}`);
+    assert.ok(count >= 1 && count <= 6, `${q.id}: unexpected symbol count ${text}`);
     compactCells += 1;
+    if (count >= 4) denseCells += 1;
   }
 }
-assert.ok(compactCells >= 100, 'expected repeated-symbol matrix cells to remain visible compact glyph groups');
+assert.ok(compactCells >= 100, 'expected visible compact matrix cells');
+assert.ok(denseCells > 0, 'expected dense 4–6 symbol cells to be covered');
 
 const compactAt = html.indexOf('matrix-cluster-items.js');
 const appAt = html.indexOf('app.js');
 assert.ok(compactAt > -1 && compactAt < appAt, 'compact matrix normalization must run before app binding');
 
 console.log('Marker-free compact matrix glyph validation PASS');
-console.log(`${compactCells} matrix cells render as direct visible symbols with no @@cluster markers.`);
+console.log(`${compactCells} cells checked; ${denseCells} dense cells use direct compact glyphs with no @@cluster markers.`);

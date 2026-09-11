@@ -13,22 +13,26 @@
 }
 
 #quiz #visualHolder .matrixCell.density-3 {
-  font-size: clamp(15px, 1.45vw, 21px);
+  font-size: clamp(14px, 1.35vw, 20px);
+  letter-spacing: -0.055em;
 }
 
 #quiz #visualHolder .matrixCell.density-4 {
-  font-size: clamp(12px, 1.12vw, 16px);
-  letter-spacing: -0.07em;
+  font-size: clamp(10px, 1.0vw, 14px);
+  letter-spacing: -0.12em;
+  padding-inline: 2px;
 }
 
 #quiz #visualHolder .matrixCell.density-5 {
-  font-size: clamp(10px, .92vw, 13px);
-  letter-spacing: -0.08em;
+  font-size: clamp(9px, .82vw, 12px);
+  letter-spacing: -0.14em;
+  padding-inline: 1px;
 }
 
 #quiz #visualHolder .matrixCell.density-6 {
-  font-size: clamp(9px, .78vw, 11px);
-  letter-spacing: -0.09em;
+  font-size: clamp(8px, .70vw, 10px);
+  letter-spacing: -0.16em;
+  padding-inline: 1px;
 }
 
 /* The quiz remains one-screen first, but never sacrifices the navigation row. */
@@ -56,20 +60,32 @@
 }
 
 @media (max-width: 760px) {
+  #quiz #visualHolder .matrixGrid {
+    width: min(228px, 70vw, 25dvh);
+  }
+
   #quiz #visualHolder .matrixCell.density-3 {
-    font-size: clamp(14px, 4vw, 19px);
+    font-size: clamp(12px, 3.35vw, 17px);
+    letter-spacing: -0.075em;
+    padding-inline: 2px;
   }
 
   #quiz #visualHolder .matrixCell.density-4 {
-    font-size: clamp(11px, 3.25vw, 15px);
+    font-size: clamp(9px, 2.45vw, 11px);
+    letter-spacing: -0.15em;
+    padding-inline: 1px;
   }
 
   #quiz #visualHolder .matrixCell.density-5 {
-    font-size: clamp(9px, 2.65vw, 12px);
+    font-size: clamp(8px, 2.05vw, 9.5px);
+    letter-spacing: -0.17em;
+    padding-inline: 1px;
   }
 
   #quiz #visualHolder .matrixCell.density-6 {
-    font-size: clamp(8px, 2.25vw, 10px);
+    font-size: clamp(7px, 1.75vw, 8.5px);
+    letter-spacing: -0.18em;
+    padding-inline: 0;
   }
 
   #quiz .footerActions .actions {
@@ -82,6 +98,32 @@
   #quiz .footerActions .btn {
     width: 100%;
     min-width: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  #quiz #visualHolder .matrixGrid {
+    width: min(224px, 72vw, 25dvh);
+  }
+
+  /* iPhone Safari can render geometric glyphs wider than the nominal font box.
+     Give dense cells extra breathing room so the last symbol never gets clipped. */
+  #quiz #visualHolder .matrixCell.density-4 {
+    font-size: 9px;
+    letter-spacing: -0.17em;
+    padding-inline: 0;
+  }
+
+  #quiz #visualHolder .matrixCell.density-5 {
+    font-size: 8px;
+    letter-spacing: -0.19em;
+    padding-inline: 0;
+  }
+
+  #quiz #visualHolder .matrixCell.density-6 {
+    font-size: 7px;
+    letter-spacing: -0.20em;
+    padding-inline: 0;
   }
 }
 

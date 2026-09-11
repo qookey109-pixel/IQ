@@ -1,16 +1,28 @@
-// Cognitive IQ Lab — symbol-cluster normalization for matrix items
-// Converts repeated-symbol strings in the matrix-symbol-addition model into
-// structured cluster markers so mobile rendering never depends on fitting
-// 4–6 wide glyphs on one text line.
+// Cognitive IQ Lab — compact symbol normalization for matrix items
+// Repeated symbols are converted to narrower visual equivalents directly in the
+// question data. No internal marker string is ever exposed to renderers, so
+// old/new Safari asset mixes still show valid symbols rather than debug text.
 
 (() => {
-  const PREFIX = "@@cluster:";
+  const COMPACT = Object.freeze({
+    "●": "•",
+    "○": "◦",
+    "■": "▪",
+    "□": "▫",
+    "★": "✦",
+    "☆": "✧",
+    "▲": "▴",
+    "△": "▵",
+    "◆": "♦",
+    "◇": "♢"
+  });
 
-  function encodeRepeatedSymbol(value) {
+  function compactRepeatedSymbol(value) {
     const chars = Array.from(String(value ?? ""));
     if (chars.length < 2 || chars.length > 6) return value;
     if (!chars.every(ch => ch === chars[0])) return value;
-    return `${PREFIX}${chars[0]}:${chars.length}`;
+    const compact = COMPACT[chars[0]] || chars[0];
+    return compact.repeat(chars.length);
   }
 
   const seen = new Set();
@@ -20,16 +32,16 @@
       if (!q || seen.has(q)) continue;
       seen.add(q);
       if (q.model !== "matrix-symbol-addition" || !Array.isArray(q.cells)) continue;
-      q.cells = q.cells.map(cell => cell === "?" ? cell : encodeRepeatedSymbol(cell));
-      q.matrixCellEncoding = "symbol-cluster-v1";
+      q.cells = q.cells.map(cell => cell === "?" ? cell : compactRepeatedSymbol(cell));
+      q.matrixCellEncoding = "compact-glyph-v2";
     }
   }
 
   window.IQ_MATRIX_CLUSTER_POLICY = {
-    version: "1.0",
-    prefix: PREFIX,
+    version: "2.0",
     model: "matrix-symbol-addition",
-    maxClusterCount: 6,
-    structuredQuestionBankCells: true
+    maxSymbolCount: 6,
+    internalMarkers: false,
+    compactVisibleGlyphs: true
   };
 })();

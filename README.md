@@ -46,6 +46,52 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性，而是�
 
 這些仍是**設計難度**，不是人口校準後的 psychometric difficulty。
 
+## Form Equivalence v1
+
+QB5 現在不只固定題數與難度配額，也對抽卷做一層設計負荷匹配。
+
+- 仍固定 6 構面 × 5 題
+- 每構面固定 2 easy + 2 medium + 1 hard
+- 每構面 5 個不同 family
+- 每題計算 `formLoad` 設計負荷，考慮難度、題幹長度、工作記憶跨度、空間搜尋範圍與約束量等
+- 每次建立 64 份合法候選 form，再選擇六構面負荷最接近目標的一份
+- CI 會對多份 form 驗證 residual load deviation guardrail
+
+這是工程層的 form-equivalence guardrail，不是正式 psychometric equating。
+
+## Scoring v2
+
+結果頁不再把表現直接映射成類 IQ 的 70–130 區間。
+
+目前顯示：
+
+**Cognitive Performance Index：0–100**
+
+規則：
+
+- 同時保留原始正確率，不讓單一指數取代原始資料
+- easy / medium / hard 權重分別為 `1.0 / 1.25 / 1.5`
+- 一般構面以難度加權正確率為主要分數
+- 處理速度只有在答對後，速度效率才影響最後 5%
+- 快速答錯不會得到速度加分
+- `IQ_LAST_RESULT` 明確標記 `calibrated: false`
+
+這個 0–100 指數仍是產品實驗分數，不是 IQ、人口百分位或常模分數。
+
+## Oracle Validation v1
+
+除了結構檢查，CI 現在有第二套 reference solver，獨立重新計算全題庫正解。
+
+目前 quality gate 會：
+
+- 對 5,124 / 5,124 題重新計算 expected answer
+- 覆蓋全部 42 task families
+- 覆蓋全部 294 semantic templates
+- 驗證 oracle answer = `correctContent`
+- 再驗證 answer-position balance 後的 `o[a]` 仍等於 oracle answer
+
+這可以抓出「生成器題目與答案一起寫錯、但結構檢查仍通過」的錯誤類型。
+
 ## 六大構面
 
 六個構面各 7 類：
@@ -106,9 +152,12 @@ GitHub Actions 目前驗證：
 - JavaScript syntax
 - QB5 5,124-item bank / 42 families / 294 semantic templates
 - 5,124 unique concrete item signatures
+- 5,124 / 5,124 independent oracle answers
 - 30-item form：6×5、2 easy + 2 medium + 1 hard、每構面 5 個不同 family
+- 64-candidate form-equivalence design-load matching
 - recent-8 history persistence
 - exact A/B/C/D balance = 1281/1281/1281/1281
+- Scoring v2 0–100 scale / raw accuracy preservation / correct-only speed contribution
 - construct-linked difficulty
 - Matrix 題幹不洩漏推理規則
 - 工作記憶跨度與操作負荷
@@ -130,7 +179,11 @@ GitHub Actions 目前驗證：
 - `qb5-quant.js` — 量化 variants
 - `qb5-parameter-diversity.js` — 不灌水 semanticKey 的受控具體變體
 - `qb5-ordering-diversity-fix.js` — 排序族自然情境唯一化
+- `qb5-form-equivalence.js` — formLoad 與 64-candidate load matching
 - `qb5-finalize.js` — 全庫驗證與 30 題 form selector
+- `scoring-v2.js` — 0–100 Cognitive Performance Index
+- `assessment-quality.js` — 單次記憶呈現與 Scoring v2 結果整合
+- `tests/qb5-oracle-validation.js` — 42-family independent reference solver
 - `answer-position-balance.js` — deterministic A/B/C/D balance
 - `item-quality-v2.js` — QA+ / item-rest / distractor efficiency
 - `memory-exposure.js` — 4/5/6 秒工作記憶刺激政策
@@ -139,8 +192,8 @@ GitHub Actions 目前驗證：
 
 ## 重要限制
 
-QB5 已經把「模板多樣性、實際題目重複、視覺空間圖形化、設計難度負荷」往前推進，但仍然沒有做人口樣本校準、IRT／CAT、reliability、criterion validity 或臨床效度驗證。
+QB5 已經把「模板多樣性、實際題目重複、視覺空間圖形化、設計難度負荷、抽卷等值 guardrail、答案 oracle、透明評分」往前推進，但仍然沒有做人口樣本校準、IRT／CAT、reliability、criterion validity 或臨床效度驗證。
 
-因此 `IQ-style Cognitive Index` 仍是網站實驗分數，不能視為正式 IQ、人口百分位、教育／就業判斷或診斷結果。
+因此 `Cognitive Performance Index` 是 0–100 的網站實驗性表現指數，不能視為正式 IQ、人口百分位、教育／就業判斷或診斷結果。
 
 > **不構成任何標準，好玩就好。**

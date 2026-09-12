@@ -9,7 +9,7 @@ const store={};
 const window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;},removeItem(k){delete store[k];}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
-const runtimeFiles=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-finalize.js','answer-position-balance.js','answer-quality.js','presentation-clarity.js'];
+const runtimeFiles=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-finalize.js','answer-position-balance.js','answer-quality.js','presentation-clarity.js'];
 for(const file of runtimeFiles)vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),context,{filename:file});
 const bank=window.IQ_QUESTION_BANK,meta=window.IQ_BANK_META,validation=window.IQ_BANK_VALIDATION,qb5=window.IQ_QB5;
 assert.ok(Array.isArray(bank));assert.strictEqual(bank.length,5124);assert.strictEqual(meta.version,'QB-2026.09.5');assert.strictEqual(meta.revision,'5.0');assert.strictEqual(meta.semanticTemplates,294);assert.strictEqual(validation.uniqueTaskSignatures,5124);

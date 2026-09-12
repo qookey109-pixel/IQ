@@ -6,7 +6,7 @@ const store={};
 const window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
-const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','natural-language-v2.js'];
+const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','natural-language-v2.js','question-language-finalize.js'];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK;
@@ -15,6 +15,7 @@ assert.strictEqual(window.IQ_BANK_META.naturalLanguageRevision,'NL-2026.09.3');
 assert.strictEqual(window.IQ_BANK_META.languageStyle,'direct-taiwan-zh-hant');
 assert.strictEqual(window.IQ_BANK_VALIDATION.uniqueTaskSignatures,5124);
 assert.match(window.IQ_NATURAL_LANGUAGE.reference,/speak-human-tw/);
+assert.strictEqual(window.IQ_NATURAL_LANGUAGE.finalized,true);
 
 const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...(q.o||[])].map(String).sort()]);
 assert.strictEqual(new Set(bank.map(sig)).size,5124,'Language pass must preserve 5,124 unique concrete items');
@@ -35,6 +36,7 @@ const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');
 assert.ok(unit.every(q=>!q.q.includes('個信封')),'mail unit-rate should not use generic 個信封 wording');
 assert.ok(unit.some(q=>q.q.includes('封信件')),'mail unit-rate should use natural Taiwan noun and measure word');
+assert.ok(unit.filter(q=>q.q.includes('封信件')&&q.q.includes('每分鐘製作')).every(q=>q.q.includes('每分鐘製作幾封？')),'mail production rate should ask in 封');
 
 const overlap=bank.filter(q=>q.taskFamily==='set-overlap');
 assert.ok(overlap.every(q=>!q.q.includes('的這個案例中')));

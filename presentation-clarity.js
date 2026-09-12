@@ -1,14 +1,19 @@
 // Cognitive IQ Lab — low-fatigue presentation layer
-// Presentation only: never changes QB4 semantics, answer keys or scoring.
+// Presentation only: never changes question semantics, answer keys or scoring.
 (() => {
   'use strict';
 
   function simplifySpatial(q) {
-    // QB4 spatial items are text-first. If an older/fallback item carries a duplicate
-    // visual panel, remove that panel but preserve the authored prompt and choices.
+    // QB5 spatial items intentionally carry one essential inline SVG. Preserve it.
+    if (q.constructRevision === '5.0' && String(q.visual || '').includes('<svg')) {
+      q.presentationMode = 'spatial-diagram';
+      q.presentationReason = 'qb5-essential-spatial-diagram';
+      return;
+    }
+    // Legacy fallback: remove duplicate nonessential visual panels.
     q.visual = null;
     q.presentationMode = 'text-only';
-    q.presentationReason = 'spatial-text-first-no-duplicate-panel';
+    q.presentationReason = 'legacy-spatial-text-first-no-duplicate-panel';
   }
 
   function parseVisualGroups(visual) {
@@ -30,8 +35,6 @@
 
   function simplifySpeed(q) {
     const raw=String(q.visual ?? '');
-
-    // Legacy compatibility only. QB4 speed items are already direct text/options.
     if (raw && q.model === 'speed-target-match') {
       const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean);
       const target=(lines.shift()||'').replace(/^目標：/,'').trim();
@@ -49,7 +52,6 @@
         q.e=`正確答案是 ${q.o[q.a]}；其中符號順序與其他三組不同。`;
       }
     }
-
     q.visual=null;
     q.presentationMode='direct-speed';
     q.presentationReason='candidate-information-shown-once-in-prompt-or-options';
@@ -69,10 +71,12 @@
     }
   }
 
+  const qb5=Array.isArray(window.IQ_QUESTION_BANK)&&window.IQ_QUESTION_BANK.some(q=>q.constructRevision==='5.0');
   window.IQ_PRESENTATION_CLARITY={
-    version:'2.0-qb4',
+    version:qb5?'3.0-qb5':'2.0-qb4',
     palette:['warm-ivory','ink-brown','bronze'],
-    spatialTextOnly:true,
+    spatialTextOnly:!qb5,
+    spatialDiagrams:qb5,
     directSpeedOptions:true,
     duplicateVisualPanels:false,
     principle:'show each piece of information once, where the user acts on it'

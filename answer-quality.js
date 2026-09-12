@@ -1,5 +1,5 @@
 // Cognitive IQ Lab — QB4 option-quality audit
-// Audits option structure and obvious answer cues without rewriting authored QB4 items.
+// Audits the final option set after targeted repair + answer-position balancing.
 (() => {
   'use strict';
 
@@ -57,17 +57,19 @@
   window.IQ_QUESTIONS = selected.map(q => byId.get(q.id) || q);
   window.IQ_BANK_META = {
     ...(window.IQ_BANK_META || {}),
-    optionQualityVersion: '4.0-audit',
-    optionQualityMode: 'audit-only-no-item-rewrite'
+    optionQualityVersion: '4.0-v3',
+    optionQualityMode: 'targeted-repair-then-audit'
   };
   window.IQ_OPTION_QUALITY_REPORT = {
+    ...(window.IQ_OPTION_QUALITY_REPORT || {}),
     revision: window.IQ_BANK_META?.revision || '4.0',
     totalItems: bank.length,
     cueRiskItems,
     correctPositionCounts: positions,
     correctPositionSpread: Math.max(...positions) - Math.min(...positions),
     modelSummary,
+    targetedRepair: window.IQ_OPTION_QUALITY_V3 || null,
     generatedAt: new Date().toISOString()
   };
-  window.IQ_OPTION_AUDIT = { version:'4.0', classifyOption, optionCueFlags };
+  window.IQ_OPTION_AUDIT = { version:'4.0-v3', classifyOption, optionCueFlags };
 })();

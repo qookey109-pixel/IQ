@@ -17,6 +17,7 @@
   const vehicles=['小貨車','電動車','巡檢車','巴士','接駁車','貨車','測試車','工程車','配送車','服務車','公務車','廂型車','機車','自行車','電輔車','觀光車','校車','搬運車'];
   const groups=['導覽組','工作組','練習組','測試組','報到組','攝影組','整理組','搬運組','巡檢組','採樣組','盤點組','清潔組','校對組','包裝組','審核組','交付組','測量組','記錄組'];
   const contexts=['圖書館','車站','展館','劇院','球館','工坊','書店','碼頭','畫廊','山屋','市集','茶館','教室','工作室','博物館','實驗室','運動中心','社區中心'];
+  const equivalencePhrases=['以下哪一句邏輯相同？','下列哪句與它等價？','哪一項與這句意思相同？','哪個敘述與原句等價？','以下哪個說法保留相同邏輯？','哪一句保留完全相同的邏輯意思？'];
 
   function naturalizeMachine(q,n,v,t){
     const x=3+mod(n*2,9),a=2+mod(v,4),b=1+mod(n+v,6);let c;
@@ -59,7 +60,7 @@
       const n=itemIndex(q),v=variant(q),t=tier(q),s=Math.max(0,Math.min(17,Number(q.surfaceVariant||1)-1));
       if(q.taskFamily==='machine-composition') naturalizeMachine(q,n,v,t);
       else if(q.taskFamily==='scope-negation'){
-        if(v===1)q.q='「不是所有完成 A 的人都完成 B」以下哪一句邏輯相同？';
+        if(v===1)q.q=`「不是所有完成 A 的人都完成 B」${equivalencePhrases[s%equivalencePhrases.length]}`;
         else {const m=String(q.q).match(/「([^」]+)」/);if(m)q.q=`「${m[1]}」以下哪一句意思相同？`;}
       }
       else if(q.taskFamily==='invariant-transfer') naturalizeInvariant(q,n,v);

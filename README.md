@@ -4,7 +4,7 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。�
 
 ## Question Bank v5.0
 
-目前題庫版本：`QB-2026.09.5`，revision：`5.0`，自然語言層：`NL-2026.09.2`。
+目前題庫版本：`QB-2026.09.5`，revision：`5.0`，自然語言層：`NL-2026.09.3`。
 
 - 5,124 個題庫項目
 - 6 個認知構面、42 個 task families
@@ -15,17 +15,38 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。�
 - 同一構面每份 form 使用 5 個不同 task families
 - 最近 8 份 form 優先避開相同 item ID
 
-## Natural Language v2
+## Natural Language v3
 
-Natural Language v2 的目標是「題意清楚，但不要像模板機器」。不改答案邏輯、選項、難度或 semanticKey。
+Natural Language v3 的目標是：**邏輯不變、題目直接、繁體中文自然，而且不要像模板機器。**
 
-- `machine-composition` 改成簡潔的 X / 代數表示，例如 `X = 9，求 (X + 2) × 3`，不再使用冗長的「規則機器」敘述
-- `scope-negation` 拿掉「在書店／車站的紀錄中」等無關前綴，改成直接問哪一句邏輯等價
-- `invariant-transfer` 改成自然的甲／乙／丙容器與移動敘述
-- `quant-unit-rate` 直接把信封、卡片、筆記本等物品寫進題句，不再使用「以○○這組資料為情境」
-- `quant-remainder`、`quant-time`、`quant-probability`、`quant-balance` 共 576 題也完成相同去模板化處理
-- 改寫後仍保持 5,124 / 5,124 concrete signatures 唯一
-- 若某種表面前綴直接移除會造成重複，改用自然的物品、作業名稱或代碼變體，而不是靠無關場景灌唯一性
+語言層參考 `Raymondhou0917/speak-human-tw` v1.4.0 的編輯原則，採用「先保住事實／邏輯，再移除模板味，最後做台灣語感校正」的方向；本專案只套用適合認知測驗的部分，沒有 runtime dependency，也不為了「人味」加入原題沒有的故事、情緒或條件。
+
+目前原則：
+
+- **答案與構念優先**：改寫不得改變正解、semanticKey、難度或真正要測的推理規則
+- **直接問**：`machine-composition` 使用簡潔 X／代數表示，不再用「規則機器」包裝簡單運算
+- **情境必須有作用**：移除「在書店的紀錄中」「以○○這組資料為情境」「在○○的快速掃描組中」等裝飾性前綴
+- **邏輯題保留精度**：否定範圍仍明確使用「邏輯相同／等價」，不因口語化變得模糊
+- **自然量詞**：例如「150 封信件、每分鐘製作幾封」，不再把具體物品又問成「幾件」
+- **工作記憶短指令**：刺激消失後只留下必要操作，不重述整段資訊
+- **處理速度靠真實刺激做差異**：Concrete uniqueness 改由符號、數字、代碼與 distractor 變化維持，不靠無關地點故事
+- **台灣繁體中文**：固定檢查常見台灣用語與全形中文標點
+- **不假裝有人味**：專業題目可以專業；只清掉模板化與翻譯腔，不亂加口頭禪
+
+完整規範見 `docs/question-language-style.md`。
+
+### 已處理的代表題型
+
+- `machine-composition`：`X = 9，求 (X + 2) × 3。`
+- `scope-negation`：直接問「不是所有完成 A 的人都完成 B」哪一句與原句等價
+- `invariant-transfer`：改成甲／乙／丙容器與清楚的移動動作
+- `quant-unit-rate`：物品與量詞直接進入題句
+- `quant-remainder` / `quant-time` / `quant-probability` / `quant-balance`：共 576 題移除假情境前綴
+- `set-overlap` / `pairing-capacity`：使用真正參與推理的分類、鎖／鑰匙、座位、容量等名詞
+- `memory-update` / `memory-relative` / `memory-reorder`：縮短作答階段的指令
+- `speed-count` / `speed-parity` / `speed-order` / `speed-missing`：直接呈現掃描任務，不再靠「某地的快速掃描組」維持唯一性
+
+改寫後仍保持 **5,124 / 5,124 concrete signatures 唯一**，並且 **5,124 / 5,124 題仍通過獨立 answer oracle**。
 
 ## Safari / 視覺空間修正
 
@@ -96,7 +117,7 @@ GitHub Actions 目前驗證：
 - 5,124 items / 42 families / 294 semantic templates
 - 5,124 unique concrete signatures
 - 5,124 / 5,124 independent oracle answers
-- Natural Language v2 去模板化與 5,124 唯一性
+- Natural Language v3：zero artificial wrappers、台灣用語、題幹長度 guardrails、5,124 唯一性
 - 1,008 個 Safari-safe spatial SVG intrinsic sizes
 - 30-item form quota / family diversity / 64-candidate form-load matching
 - A/B/C/D = 1281 / 1281 / 1281 / 1281
@@ -113,13 +134,15 @@ GitHub Actions 目前驗證：
 - `qb5-core.js` / `qb5-*.js` — QB5 construct variants
 - `qb5-parameter-diversity.js` — controlled surface variants
 - `qb5-form-equivalence.js` — formLoad / 64-candidate matching
-- `qb5-finalize.js` — QB5 finalization + Natural Language v1
-- `natural-language-v2.js` — transactional de-templating + Safari SVG intrinsic sizing
+- `qb5-finalize.js` — QB5 finalization + base natural-language reconstruction
+- `natural-language-v2.js` — 檔名為相容性保留；目前實作 Natural Language v3 主語言層
+- `question-language-finalize.js` — 最後語感／量詞／速度題唯一性整理，執行於答案位置平衡之前
+- `docs/question-language-style.md` — 題目繁中語意與台灣用語規範
 - `spatial-visual-fix.css` — Safari-safe spatial rendering
 - `scoring-v2.js` — 0–100 Cognitive Performance Index
 - `calibration-readiness.js` — local calibration-readiness sessions
 - `tests/qb5-oracle-validation.js` — independent answer oracle
-- `tests/natural-language-validation.js` — language / uniqueness / SVG sizing guardrail
+- `tests/natural-language-validation.js` — Natural Language v3 / uniqueness / Taiwan terminology / stem-length / SVG guardrail
 
 ## 重要限制
 

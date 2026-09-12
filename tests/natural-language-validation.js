@@ -58,6 +58,17 @@ assert.ok(speed.every(q=>!q.q.includes('快速掃描組中')),'speed items shoul
 const speedCount=bank.filter(q=>q.taskFamily==='speed-count');
 assert.ok(speedCount.every(q=>q.q.startsWith('符號列：')),'speed-count should show the actual scan row directly');
 
+const scale=bank.filter(q=>q.taskFamily==='scale-drawing');
+assert.strictEqual(scale.length,144);
+assert.ok(scale.every(q=>!q.q.includes('的尺寸如下')),'scale-drawing should not use irrelevant product-size wrappers');
+assert.ok(scale.every(q=>String(q.visual||'').includes('?')),'every scale diagram should mark the requested result as unknown');
+const reverseScale=scale.filter(q=>Number(q.constructVariant)===6);
+assert.strictEqual(reverseScale.length,18);
+assert.ok(reverseScale.every(q=>q.q.startsWith('線段放大')),'reverse scale items should ask directly for the original length');
+assert.ok(reverseScale.every(q=>String(q.visual||'').includes('原長 ?')),'reverse scale diagrams must hide the original length');
+assert.ok(reverseScale.every(q=>!String(q.visual||'').includes(`原長 ${q.correctContent}`)),'reverse scale diagrams must never print the correct original length');
+assert.strictEqual(window.IQ_NATURAL_LANGUAGE.scaleDrawingVisualGuard,'unknown-target-must-use-question-mark');
+
 const artificialPatterns=[/這組資料為情境/,/的這個案例中/,/快速掃描組中/,/規則機器/,/的紀錄中，句子/];
 const artificial=bank.filter(q=>artificialPatterns.some(re=>re.test(String(q.q))));
 assert.strictEqual(artificial.length,0,`remaining artificial wrapper(s): ${artificial.slice(0,5).map(q=>q.id).join(', ')}`);
@@ -92,4 +103,5 @@ console.log('Applied:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.applied));
 console.log('Retained:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.retained));
 console.log('Metrics:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.metrics));
 console.log('Spatial SVG sized:',window.IQ_NATURAL_LANGUAGE.spatialSvgSized);
+console.log('Scale drawings: unknown target hidden in all 144 visuals; reverse-scale original length never leaked');
 console.log('Visual budget: spatial <= 140px; matrix <= 190px with short-height compression');

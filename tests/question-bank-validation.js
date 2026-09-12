@@ -2,7 +2,7 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
 
-const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-finalize.js'];
+const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js'];
 const store = {};
 const domains = ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
 const historyKey = 'cognitive-iq-lab:form-history:QB-2026.09.5';
@@ -31,9 +31,11 @@ assert.strictEqual(first.IQ_BANK_META.taskFamilies, 42);
 assert.strictEqual(first.IQ_BANK_META.semanticTemplates, 294);
 assert.strictEqual(first.IQ_BANK_META.totalItems, 5124);
 assert.strictEqual(first.IQ_BANK_META.spatialSvgItems, 1008);
+assert.strictEqual(first.IQ_BANK_META.formEquivalence, '64-candidate-design-load-matching');
 assert.strictEqual(first.IQ_QUESTION_BANK.length, 5124);
 assert.strictEqual(first.IQ_QUESTIONS.length, 30);
 assert.strictEqual(first.IQ_BANK_VALIDATION.semanticTemplates, 294);
+assert.ok(first.IQ_FORM_EQUIVALENCE_LAST);
 
 function signature(q){return JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].sort()]);}
 const duplicateByFamily={};
@@ -71,6 +73,7 @@ for (const q of first.IQ_QUESTION_BANK) {
   assert.strictEqual(new Set(q.o.map(String)).size, 4, `${q.id}: options must be unique`);
   assert.ok(Number.isInteger(q.a) && q.a >= 0 && q.a <= 3, `${q.id}: answer index`);
   assert.strictEqual(Number(q.complexityScore), q.difficulty === 'hard' ? 3 : q.difficulty === 'medium' ? 2 : 1, `${q.id}: complexity tier`);
+  assert.ok(Number.isFinite(Number(q.formLoad)) && q.formLoad > 0, `${q.id}: form-equivalence load`);
   const timed = Number.isFinite(Number(q.limit)) && Number(q.limit) > 0;
   assert.strictEqual(timed, q.d === '處理速度', `${q.id}: timing policy`);
   if (q.d === '視覺空間') { spatial++; assert.ok(String(q.visual||'').includes('<svg'), `${q.id}: spatial SVG`); }
@@ -85,6 +88,7 @@ for (let run = 2; run <= 12; run++) {
   const form = w.IQ_QUESTIONS;
   assert.strictEqual(w.IQ_DIVERSITY.validateForm(form).ok, true, `form ${run}: validation`);
   assert.strictEqual(new Set(form.map(q => q.id)).size, 30, `form ${run}: unique IDs`);
+  assert.ok(w.IQ_FORM_EQUIVALENCE_LAST && w.IQ_FORM_EQUIVALENCE_LAST.maxAbsPct <= 20, `form ${run}: equivalence guardrail`);
   for (const d of domains) assert.strictEqual(new Set(form.filter(q=>q.d===d).map(q=>q.taskFamily)).size, 5, `form ${run}/${d}: family diversity`);
 }
 const history = JSON.parse(store[historyKey] || '[]');
@@ -92,4 +96,4 @@ assert.strictEqual(history.length, 8, 'history must retain only the most recent 
 assert.ok(history.every(form => Array.isArray(form) && form.length === 30));
 
 console.log('Question Bank QB5 validation PASS');
-console.log('5,124 items; 42 families; 294 semantic templates; 5,124 unique concrete signatures; 1,008 spatial SVG items; distinct-family balanced forms.');
+console.log('5,124 items; 42 families; 294 semantic templates; 5,124 unique concrete signatures; 1,008 spatial SVG items; load-matched distinct-family forms.');

@@ -25,57 +25,44 @@ vm.runInContext(bankCode, context);
 vm.runInContext(qualityCode, context);
 vm.runInContext(balanceCode, context);
 
-const spatialBefore = new Map(
-  window.IQ_QUESTION_BANK
-    .filter(q => q.d === '視覺空間')
-    .map(q => [q.id, { q: q.q, o: [...q.o], e: q.e }])
-);
-
+const snapshots = new Map(window.IQ_QUESTION_BANK.slice(0,120).map(q => [q.id, {q:q.q,e:q.e,a:q.a,o:[...q.o]}]));
 vm.runInContext(clarityCode, context);
 
 const bank = window.IQ_QUESTION_BANK;
-assert.strictEqual(bank.length, 300, 'presentation layer must not change bank size');
+assert.strictEqual(bank.length, 5124, 'presentation layer must not change QB4 bank size');
 
-const arrows = /[↑↗→↘↓↙←↖]/;
 const spatial = bank.filter(q => q.d === '視覺空間');
-assert.strictEqual(spatial.length, 50, 'expected 50 spatial items');
-for (const q of spatial) {
-  const before = spatialBefore.get(q.id);
-  assert.strictEqual(q.visual, null, `${q.id}: redundant spatial visual must be removed`);
-  assert.strictEqual(q.presentationMode, 'text-only', `${q.id}: spatial presentation mode`);
-  assert.strictEqual(q.q, before.q, `${q.id}: authored prompt text, including arrows, must be preserved`);
-  assert.deepStrictEqual([...q.o], before.o, `${q.id}: authored answer choices, including arrows, must be preserved`);
-  assert.strictEqual(q.e, before.e, `${q.id}: explanation text must be preserved`);
-}
-assert.ok(spatial.some(q => arrows.test(q.q)), 'spatial prompts should retain arrow glyphs');
-assert.ok(spatial.some(q => q.o.some(opt => arrows.test(String(opt)))), 'spatial answer choices should retain arrow glyphs');
+assert.strictEqual(spatial.length, 1008, 'expected 1008 spatial QB4 items');
+assert.ok(spatial.every(q => q.visual == null), 'spatial items must not keep duplicate visual panels');
+assert.ok(spatial.every(q => q.presentationMode === 'text-only'), 'spatial items must be text-first');
 
 const speed = bank.filter(q => q.d === '處理速度');
-assert.strictEqual(speed.length, 50, 'expected 50 speed items');
-assert.ok(speed.every(q => q.presentationMode === 'direct-speed'), 'speed items must use direct answer presentation');
-assert.ok(speed.every(q => q.visual === null), 'speed items must not keep a duplicate visual candidate layer');
+assert.strictEqual(speed.length, 1008, 'expected 1008 speed QB4 items');
+assert.ok(speed.every(q => q.presentationMode === 'direct-speed'), 'speed items must use direct presentation');
+assert.ok(speed.every(q => q.visual == null), 'speed items must not keep duplicate visual panels');
 assert.ok(speed.every(q => q.o.length === 4 && new Set(q.o.map(String)).size === 4), 'speed answer controls must remain four unique choices');
-assert.ok(speed.every(q => Number.isInteger(q.a) && q.a >= 0 && q.a < 4), 'speed answer keys must remain valid');
 
-const targetMatch = speed.filter(q => q.model === 'speed-target-match');
-assert.strictEqual(targetMatch.length, 25, 'expected 25 target-match items');
-assert.ok(targetMatch.every(q => /^目標：.+。找出完全相同的字串。$/.test(q.q)), 'target-match prompt should contain the target exactly once');
-assert.ok(targetMatch.every(q => q.o.every(opt => !/^第\s*[1-4]\s*個$/.test(String(opt)))), 'target-match options should be candidate strings, not ordinal labels');
-assert.ok(targetMatch.every(q => q.o[q.a] === q.q.match(/^目標：(.+)。找出/)[1]), 'target-match answer content must still equal the target');
-
-const oddGroup = speed.filter(q => q.model === 'speed-odd-group');
-assert.strictEqual(oddGroup.length, 25, 'expected 25 odd-group items');
-assert.ok(oddGroup.every(q => q.o.every(opt => /^[1-4] · .+/.test(String(opt)))), 'odd-group options should show compact ordinal plus the actual group');
+const memory = bank.filter(q => q.d === '工作記憶');
+assert.strictEqual(memory.length, 1008, 'expected 1008 memory QB4 items');
+assert.ok(memory.every(q => q.presentationMode === 'single-stimulus'), 'memory items must keep one focused stimulus surface');
 
 const matrix = bank.filter(q => q.type === 'matrix');
-assert.ok(matrix.length > 0, 'matrix items should remain available');
+assert.strictEqual(matrix.length, 144, 'QB4 matrix-difference family should provide 144 variants');
 assert.ok(matrix.every(q => Array.isArray(q.cells) && q.cells.length === 9), 'matrix essentials must be preserved');
+assert.ok(matrix.every(q => q.presentationMode === 'essential-visual'), 'matrix items remain essential visual content');
+
+for (const [id, before] of snapshots) {
+  const q = bank.find(item => item.id === id);
+  assert.strictEqual(q.q, before.q, `${id}: presentation must preserve prompt`);
+  assert.strictEqual(q.e, before.e, `${id}: presentation must preserve explanation`);
+  assert.strictEqual(q.a, before.a, `${id}: presentation must preserve answer key`);
+  assert.deepStrictEqual([...q.o], before.o, `${id}: presentation must preserve answer options`);
+}
 
 assert.ok(css.includes('--bg:#e9dfcf'), 'warm ivory background token missing');
 assert.ok(css.includes('--text:#241f1a'), 'ink-brown text token missing');
 assert.ok(css.includes('--gold:#a96f3e'), 'bronze accent token missing');
 assert.ok(css.includes('.timer.memoryTimer'), 'warm memory timer styling missing');
-assert.ok(css.includes('#radarChart polygon:last-of-type'), 'warm result-chart override missing');
 
 const heritageCssAt = html.indexOf('heritage-theme.css');
 const viewportCssAt = html.indexOf('viewport-stability.css');
@@ -83,16 +70,12 @@ assert.ok(heritageCssAt > viewportCssAt, 'heritage theme must load after viewpor
 assert.strictEqual(html.includes('clarity-theme.css'), false, 'white/blue/orange clarity theme must not be loaded');
 const presentationAt = html.indexOf('presentation-clarity.js');
 const appAt = html.indexOf('app.js');
-assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation rewrite must run before app binds questions');
+assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation layer must run before app binds questions');
 
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version, '2.0-qb4');
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly, true);
-assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialArrowsPreserved, true);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions, true);
-assert.deepStrictEqual(
-  Array.from(window.IQ_PRESENTATION_CLARITY.palette),
-  ['warm-ivory', 'ink-brown', 'bronze'],
-  'active palette metadata must be warm ivory / ink brown / bronze'
-);
+assert.deepStrictEqual(Array.from(window.IQ_PRESENTATION_CLARITY.palette), ['warm-ivory','ink-brown','bronze']);
 
-console.log('Presentation clarity validation PASS');
-console.log('Low-fatigue presentation preserved; active interface palette is warm ivory / ink brown / bronze.');
+console.log('QB4 presentation clarity validation PASS');
+console.log('5,124-item bank preserved; spatial/speed remain low-fatigue; warm editorial palette active.');

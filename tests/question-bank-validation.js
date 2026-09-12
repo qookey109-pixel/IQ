@@ -34,6 +34,14 @@ assert.strictEqual(first.IQ_BANK_META.spatialSvgItems, 1008);
 assert.strictEqual(first.IQ_QUESTION_BANK.length, 5124);
 assert.strictEqual(first.IQ_QUESTIONS.length, 30);
 assert.strictEqual(first.IQ_BANK_VALIDATION.semanticTemplates, 294);
+
+function signature(q){return JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].sort()]);}
+const duplicateByFamily={};
+for(const family of new Set(first.IQ_QUESTION_BANK.map(q=>q.taskFamily))){
+  const items=first.IQ_QUESTION_BANK.filter(q=>q.taskFamily===family),sigs=new Set(items.map(signature));
+  const dup=items.length-sigs.size;if(dup)duplicateByFamily[family]={items:items.length,unique:sigs.size,duplicates:dup};
+}
+if(first.IQ_BANK_VALIDATION.uniqueTaskSignatures!==5124)console.error('QB5 duplicate signatures by family:',JSON.stringify(duplicateByFamily,null,2));
 assert.strictEqual(first.IQ_BANK_VALIDATION.uniqueTaskSignatures, 5124, 'QB5 must not emit exact duplicate items');
 
 for (const domain of domains) {

@@ -33,7 +33,8 @@ assert.ok(transfer.some(q=>q.q.includes('甲、乙、丙三個容器分別有'))
 
 const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');
-assert.ok(unit.some(q=>/機器 \d+ 分鐘製作 \d+ 封信件，速率固定。每分鐘製作幾封/.test(q.q)),'mail unit-rate should use natural Taiwan measure words');
+assert.ok(unit.every(q=>!q.q.includes('個信封')),'mail unit-rate should not use generic 個信封 wording');
+assert.ok(unit.some(q=>q.q.includes('封信件')),'mail unit-rate should use natural Taiwan noun and measure word');
 
 const overlap=bank.filter(q=>q.taskFamily==='set-overlap');
 assert.ok(overlap.every(q=>!q.q.includes('的這個案例中')));

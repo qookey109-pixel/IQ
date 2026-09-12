@@ -64,7 +64,7 @@ assert.ok(scale.every(q=>!q.q.includes('的尺寸如下')),'scale-drawing should
 assert.ok(scale.every(q=>String(q.visual||'').includes('?')),'every scale diagram should mark the requested result as unknown');
 const reverseScale=scale.filter(q=>Number(q.constructVariant)===6);
 assert.strictEqual(reverseScale.length,18);
-assert.ok(reverseScale.every(q=>q.q.startsWith('線段放大')),'reverse scale items should ask directly for the original length');
+assert.ok(reverseScale.every(q=>/^線段 [A-Z] 放大/.test(q.q)),'reverse scale items should ask directly for the original length with a meaningful line label');
 assert.ok(reverseScale.every(q=>String(q.visual||'').includes('原長 ?')),'reverse scale diagrams must hide the original length');
 assert.ok(reverseScale.every(q=>!String(q.visual||'').includes(`原長 ${q.correctContent}`)),'reverse scale diagrams must never print the correct original length');
 assert.strictEqual(window.IQ_NATURAL_LANGUAGE.scaleDrawingVisualGuard,'unknown-target-must-use-question-mark');

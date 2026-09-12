@@ -81,7 +81,10 @@ assert.ok(spatial.every(q=>String(q.visual||'').includes('class="qb5-spatial-svg
 assert.ok(spatial.every(q=>String(q.visual||'').includes('width="360"')&&String(q.visual||'').includes('height="220"')),'all spatial SVGs need intrinsic Safari-safe dimensions');
 const css=fs.readFileSync('spatial-visual-fix.css','utf8');
 assert.match(css,/\.qb5-spatial-svg/);
-assert.match(css,/width:\s*min\(100%,\s*400px\)/);
+assert.match(css,/height:\s*min\(15dvh,\s*140px\)/,'spatial diagrams need a compact viewport-height budget');
+assert.match(css,/#quiz #visualHolder \.matrix/,'matrix visuals need their own compact height budget');
+assert.match(css,/@media \(max-height: 760px\)/,'short laptop windows need a visual compression breakpoint');
+assert.match(css,/@media \(max-height: 680px\)/,'very short windows need a stronger visual compression breakpoint');
 
 console.log('Natural Language v3 / Visual validation PASS');
 console.log('Reference:',window.IQ_NATURAL_LANGUAGE.reference);
@@ -89,3 +92,4 @@ console.log('Applied:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.applied));
 console.log('Retained:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.retained));
 console.log('Metrics:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.metrics));
 console.log('Spatial SVG sized:',window.IQ_NATURAL_LANGUAGE.spatialSvgSized);
+console.log('Visual budget: spatial <= 140px; matrix <= 190px with short-height compression');

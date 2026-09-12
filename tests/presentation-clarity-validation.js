@@ -2,80 +2,60 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
 
-const bankCode = fs.readFileSync('question-bank.js', 'utf8');
-const qualityCode = fs.readFileSync('answer-quality.js', 'utf8');
-const balanceCode = fs.readFileSync('answer-position-balance.js', 'utf8');
-const clarityCode = fs.readFileSync('presentation-clarity.js', 'utf8');
-const css = fs.readFileSync('heritage-theme.css', 'utf8');
-const html = fs.readFileSync('index.html', 'utf8');
-const store = {};
-
-const window = { addEventListener() {} };
-const context = {
-  window,
-  document: { getElementById() { return null; } },
-  localStorage: {
-    getItem(key) { return store[key] ?? null; },
-    setItem(key, value) { store[key] = value; }
-  },
-  console, Math, JSON, Set, Map, Array, Number, String, Object, Date, RegExp
-};
+const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-finalize.js','answer-position-balance.js','answer-quality.js'];
+const css=fs.readFileSync('heritage-theme.css','utf8');
+const html=fs.readFileSync('index.html','utf8');
+const store={};
+const window={addEventListener(){}};
+const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
-vm.runInContext(bankCode, context);
-vm.runInContext(qualityCode, context);
-vm.runInContext(balanceCode, context);
+for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
+const snapshots=new Map(window.IQ_QUESTION_BANK.slice(0,160).map(q=>[q.id,{q:q.q,e:q.e,a:q.a,o:[...q.o],visual:q.visual}]));
+vm.runInContext(fs.readFileSync('presentation-clarity.js','utf8'),context,{filename:'presentation-clarity.js'});
 
-const snapshots = new Map(window.IQ_QUESTION_BANK.slice(0,120).map(q => [q.id, {q:q.q,e:q.e,a:q.a,o:[...q.o]}]));
-vm.runInContext(clarityCode, context);
+const bank=window.IQ_QUESTION_BANK;
+assert.strictEqual(bank.length,5124);
+const spatial=bank.filter(q=>q.d==='視覺空間');
+assert.strictEqual(spatial.length,1008);
+assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')),'all QB5 spatial items must retain their essential SVG');
+assert.ok(spatial.every(q=>q.presentationMode==='spatial-diagram'),'QB5 spatial items must render as diagram tasks');
+assert.strictEqual(new Set(spatial.map(q=>q.diagramType)).size,7,'all seven spatial families should expose diagram types');
 
-const bank = window.IQ_QUESTION_BANK;
-assert.strictEqual(bank.length, 5124, 'presentation layer must not change QB4 bank size');
+const speed=bank.filter(q=>q.d==='處理速度');
+assert.strictEqual(speed.length,1008);
+assert.ok(speed.every(q=>q.presentationMode==='direct-speed'));
+assert.ok(speed.every(q=>q.visual==null));
+assert.ok(speed.every(q=>q.o.length===4&&new Set(q.o.map(String)).size===4));
 
-const spatial = bank.filter(q => q.d === '視覺空間');
-assert.strictEqual(spatial.length, 1008, 'expected 1008 spatial QB4 items');
-assert.ok(spatial.every(q => q.visual == null), 'spatial items must not keep duplicate visual panels');
-assert.ok(spatial.every(q => q.presentationMode === 'text-only'), 'spatial items must be text-first');
+const memory=bank.filter(q=>q.d==='工作記憶');
+assert.strictEqual(memory.length,1008);
+assert.ok(memory.every(q=>q.presentationMode==='single-stimulus'));
+const matrix=bank.filter(q=>q.type==='matrix');
+assert.strictEqual(matrix.length,144);
+assert.ok(matrix.every(q=>Array.isArray(q.cells)&&q.cells.length===9));
+assert.ok(matrix.every(q=>q.presentationMode==='essential-visual'));
 
-const speed = bank.filter(q => q.d === '處理速度');
-assert.strictEqual(speed.length, 1008, 'expected 1008 speed QB4 items');
-assert.ok(speed.every(q => q.presentationMode === 'direct-speed'), 'speed items must use direct presentation');
-assert.ok(speed.every(q => q.visual == null), 'speed items must not keep duplicate visual panels');
-assert.ok(speed.every(q => q.o.length === 4 && new Set(q.o.map(String)).size === 4), 'speed answer controls must remain four unique choices');
-
-const memory = bank.filter(q => q.d === '工作記憶');
-assert.strictEqual(memory.length, 1008, 'expected 1008 memory QB4 items');
-assert.ok(memory.every(q => q.presentationMode === 'single-stimulus'), 'memory items must keep one focused stimulus surface');
-
-const matrix = bank.filter(q => q.type === 'matrix');
-assert.strictEqual(matrix.length, 144, 'QB4 matrix-difference family should provide 144 variants');
-assert.ok(matrix.every(q => Array.isArray(q.cells) && q.cells.length === 9), 'matrix essentials must be preserved');
-assert.ok(matrix.every(q => q.presentationMode === 'essential-visual'), 'matrix items remain essential visual content');
-
-for (const [id, before] of snapshots) {
-  const q = bank.find(item => item.id === id);
-  assert.strictEqual(q.q, before.q, `${id}: presentation must preserve prompt`);
-  assert.strictEqual(q.e, before.e, `${id}: presentation must preserve explanation`);
-  assert.strictEqual(q.a, before.a, `${id}: presentation must preserve answer key`);
-  assert.deepStrictEqual([...q.o], before.o, `${id}: presentation must preserve answer options`);
+for(const [id,before] of snapshots){
+  const q=bank.find(x=>x.id===id);
+  assert.strictEqual(q.q,before.q,`${id}: presentation preserves prompt`);
+  assert.strictEqual(q.e,before.e,`${id}: presentation preserves explanation`);
+  assert.strictEqual(q.a,before.a,`${id}: presentation preserves key`);
+  assert.deepStrictEqual([...q.o],before.o,`${id}: presentation preserves options`);
+  if(q.d==='視覺空間')assert.strictEqual(q.visual,before.visual,`${id}: presentation preserves spatial SVG`);
 }
 
-assert.ok(css.includes('--bg:#e9dfcf'), 'warm ivory background token missing');
-assert.ok(css.includes('--text:#241f1a'), 'ink-brown text token missing');
-assert.ok(css.includes('--gold:#a96f3e'), 'bronze accent token missing');
-assert.ok(css.includes('.timer.memoryTimer'), 'warm memory timer styling missing');
+assert.ok(css.includes('--bg:#e9dfcf'));
+assert.ok(css.includes('--text:#241f1a'));
+assert.ok(css.includes('--gold:#a96f3e'));
+assert.ok(css.includes('.timer.memoryTimer'));
+assert.ok(html.indexOf('heritage-theme.css')>html.indexOf('viewport-stability.css'));
+assert.strictEqual(html.includes('clarity-theme.css'),false);
+assert.ok(html.indexOf('presentation-clarity.js')>html.indexOf('answer-quality.js'));
+assert.ok(html.indexOf('presentation-clarity.js')<html.indexOf('app.js'));
 
-const heritageCssAt = html.indexOf('heritage-theme.css');
-const viewportCssAt = html.indexOf('viewport-stability.css');
-assert.ok(heritageCssAt > viewportCssAt, 'heritage theme must load after viewport safety');
-assert.strictEqual(html.includes('clarity-theme.css'), false, 'white/blue/orange clarity theme must not be loaded');
-const presentationAt = html.indexOf('presentation-clarity.js');
-const appAt = html.indexOf('app.js');
-assert.ok(presentationAt > -1 && presentationAt < appAt, 'presentation layer must run before app binds questions');
-
-assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version, '2.0-qb4');
-assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly, true);
-assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions, true);
-assert.deepStrictEqual(Array.from(window.IQ_PRESENTATION_CLARITY.palette), ['warm-ivory','ink-brown','bronze']);
-
-console.log('QB4 presentation clarity validation PASS');
-console.log('5,124-item bank preserved; spatial/speed remain low-fatigue; warm editorial palette active.');
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version,'3.0-qb5');
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly,false);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialDiagrams,true);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions,true);
+console.log('QB5 presentation clarity validation PASS');
+console.log('1,008 spatial SVG items retained; speed/memory low-fatigue presentation preserved; warm editorial palette active.');

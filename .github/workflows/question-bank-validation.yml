@@ -25,6 +25,7 @@ jobs:
           node --check qb5-speed.js
           node --check qb5-quant.js
           node --check qb5-parameter-diversity.js
+          node --check qb5-ordering-diversity-fix.js
           node --check qb5-finalize.js
           node --check answer-quality.js
           node --check answer-position-balance.js

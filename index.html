@@ -71,7 +71,8 @@
       <p>QB5 每次從完整 5,124 題題庫中抽 30 題，每個構面固定 5 題，維持 2 基礎、2 中等、1 進階；同一構面優先抽不同題型家族，並避開最近 8 份測驗已出現的相同題目。</p>
       <p><strong>5,124 是實際題庫題數；294 是不同的推理規則模板數。</strong>QB5 有 42 個題型家族：語文每族 2 種規則，其餘每族 8 種；數字與自然情境只作受控具體變體，不會把單純換數字灌水成新的推理規則。</p>
       <p>視覺空間 7 個家族的 1,008 個題庫項目現在都帶有題目內 SVG 圖示；工作記憶的目標位置、配對、更新順序與重排規則也會變化。</p>
-      <p class="modalFoot">目前的 IQ-style Cognitive Index 仍是產品實驗分數，尚未做人口常模、IRT／CAT 校準或臨床效度驗證；不是 WAIS、Stanford–Binet、Raven 或任何正式 IQ 鑑定結果。</p>
+      <p>每份測驗會先滿足固定難度與題型配額，再從多個合法候選卷中選擇設計負荷較接近目標的一份，以減少不同抽卷之間的隨機落差。</p>
+      <p class="modalFoot">結果顯示的是 0–100 的實驗性 Cognitive Performance Index，會保留原始正確率並對設計難度做透明加權；尚未做人口常模、IRT／CAT 或臨床效度驗證，因此不是正式 IQ 分數。</p>
     </div>
   </section>
 
@@ -124,16 +125,16 @@
   <section id="result" class="card screenPanel hidden">
     <div class="resultHeading">
       <div><div class="sectionKicker">RESULT · QB-2026.09.5 · rev 5.0</div><h2>你的認知快照</h2></div>
-      <div class="resultMicrocopy">不是標準答案，只是一張今天的腦內地圖。</div>
+      <div class="resultMicrocopy">不是 IQ 常模，只是一張今天的腦內地圖。</div>
     </div>
 
     <div class="resultGrid compactResultGrid">
       <div class="scoreCard compactScoreCard">
-        <div class="scoreTitle">IQ-style Cognitive Index</div>
+        <div class="scoreTitle">Cognitive Performance Index</div>
         <div id="indexScore" class="bigScore">100</div>
         <div id="resultDesc" class="resultDesc"></div>
         <p id="resultSummary"></p>
-        <div class="tinyDisclaimer">實驗性網站分數 · 非正式 IQ</div>
+        <div class="tinyDisclaimer">0–100 實驗性表現指數 · 非 IQ 常模</div>
       </div>
 
       <div class="resultVisuals">
@@ -167,6 +168,7 @@
 <script src="qb5-quant.js"></script>
 <script src="qb5-parameter-diversity.js"></script>
 <script src="qb5-ordering-diversity-fix.js"></script>
+<script src="qb5-form-equivalence.js"></script>
 <script src="qb5-finalize.js"></script>
 <script src="answer-position-balance.js"></script>
 <script src="answer-quality.js"></script>
@@ -174,6 +176,7 @@
 <script src="app.js"></script>
 <script src="timeout-lock.js"></script>
 <script src="memory-exposure.js"></script>
+<script src="scoring-v2.js"></script>
 <script src="assessment-quality.js"></script>
 <script src="item-analytics.js"></script>
 <script src="item-quality-v2.js"></script>

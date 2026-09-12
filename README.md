@@ -2,125 +2,96 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-## Question Bank v3.2
+## Question Bank v4.0
 
-目前題庫版本：`QB-2026.09.3`，選項品質修訂：`3.2`。
+目前題庫版本：`QB-2026.09.4`，revision：`4.0`。
 
-- 300 題原創母題庫
-- 6 個認知構面 × 每構面 50 題
-- 每構面：20 基礎、20 中等、10 進階
-- 每次平衡抽 30 題；每構面固定 5 題（2 基礎 + 2 中等 + 1 進階）
-- 最近 8 份題組曝光控制；目前比例可讓前 10 份題組先走完 300 題再重複
-- 300 個唯一 task signature
-- 只有處理速度題有硬性倒數；工作記憶刺激依難度呈現 4–6 秒，其餘主要推理題不限時
+- 5,124 個題庫項目
+- 42 個 task families，6 個認知構面，每個構面 7 個 family
+- 語文理解：84 個獨立項目（7 families × 12）
+- 其他五構面：35 個 family × 144 個可重現 controlled variants = 5,040
+- 5,124 不代表 5,124 篇獨立撰寫文章；variant 是同一推理模板的受控參數變體
+- `semanticKey` 代表推理模板，不用日期、ID 或單純改名來假裝增加題型
+- 每次抽 30 題；每構面 5 題（2 基礎 + 2 中等 + 1 進階）
+- 每份測驗固定 30 個不同 semantic templates，同一 family 在單份 form 中最多 1 次（比 max 2 更嚴格）
+- 最近 8 份 form 會優先避開相同 item ID；小型 verbal family/tier 若 fresh variants 用完才允許 controlled fallback
+- 全庫 5,124 個唯一 content signatures
 
-### v3.2 選項品質
+## QB4 任務家族
 
-v3.2 不再只檢查「有四個答案」，而是降低從選項外觀直接猜答案的機會：
+六個構面各 7 類：
 
-- 20 題語文類比改用語意相近、同層級的原創干擾選項
-- 數字／矩陣題在可行模型中使用「單一規則犯錯」或近似值 distractor
-- 符號矩陣的錯誤選項維持同一符號家族，只改變真正相關的規則
-- 靜態檢查選項格式、長度提示、重複選項與符號家族提示
-- 正確答案位置以 deterministic hash + quota 平衡，不使用容易察覺的 A→B→C→D 輪替
-- 全 300 題正解位置：`A=75 / B=75 / C=75 / D=75`
-- 最新 CI option-quality snapshot：20 curated analogies、115 near-miss items、0 static cue-risk items
+- 語文理解：必要條件、報導與事實、轉折主旨、否定範圍、例外條款、指涉辨識、證據強度
+- 流體推理：規則機器、次序約束、集合交集、符碼對照、守恆推理、配對限制、矩陣差值
+- 視覺空間：方格位移、鏡面位置、方位旋轉、切割面積、堆疊遮擋、比例縮放、格線最短路
+- 工作記憶：位置回憶、配對記憶、資訊更新、選擇性記憶、新舊辨認、相對位置、順序重組
+- 處理速度：精確比對、目標計數、配對搜尋、條件篩選、順序掃描、首尾條件、缺項搜尋
+- 量化推理：折扣、單位價格、平均補值、整除餘數、時刻推算、機率計數、等式求值
 
-題型與選項設計研究記錄見 `OPTION_QUALITY_RESEARCH.md`；題庫生成與授權原則見 `QUESTION_BANK_RESEARCH.md`。
+## 選項品質與答案位置
+
+`answer-quality.js` 在 QB4 改成 audit-only：只檢查選項格式、唯一性、長度提示等風險，不改寫 QB4 題目、答案或 revision。
+
+`answer-position-balance.js` 會以 deterministic hash + quota 平衡全庫正解位置：
+
+`A/B/C/D = 1281 / 1281 / 1281 / 1281`
 
 ## Item Quality QA+
 
-結果頁提供「題庫品質 QA+」。資料只存在目前瀏覽器的 `localStorage`，不會自動上傳，也不保存姓名或帳號。
+結果頁提供「題庫品質 QA+」。資料只存在目前瀏覽器 `localStorage`，不自動上傳，也不保存姓名或帳號。
 
-QA+ 會累積／分析：
+QA+ 會累積／分析：曝光、答對率、跳過率、逾時率、平均作答時間與離散程度、distractor 選擇率、distractor efficiency、item-rest correlation、難度標籤落差、靜態 option cue 與答案位置平衡。
 
-- 題目曝光次數
-- 答對率、跳過率、逾時率
-- 平均作答時間與時間離散程度
-- 每個 distractor 的選擇頻率
-- distractor efficiency
-- item-rest correlation（本機 N 足夠後）
-- 設計難度與實際答對率是否明顯不一致
-- 靜態選項提示風險
-- A/B/C/D 正解位置平衡
-- 高度重複的題幹族
-
-工程門檻：
-
-- `N < 10`：只累積，不做強判斷
-- `N ≥ 20`：開始檢查 distractor efficiency；低於約 5% 選擇率視為需檢查訊號
-- `N ≥ 30`：開始顯示 item-rest discrimination 訊號
-
-這些仍然只是工程 QA，不等於 IRT 校準、信度、效度或人口常模。
-
-## Single-Screen / Safari Safety
-
-- 首頁、單題測驗、結果摘要以一個 viewport 為主要舞台
-- `100dvh`、safe-area、手機與短高度 breakpoint
-- 詳細說明、逐題解析與 QA 使用 overlay
-- Matrix 依 viewport 縮放；密集符號會依格子內容縮字，避免 Safari 溢出
-- 視覺空間題保留箭頭文字與箭頭選項，只移除重複的上方視覺框
-- 處理速度題把候選內容直接放進答案按鈕，不重複顯示候選 panel
-- 底部保留「上一題 / 下一題」導覽
-- 未作答按下一題只會往前，不會清掉已存在答案
-- 逾時題回看仍鎖定，但可再次往下一題
-- 介面使用暖米白／紙張奶油色／深墨棕／古銅色 editorial palette；白／藍／橘 clarity theme 不再載入
+判讀門檻：`N < 10` 只累積；`N ≥ 20` 開始看 distractor efficiency；`N ≥ 30` 才顯示 item-rest discrimination。這仍是工程 QA，不等於 IRT 校準或正式 IQ 常模。
 
 ## 計時模型
 
-- 語文理解：不限時
-- 流體推理：不限時
-- 視覺空間：不限時
-- 量化推理：不限時
+- 語文理解／流體推理／視覺空間／量化推理：不限時
 - 工作記憶：刺激只呈現一次；基礎 4 秒、中等 5 秒、進階 6 秒；消失後作答不限時
-- 處理速度：明確倒數；倒數到 0 永久鎖定，不能補答
+- 處理速度：18 秒明確倒數；倒數到 0 永久鎖定
 - 顯示整份測驗總時間
-- 不限時題不因慢而扣速度分
-- 處理速度只有答對的限時題才可能取得速度因素加分
 
-工作記憶採 4/5/6 秒不是正式臨床常模，而是目前產品版的呈現政策：較長、較複雜的刺激給略多編碼時間，降低把閱讀速度混進記憶分數的程度。刺激仍只顯示一次，以保留工作記憶挑戰。
+4/5/6 秒是產品版呈現政策，不是臨床常模；目的是減少把閱讀速度混進工作記憶分數。
+
+## UI / Single-Screen
+
+- 暖米白／紙張奶油色／深墨棕／古銅色 editorial palette
+- 首頁、單題測驗、結果摘要以一個 viewport 為主要舞台
+- `100dvh`、safe-area、手機與短高度 breakpoint
+- 詳細說明、逐題解析與 QA 使用 overlay
+- 題目採 low-fatigue presentation：資訊只顯示一次；Matrix 保留必要視覺，其他題型以文字與答案為主
+- 底部保留「上一題 / 下一題」導覽；逾時題回看仍鎖定，但可繼續前進
 
 ## 自動品質閘門
 
-GitHub Actions `.github/workflows/question-bank-validation.yml` 會驗證：
+GitHub Actions 目前驗證：
 
 - JavaScript syntax
-- 300 題題庫結構與 10-form 完整覆蓋週期
-- Question Bank v3.2 option quality
-- Item Quality QA v2 計算邏輯
-- Low-fatigue presentation 與暖米白／墨棕／古銅 active theme
-- Adaptive memory exposure（4 / 5 / 6 秒）
+- QB4 5,124-item bank 與 42 families
+- 5,124 unique signatures
+- 30-item form：6×5、2 easy + 2 medium + 1 hard、30 semantic templates
+- recent-8 history persistence / fresh-first controlled fallback
+- QB4 option audit + A/B/C/D 1281/1281/1281/1281
+- Item Quality QA+ calculations
+- QB4 low-fatigue presentation
+- Adaptive memory exposure 4/5/6 秒
 - Local item analytics
-- Single-Screen UI 結構
-- Matrix viewport safety
-- Forward navigation / dense-matrix containment
+- Single-Screen UI、Matrix viewport safety、forward navigation
 
 ## 主要檔案
 
-- `index.html` — 主介面與 script/style 組裝
-- `question-bank.js` — 300 題原始生成器與平衡抽題
-- `answer-quality.js` — v3.2 原創 near-miss / distractor quality pass
-- `answer-position-balance.js` — A/B/C/D 全庫平衡
-- `presentation-clarity.js` — 低疲勞呈現：移除重複視覺但保留必要箭頭／矩陣
-- `memory-exposure.js` — 工作記憶 4/5/6 秒自適應呈現政策
-- `item-analytics.js` — 第一代本機聚合統計
+- `question-bank.js` — QB4 5,124-item generator / validator / form selector
+- `answer-quality.js` — QB4 audit-only option cue preflight
+- `answer-position-balance.js` — deterministic A/B/C/D balance
+- `presentation-clarity.js` — QB4 low-fatigue presentation
+- `memory-exposure.js` — 4/5/6 秒工作記憶刺激政策
 - `item-quality-v2.js` — QA+ / item-rest / distractor efficiency / preflight
 - `timeout-lock.js` — 混合計時、總時間、逾時鎖定
 - `navigation-layout-fix.js` — 非破壞式上一題／下一題導覽
-- `matrix-layout-fix.css` / `viewport-stability.css` — Matrix 與短 viewport 安全
-- `heritage-theme.css` — 暖米白／墨棕／古銅 active editorial theme
-- `OPTION_QUALITY_RESEARCH.md` — 選項／干擾選項研究與授權界線
-
-## 執行方式
-
-純前端專案，直接開啟 `index.html` 即可，不需要 build 或後端。
-
-## 研究與權利界線
-
-公開研究與開源實作只用來研究 item construction、Automatic Item Generation、distractor efficiency、IRT/CAT 與 UI/工程方法。本站不匯入或複製 WAIS、Stanford–Binet、Raven/Pearson 等受保護的正式題目、答案表、常模或專有計分。
+- `heritage-theme.css` — 暖米白／墨棕／古銅 active theme
 
 ## 重要限制
 
-目前 `easy / medium / hard` 是設計難度，而非人口樣本校準後的 psychometric difficulty。`IQ-style Cognitive Index` 是網站實驗分數，不能視為正式 IQ、人口百分位或診斷結果。
+目前 `easy / medium / hard` 是設計難度，不是人口樣本校準後的 psychometric difficulty。`IQ-style Cognitive Index` 是網站實驗分數，不能視為正式 IQ、人口百分位或診斷結果。
 
 > **不構成任何標準，好玩就好。** 內容僅供參考；若有出入，以你的想像力為準。

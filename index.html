@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="single-screen.css">
 <link rel="stylesheet" href="matrix-layout-fix.css">
-<link rel="stylesheet" href="viewport-stability.css?v=matrix-cluster-v2">
+<link rel="stylesheet" href="viewport-stability.css">
 <link rel="stylesheet" href="heritage-theme.css">
 </head>
 <body>
@@ -19,24 +19,24 @@
       <div class="brandMark">Ψ</div>
       <div>
         <div class="brandTitle">Cognitive IQ Lab</div>
-        <div class="brandSub">300 題母題庫 · 每次平衡抽 30 題</div>
+        <div class="brandSub">5,124 題庫項目 · 每次平衡抽 30 題</div>
       </div>
     </div>
-    <div class="pill">QB v3.2</div>
+    <div class="pill">QB v4.0</div>
   </div>
 
   <section id="start" class="card screenPanel">
     <div class="compactHero">
       <div class="heroCopy">
-        <div class="sectionKicker">COGNITIVE PLAYGROUND · QB-2026.09.3</div>
+        <div class="sectionKicker">COGNITIVE PLAYGROUND · QB-2026.09.4</div>
         <h1>30 題，看看你的腦袋<br class="desktopBreak">今天怎麼跑。</h1>
-        <p class="lead">從 300 題原創題庫平衡抽題，涵蓋語文、推理、空間、記憶、速度與量化六個構面。</p>
+        <p class="lead">從 QB4 的 5,124 個題庫項目中平衡抽題；語文採 84 個獨立題目，其餘由 35 類受控任務產生可重現變體，涵蓋六個認知構面。</p>
 
         <div class="quickFacts" aria-label="測驗摘要">
-          <div><strong>300</strong><span>母題庫</span></div>
+          <div><strong>5,124</strong><span>題庫項目</span></div>
           <div><strong>30</strong><span>本次題數</span></div>
+          <div><strong>42</strong><span>任務家族</span></div>
           <div><strong>6</strong><span>認知構面</span></div>
-          <div><strong>混合</strong><span>計時模式</span></div>
         </div>
 
         <div class="actions compactActions">
@@ -53,11 +53,11 @@
       <div class="assessmentDial" aria-label="測驗結構">
         <div class="dialRing">
           <span class="dialEyebrow">QUESTION BANK</span>
-          <strong>300</strong>
-          <span>original items</span>
+          <strong>5,124</strong>
+          <span>bank items</span>
         </div>
         <div class="dialLegend">
-          <div><i>01</i><span>推理題多數不限時</span></div>
+          <div><i>01</i><span>每構面固定抽 5 題</span></div>
           <div><i>02</i><span>記憶刺激 4–6 秒，只看一次</span></div>
           <div><i>03</i><span>速度題才有明顯倒數</span></div>
         </div>
@@ -68,7 +68,8 @@
       <button class="screenClose" type="button" aria-label="關閉">×</button>
       <div class="sectionKicker">HOW IT WORKS</div>
       <h3>簡單玩，認真記錄。</h3>
-      <p>每次從 300 題中抽 30 題，每個構面固定 5 題，並維持基礎／中等／進階比例。一般推理題不限時；工作記憶依難度顯示刺激 4–6 秒且只顯示一次；處理速度題才倒數。</p>
+      <p>QB4 每次抽 30 題，每個構面固定 5 題，並維持 2 基礎、2 中等、1 進階。每份測驗會優先使用不同的 semantic templates，並避開最近 8 份測驗已出現的相同題目。</p>
+      <p>5,124 代表題庫項目總數，不代表 5,124 篇各自獨立撰寫的題目；其中語文有 84 個獨立項目，其餘是 35 類任務的受控、可重現變體。</p>
       <p class="modalFoot">目前的 IQ-style Cognitive Index 是產品實驗分數，不是 WAIS、Stanford–Binet、Raven 或任何臨床／教育鑑定的正式結果。</p>
     </div>
   </section>
@@ -80,7 +81,7 @@
           <div id="counter" class="counter">第 1 題 / 30</div>
           <div id="domain" class="domainBadge">流體推理</div>
         </div>
-        <div class="quizMeta">QB-2026.09.3 · rev 3.2 · 只有標示「限時」的題目會倒數</div>
+        <div class="quizMeta">QB-2026.09.4 · rev 4.0 · 只有標示「限時」的題目會倒數</div>
       </div>
       <div class="timersPanel">
         <div class="timerWrap">
@@ -130,7 +131,7 @@
   <section id="result" class="card screenPanel hidden">
     <div class="resultHeading">
       <div>
-        <div class="sectionKicker">RESULT · QB-2026.09.3 · rev 3.2</div>
+        <div class="sectionKicker">RESULT · QB-2026.09.4 · rev 4.0</div>
         <h2>你的認知快照</h2>
       </div>
       <div class="resultMicrocopy">不是標準答案，只是一張今天的腦內地圖。</div>
@@ -178,24 +179,21 @@
     <div id="review" class="review screenModal hidden"></div>
   </section>
 
-  <div class="footer">Cognitive IQ Lab · QB v3.2</div>
+  <div class="footer">Cognitive IQ Lab · QB v4.0</div>
 </main>
 
 <script src="questions.js"></script>
 <script src="question-bank.js"></script>
 <script src="answer-quality.js"></script>
 <script src="answer-position-balance.js"></script>
-<script src="memory-answer-quality.js"></script>
 <script src="presentation-clarity.js"></script>
-<script src="matrix-cluster-items.js?v=matrix-cluster-v2"></script>
 <script src="app.js"></script>
 <script src="timeout-lock.js"></script>
 <script src="memory-exposure.js"></script>
 <script src="assessment-quality.js"></script>
 <script src="item-analytics.js"></script>
 <script src="item-quality-v2.js"></script>
-<script src="navigation-layout-fix.js?v=matrix-cluster-v2"></script>
-<script src="matrix-cluster-renderer-v2.js"></script>
+<script src="navigation-layout-fix.js"></script>
 <script src="single-screen.js"></script>
 </body>
 </html>

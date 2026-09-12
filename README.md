@@ -19,7 +19,7 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。�
 
 Natural Language v2 的目標是「題意清楚，但不要像模板機器」。不改答案邏輯、選項、難度或 semanticKey。
 
-- `machine-composition` 改成簡潔的 X / 代數表示，不再使用冗長的「規則機器」敘述
+- `machine-composition` 改成簡潔的 X / 代數表示，例如 `X = 9，求 (X + 2) × 3`，不再使用冗長的「規則機器」敘述
 - `scope-negation` 拿掉「在書店／車站的紀錄中」等無關前綴，改成直接問哪一句邏輯等價
 - `invariant-transfer` 改成自然的甲／乙／丙容器與移動敘述
 - `quant-unit-rate` 直接把信封、卡片、筆記本等物品寫進題句，不再使用「以○○這組資料為情境」

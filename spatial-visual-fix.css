@@ -1,0 +1,38 @@
+/* QB5 spatial SVG sizing — Safari-safe single-screen rendering */
+#quiz #visualHolder .visual:has(.qb5-spatial-svg) {
+  width: min(100%, 440px);
+  max-width: 440px;
+  max-height: min(26dvh, 240px);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#quiz .qb5-spatial-svg {
+  display: block;
+  width: min(100%, 400px);
+  height: auto;
+  max-width: 100%;
+  max-height: min(24dvh, 220px);
+  aspect-ratio: 18 / 11;
+  overflow: visible;
+  flex: 0 1 400px;
+}
+
+/* Fallback for browsers that do not apply :has(). */
+#quiz #visualHolder .visual > .qb5-spatial-svg {
+  width: min(100%, 400px);
+  height: auto;
+}
+
+@media (max-width: 720px) {
+  #quiz #visualHolder .visual:has(.qb5-spatial-svg) {
+    width: min(100%, 360px);
+    max-height: min(24dvh, 205px);
+  }
+  #quiz .qb5-spatial-svg {
+    width: min(100%, 340px);
+    max-height: min(22dvh, 190px);
+  }
+}

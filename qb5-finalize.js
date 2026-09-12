@@ -1,8 +1,11 @@
-// QB5 finalizer: apply registered construct variants, validate bank, and build a fresh QB5 form.
+// QB5 finalizer: apply construct variants, validate bank, and build a load-matched form.
 (() => {
   'use strict';
-  const E=window.QB5E;if(!E)return;const {bank,VERSION,REVISION,mod}=E;
+  const E=window.QB5E;if(!E)return;const {bank,VERSION,REVISION}=E;
   E.apply();
+
+  const EQ=window.QB5_FORM_EQUIVALENCE;
+  if(EQ)EQ.attach(bank);
 
   const domains=['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
   const errors=[],ids=new Set(),signatures=new Set(),semantics=new Set();
@@ -15,6 +18,7 @@
     if(q.d==='視覺空間'&&!String(q.visual||'').includes('<svg'))errors.push(`missing spatial SVG: ${q.id}`);
     if(q.type==='memory'&&!q.stim)errors.push(`missing memory stimulus: ${q.id}`);
     if(q.type==='matrix'&&q.cells?.length!==9)errors.push(`invalid matrix: ${q.id}`);
+    if(EQ&&!Number.isFinite(Number(q.formLoad)))errors.push(`missing form load: ${q.id}`);
     signatures.add(JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].sort()]));
     semantics.add(q.semanticKey);
   }
@@ -35,7 +39,8 @@
     }
     return {ok:!out.length,errors:out};
   }
-  function selectForm({history=[],random=Math.random,pool=bank}={}){
+
+  function generateCandidate({history=[],random=Math.random,pool=bank}={}){
     const recent=new Set(history.slice(-8).flat()),selected=[];
     for(const d of shuffle(domains,random)){
       const families=shuffle([...new Set(pool.filter(q=>q.d===d).map(q=>q.taskFamily))],random).slice(0,5);
@@ -51,7 +56,16 @@
         if(!q)throw new Error(`No eligible QB5 item: ${d}/${family}/${tiers[i]}`);selected.push(q);
       });
     }
-    const form=shuffle(selected,random),report=validateForm(form);if(!report.ok)throw new Error(report.errors.join('; '));return form;
+    return selected;
+  }
+
+  function selectForm({history=[],random=Math.random,pool=bank}={}){
+    const make=()=>generateCandidate({history,random,pool});
+    const picked=EQ?EQ.pickBest(make,EQ.trials||64):{form:make(),metrics:null,trials:1};
+    const form=shuffle(picked.form,random),report=validateForm(form);
+    if(!report.ok)throw new Error(report.errors.join('; '));
+    window.IQ_FORM_EQUIVALENCE_LAST=picked.metrics?{...picked.metrics,trials:picked.trials}:null;
+    return form;
   }
 
   const historyKey=`cognitive-iq-lab:form-history:${VERSION}`;let history=[];
@@ -60,12 +74,16 @@
   try{localStorage.setItem(historyKey,JSON.stringify([...history,form.map(q=>q.id)].slice(-8)));}catch{}
   window.IQ_QUESTIONS=form;
   window.IQ_BANK_VALIDATION={ok:true,errors:[],total:bank.length,uniqueTaskSignatures:signatures.size,semanticTemplates:semantics.size};
-  window.IQ_DIVERSITY={...(window.IQ_DIVERSITY||{}),selectForm,validateForm,semanticTemplates:semantics.size,familyDistinctPerDomain:true};
+  window.IQ_DIVERSITY={
+    ...(window.IQ_DIVERSITY||{}),selectForm,validateForm,semanticTemplates:semantics.size,familyDistinctPerDomain:true,
+    formEquivalence:EQ?{version:EQ.version,trials:EQ.trials,principle:EQ.principle}:null
+  };
   window.IQ_BANK_META={
     ...(window.IQ_BANK_META||{}),version:VERSION,revision:REVISION,totalItems:bank.length,selectedItems:30,domains:6,taskFamilies:42,
     semanticTemplates:semantics.size,spatialSvgItems:1008,verbalArchetypesPerFamily:2,otherArchetypesPerFamily:8,
     generation:'84-verbal-items-plus-5040-controlled-construct-variants',constructExpansion:'QB5',
-    difficultyPolicy:'tier-specific span, operation count and constraint load',calibrationStatus:'uncalibrated',recentFormAvoidance:8
+    difficultyPolicy:'tier-specific span, operation count and constraint load',calibrationStatus:'uncalibrated',recentFormAvoidance:8,
+    formEquivalence:EQ?'64-candidate-design-load-matching':'quota-only'
   };
   window.IQ_QB5={version:REVISION,semanticTemplates:semantics.size,uniqueTaskSignatures:signatures.size,spatialSvgItems:1008,
     principle:'construct diversity first; psychometric calibration still pending'};

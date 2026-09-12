@@ -130,6 +130,34 @@ QA+ 會累積／分析：曝光、答對率、跳過率、逾時率、平均作�
 
 判讀門檻：`N < 10` 只累積；`N ≥ 20` 開始看 distractor efficiency；`N ≥ 30` 才顯示 item-rest discrimination。這仍是工程 QA，不等於 IRT 校準或正式 IQ 常模。
 
+## Calibration Readiness v1
+
+結果頁現在也提供「校準準備度」。目的不是提前宣稱題庫已校準，而是把未來做 pilot / psychometric study 需要的資料結構先準備好。
+
+本機會保存最多 500 個 session 的匿名／假名化研究資料：
+
+- 每題只保存 item ID、family、`semanticKey`、difficulty
+- 保存 0/1 正誤、是否跳過、是否逾時、作答秒數
+- 保存每次 Cognitive Performance Index、原始正確率與 form-load deviation
+- 不保存作答選項文字或 answer index
+- 不保存姓名、帳號、IP、位置
+- 不會自動上傳；只有使用者主動按「匯出校準快照 JSON」才會產生檔案
+- 本機 `sourceKey` 只用於日後自願合併匯出檔時去重，不代表真實身分
+
+Readiness 會顯示：
+
+- 本機 session 數
+- 5,124 題 item coverage
+- 294 semantic-template coverage
+- 42 family coverage
+- 達 `N≥10` / `N≥30` 的題目數
+- CPI 平均、SD、floor / ceiling share
+- easy / medium / hard 的實際答對率
+- form-load deviation
+- QA+ 的平均 item-rest 與 distractor efficiency（資料足夠時）
+
+**硬規則：同一瀏覽器重複完成 100 次，也不能當成 100 位獨立受測者。** `formalCalibrationReady` 永遠保持 `false`，直到未來有明確的獨立受測者 protocol、人口分層、IRT/CAT、信度與效度研究。
+
 ## 計時模型
 
 - 語文理解／流體推理／視覺空間／量化推理：不限時
@@ -158,6 +186,7 @@ GitHub Actions 目前驗證：
 - recent-8 history persistence
 - exact A/B/C/D balance = 1281/1281/1281/1281
 - Scoring v2 0–100 scale / raw accuracy preservation / correct-only speed contribution
+- Calibration Readiness v1 local-only session matrix / coverage phases / privacy guardrails / no false calibration claim
 - construct-linked difficulty
 - Matrix 題幹不洩漏推理規則
 - 工作記憶跨度與操作負荷
@@ -182,8 +211,10 @@ GitHub Actions 目前驗證：
 - `qb5-form-equivalence.js` — formLoad 與 64-candidate load matching
 - `qb5-finalize.js` — 全庫驗證與 30 題 form selector
 - `scoring-v2.js` — 0–100 Cognitive Performance Index
+- `calibration-readiness.js` — local-only calibration preparation / export snapshot
 - `assessment-quality.js` — 單次記憶呈現與 Scoring v2 結果整合
 - `tests/qb5-oracle-validation.js` — 42-family independent reference solver
+- `tests/calibration-readiness-validation.js` — calibration-readiness privacy / phase / false-calibration guard
 - `answer-position-balance.js` — deterministic A/B/C/D balance
 - `item-quality-v2.js` — QA+ / item-rest / distractor efficiency
 - `memory-exposure.js` — 4/5/6 秒工作記憶刺激政策
@@ -192,7 +223,7 @@ GitHub Actions 目前驗證：
 
 ## 重要限制
 
-QB5 已經把「模板多樣性、實際題目重複、視覺空間圖形化、設計難度負荷、抽卷等值 guardrail、答案 oracle、透明評分」往前推進，但仍然沒有做人口樣本校準、IRT／CAT、reliability、criterion validity 或臨床效度驗證。
+QB5 已經把「模板多樣性、實際題目重複、視覺空間圖形化、設計難度負荷、抽卷等值 guardrail、答案 oracle、透明評分、校準資料準備」往前推進，但仍然沒有做人口樣本校準、IRT／CAT、reliability、criterion validity 或臨床效度驗證。
 
 因此 `Cognitive Performance Index` 是 0–100 的網站實驗性表現指數，不能視為正式 IQ、人口百分位、教育／就業判斷或診斷結果。
 

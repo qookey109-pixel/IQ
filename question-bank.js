@@ -1,539 +1,183 @@
-// Cognitive IQ Lab — Question Bank v3.1
-// 300 original items generated from controlled item models.
-// Quality pass: unique task signatures, broader parameter coverage, balanced forms, exposure control.
-// No proprietary WAIS / Raven / Pearson test items are included or reproduced.
-
+// QB4: 84 verbal items + 35 task families × 144 reproducible variants = 5,124.
+// A variant is not an independently authored passage. Never inflate verbal items with dates/IDs.
+// semanticKey identifies the reasoning template, never a renamed object or a number.
 (() => {
-  const BANK_VERSION = "QB-2026.09.3";
-  const BANK_REVISION = "3.1";
-  const DOMAIN_ORDER = ["語文理解","流體推理","視覺空間","工作記憶","處理速度","量化推理"];
-  const DOMAIN_SLUG = {
-    "語文理解":"verbal","流體推理":"fluid","視覺空間":"spatial",
-    "工作記憶":"memory","處理速度":"speed","量化推理":"quant"
-  };
-  const DIFFICULTY_LABEL = {easy:"基礎",medium:"中等",hard:"進階"};
-  const FORM_PLAN = {easy:2, medium:2, hard:1};
-  const RECENT_FORM_LIMIT = 8;
-  const HISTORY_KEY = `cognitive-iq-lab:form-history:${BANK_VERSION}`;
-  const CYCLE_KEY = `cognitive-iq-lab:coverage-cycle:${BANK_VERSION}`;
-
-  const difficultyFor = n => n <= 20 ? "easy" : n <= 40 ? "medium" : "hard";
-  const itemId = (domain, n) => `qb3-${DOMAIN_SLUG[domain]}-${String(n).padStart(3,"0")}`;
-
-  function rotateArray(arr, offset) {
-    const n = ((offset % arr.length) + arr.length) % arr.length;
-    return [...arr.slice(n), ...arr.slice(0,n)];
+  'use strict';
+  const version = 'QB-2026.09.4';
+  const domains = ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
+  const families = [];
+  const add = (domain, key, label, build) => families.push({domain, key, label, build});
+  const words = ['竹林','港口','書店','花園','車站','山屋','劇院','工坊','市集','燈塔','茶館','畫廊'];
+  function rng(seed) { return () => { seed = (Math.imul(seed,1664525)+1013904223)>>>0; return seed/4294967296; }; }
+  function shuffle(xs, random=Math.random) {
+    const a=[...xs]; for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a;
   }
-
-  function uniqueOptions(correct, distractors, seed = 0) {
-    const values = [String(correct)];
-    for (const value of distractors) {
-      const s = String(value);
-      if (!values.includes(s)) values.push(s);
-      if (values.length === 4) break;
-    }
-    if (values.length !== 4) {
-      throw new Error(`Item generation produced fewer than 4 unique options for "${correct}"`);
-    }
-    const answerIndex = ((seed % 4) + 4) % 4;
-    const others = values.slice(1,4);
-    const options = [];
-    let oi = 0;
-    for (let i=0;i<4;i++) options.push(i === answerIndex ? values[0] : others[oi++]);
-    return {o:options, a:answerIndex};
-  }
-
-  function numericOptions(correct, seed = 0, step = 1) {
-    const c = Number(correct);
-    const candidates = [c-step, c+step, c+step*2, c-step*2, c+step*3, c-step*3]
-      .filter(v => Number.isFinite(v) && v >= 0 && v !== c);
-    return uniqueOptions(String(c), candidates.map(String), seed);
-  }
-
-  function sequenceOptions(correctTokens, seed = 0) {
-    const c = [...correctTokens];
-    const swap = [...c];
-    if (swap.length > 1) [swap[0],swap[1]]=[swap[1],swap[0]];
-    const rotate = c.length > 1 ? [...c.slice(1),c[0]] : c;
-    const reverse = [...c].reverse();
-    const alt = c.length > 2 ? [c[0], ...c.slice(2), c[1]] : reverse;
-    return uniqueOptions(c.join(" "), [swap.join(" "), rotate.join(" "), reverse.join(" "), alt.join(" ")], seed);
-  }
-
-  function makeItem(domain, n, body) {
-    return {
-      id:itemId(domain,n), bankVersion:BANK_VERSION, bankRevision:BANK_REVISION,
-      difficulty:difficultyFor(n), source:"original-aig", ...body, d:domain
-    };
-  }
-
-  function pickDistinct(pool, correct, start, count=3) {
-    const out = [];
-    for (let offset=0; offset<pool.length && out.length<count; offset++) {
-      const candidate = String(pool[(start + offset) % pool.length]);
-      if (candidate !== String(correct) && !out.includes(candidate)) out.push(candidate);
-    }
-    return out;
-  }
-
-  function generateVerbal() {
-    const items = [];
-    const analogies = [
-      ["醫生","醫院","老師","學校"],
-      ["廚師","廚房","法官","法院"],
-      ["畫家","畫筆","木匠","鋸子"],
-      ["地圖","空間","年表","時間"],
-      ["種子","植物","蛋","鳥"],
-      ["鑰匙","開鎖","剪刀","剪裁"],
-      ["溫度計","溫度","尺","長度"],
-      ["耳朵","聽覺","眼睛","視覺"],
-      ["船","海洋","火車","鐵路"],
-      ["蜜蜂","蜂巢","鳥","鳥巢"],
-      ["圖書館","書籍","美術館","作品"],
-      ["樂譜","音樂","食譜","料理"],
-      ["指南針","方向","時鐘","時間"],
-      ["雨傘","遮雨","墨鏡","遮光"],
-      ["根","吸收水分","葉","光合作用"],
-      ["記者","報導","研究員","研究"],
-      ["判決","法院","診斷","醫院"],
-      ["輪胎","汽車","翅膀","飛機"],
-      ["問句","答案","問題","解法"],
-      ["字典","詞義","地圖","位置"]
-    ];
-    const wrongPool = [...new Set(analogies.map(x=>x[3]))];
-    analogies.forEach((x, i) => {
-      const correct = x[3];
-      const distractors = pickDistinct(wrongPool, correct, i*3+2);
-      const ans = uniqueOptions(correct,distractors,i);
-      items.push(makeItem("語文理解",i+1,{
-        type:"normal",model:"verbal-analogy",
-        q:`${x[0]}：${x[1]} ＝ ${x[2]}：？`,...ans,
-        e:`兩組詞使用相同關係；${x[2]} 對應「${correct}」。`
-      }));
-    });
-
-    const syllables = [
-      ["Luma","Neri","Pavo"],["Seki","Taro","Vima"],["Daro","Meki","Suna"],["Rivo","Kani","Leto"],
-      ["Pira","Navo","Seli"],["Feno","Raki","Tuma"],["Gavi","Moro","Peki"],["Haro","Veli","Numa"],
-      ["Jori","Sako","Teri"],["Kelo","Ruma","Vano"],["Mira","Palo","Seki"],["Noro","Tavi","Luma"],
-      ["Ovi","Kera","Mino"],["Pelo","Savi","Reno"],["Qira","Nelo","Tavo"],["Rami","Kivo","Pena"],
-      ["Soro","Mavi","Leki"],["Teno","Rivo","Kasa"],["Umi","Pera","Navi"],["Vero","Sumi","Talo"]
-    ];
-    syllables.forEach((x,i)=>{
-      const n = i+21, [A,B,C]=x;
-      const ans = uniqueOptions(
-        `所有 ${A} 都是 ${C}`,
-        [`所有 ${C} 都是 ${A}`,`有些 ${A} 不是 ${C}`,`沒有任何 ${A} 是 ${C}`],
-        n
-      );
-      items.push(makeItem("語文理解",n,{
-        type:"normal",model:"verbal-syllogism-2",
-        q:`所有 ${A} 都是 ${B}；所有 ${B} 都是 ${C}。哪一項一定成立？`,
-        ...ans,
-        e:`集合包含具有傳遞性：${A} ⊆ ${B} 且 ${B} ⊆ ${C}，因此 ${A} ⊆ ${C}。`
-      }));
-    });
-
-    const hardNames = [
-      ["Aro","Beni","Cavo","Deri"],["Elo","Fari","Guno","Havi"],["Iro","Jena","Kumo","Lari"],
-      ["Meno","Navi","Oro","Peli"],["Qaro","Reni","Savo","Teri"],["Ulo","Vari","Weno","Xari"],
-      ["Yaro","Zeni","Boro","Celi"],["Davo","Eri","Funo","Gali"],["Heno","Ivi","Jaro","Keli"],
-      ["Lavo","Meri","Nuno","Oali"]
-    ];
-    hardNames.forEach((x,i)=>{
-      const n=i+41,[A,B,C,D]=x;
-      const ans=uniqueOptions(
-        `沒有任何 ${A} 是 ${D}`,
-        [`所有 ${D} 都是 ${A}`,`有些 ${A} 是 ${D}`,`所有 ${A} 都是 ${D}`],
-        n
-      );
-      items.push(makeItem("語文理解",n,{
-        type:"normal",model:"verbal-syllogism-3",
-        q:`所有 ${A} 都是 ${B}；所有 ${B} 都是 ${C}；沒有任何 ${C} 是 ${D}。哪一項一定成立？`,
-        ...ans,
-        e:`${A} 必然屬於 ${C}，而 ${C} 與 ${D} 不重疊，所以 ${A} 不可能是 ${D}。`
-      }));
-    });
-    return items;
-  }
-
-  function generateFluid() {
-    const items=[];
-    const symbols=["●","■","▲","◆","○","□","△","◇","★","✦"];
-
-    for(let n=1;n<=20;n++){
-      const k=n-1, family=Math.floor(k/10), idx=k%10;
-      const s1=symbols[idx], s2=symbols[(idx+3+family)%10], s3=symbols[(idx+6+family*2)%10];
-      const a=family===0?1:2, b=2, c=a+b;
-      const row=(s)=>[s.repeat(a),s.repeat(b),s.repeat(c)];
-      const cells=[...row(s1),...row(s2),s3.repeat(a),s3.repeat(b),"?"];
-      const correct=s3.repeat(c);
-      const ans=uniqueOptions(correct,[s3.repeat(Math.max(1,c-1)),s3.repeat(c+1),s3.repeat(c+2)],n);
-      items.push(makeItem("流體推理",n,{
-        type:"matrix",model:"matrix-symbol-addition",
-        q:"觀察 3×3 矩陣；每列使用相同規則。缺失格應為？",
-        cells,...ans,
-        e:`每列第三格的符號數量＝前兩格相加，因此 ${a}+${b}=${c}。`
-      }));
-    }
-
-    for(let n=21;n<=40;n++){
-      const k=n-21, x=1+(k%5), y=2+2*Math.floor(k/5);
-      const r1=[x,y,x+y], r2=[x+1,y+2,x+y+3], r3=[x+2,y+4,"?"];
-      const correct=(x+2)+(y+4), ans=numericOptions(correct,n,1+(k%3));
-      items.push(makeItem("流體推理",n,{
-        type:"matrix",model:"matrix-row-sum",
-        q:"觀察數字矩陣；每一列第三格遵循相同規則。缺失值是多少？",
-        cells:[...r1,...r2,...r3].map(String),...ans,
-        e:`每列第三格＝前兩格相加，所以 ${x+2}+${y+4}=${correct}。`
-      }));
-    }
-
-    for(let n=41;n<=50;n++){
-      const k=n-41, x=2+(k%5), y=3+2*Math.floor(k/5)+(k%2), plusFirst=k%2===0;
-      const f=(a,b)=>a*b+(plusFirst?a:b);
-      const r1=[x,y,f(x,y)], r2=[x+1,y+1,f(x+1,y+1)], r3=[x+2,y+2,"?"];
-      const correct=f(x+2,y+2), ans=numericOptions(correct,n,2+(k%3));
-      items.push(makeItem("流體推理",n,{
-        type:"matrix",model:plusFirst?"matrix-product-plus-first":"matrix-product-plus-second",
-        q:"這個數字矩陣使用兩步規則。找出缺失值。",
-        cells:[...r1,...r2,...r3].map(String),...ans,
-        e:plusFirst
-          ? `每列第三格＝第一格×第二格＋第一格，所以答案是 ${x+2}×${y+2}+${x+2}=${correct}。`
-          : `每列第三格＝第一格×第二格＋第二格，所以答案是 ${x+2}×${y+2}+${y+2}=${correct}。`
-      }));
-    }
-    return items;
-  }
-
-  function generateSpatial(){
-    const items=[], dirs=["↑","↗","→","↘","↓","↙","←","↖"];
-    const dirName=["北","東北","東","東南","南","西南","西","西北"];
-    const rot=(idx,steps)=>((idx+steps)%8+8)%8;
-    const dirOptions=(correct,candidates,seed)=>{
-      const pool=[...new Set([...candidates,...dirs])];
-      return uniqueOptions(correct,pickDistinct(pool,correct,0),seed);
-    };
-
-    for(let n=1;n<=20;n++){
-      const k=n-1, start=k%8, band=Math.floor(k/8);
-      const angle=[45,90,135][band];
-      const clockwise=((k+band)%2===0);
-      const steps=(angle/45)*(clockwise?1:-1);
-      const correct=dirs[rot(start,steps)];
-      const ans=dirOptions(correct,[dirs[rot(start,steps+1)],dirs[rot(start,steps-1)],dirs[rot(start,steps+4)]],n);
-      items.push(makeItem("視覺空間",n,{
-        type:"normal",model:"spatial-single-rotation",
-        q:`箭頭 ${dirs[start]} ${clockwise?"順時針":"逆時針"}旋轉 ${angle}° 後會指向哪裡？`,
-        visual:`${dirs[start]}   ${clockwise?"↻":"↺"} ${angle}°   ?`,
-        ...ans,e:`從${dirName[start]}方向旋轉 ${angle}°，結果是 ${correct}。`
-      }));
-    }
-
-    for(let n=21;n<=40;n++){
-      const k=n-20, start=(k*5)%8;
-      const step1=[1,2,3,4][k%4]*(k%2?1:-1);
-      const step2=[1,2,3][k%3]*(k%3===0?-1:1);
-      const correct=dirs[rot(start,step1+step2)];
-      const ans=dirOptions(correct,[dirs[rot(start,step1)],dirs[rot(start,step2)],dirs[rot(start,step1+step2+2)]],n);
-      const text1=`${step1>0?"順時針":"逆時針"} ${Math.abs(step1)*45}°`;
-      const text2=`${step2>0?"順時針":"逆時針"} ${Math.abs(step2)*45}°`;
-      items.push(makeItem("視覺空間",n,{
-        type:"normal",model:"spatial-compound-rotation",
-        q:`箭頭 ${dirs[start]} 先${text1}，再${text2}。最後方向是？`,
-        visual:`${dirs[start]}  →  ${text1}  →  ${text2}  →  ?`,
-        ...ans,e:`把兩次旋轉合併後，最後方向為 ${correct}。`
-      }));
-    }
-
-    for(let n=41;n<=50;n++){
-      const k=n-41, start=k%8, mirrored=(8-start)%8;
-      const rotateSteps=k<8?2:3;
-      const correct=dirs[rot(mirrored,rotateSteps)];
-      const ans=dirOptions(correct,[dirs[mirrored],dirs[rot(start,rotateSteps)],dirs[rot(mirrored,-rotateSteps)]],n);
-      items.push(makeItem("視覺空間",n,{
-        type:"normal",model:"spatial-mirror-rotate",
-        q:`箭頭 ${dirs[start]} 先做左右鏡像，再順時針旋轉 ${rotateSteps*45}°。最後是哪個方向？`,
-        visual:`${dirs[start]}  →  左右鏡像  →  ↻ ${rotateSteps*45}°  →  ?`,
-        ...ans,e:`左右鏡像後先得到 ${dirs[mirrored]}，再順時針旋轉 ${rotateSteps*45}°，得到 ${correct}。`
-      }));
-    }
-    return items;
-  }
-
-  function digitSequence(len,seed){
-    const base=["1","2","3","4","5","6","7","8","9"];
-    const coprimeSteps=[1,2,4,5,7,8];
-    const k=((seed-1)%54+54)%54;
-    const start=k%9;
-    const step=coprimeSteps[Math.floor(k/9)];
-    return Array.from({length:len},(_,i)=>base[(start+i*step)%9]);
-  }
-
-  function generateMemory(){
-    const items=[];
-    for(let n=1;n<=20;n++){
-      const len=n%2===0?5:4, seq=digitSequence(len,n);
-      let correct,q,model;
-      if(n%2===0){
-        correct=[...seq].reverse(); q="把剛才的數字倒序。"; model="memory-reverse";
-      } else {
-        correct=[...seq].sort((a,b)=>Number(a)-Number(b)); q="把剛才的數字由小到大排列。"; model="memory-sort";
-      }
-      const ans=sequenceOptions(correct,n);
-      items.push(makeItem("工作記憶",n,{type:"memory",model,stim:seq.join(" "),q,...ans,e:`正確結果為 ${correct.join(" ")}。`}));
-    }
-
-    const letters=["K","R","M","T","Q","P","L","N","S","V","D","F"];
-    for(let n=21;n<=40;n++){
-      const k=n-20, ds=digitSequence(3,k+20), ls=rotateArray(letters,k).slice(0,3);
-      const mix=[ls[0],ds[0],ls[1],ds[1],ls[2],ds[2]];
-      let correct,q,model;
-      if(k%2===0){
-        correct=ls; q="只取出剛才的字母，保持原順序。"; model="memory-extract-letters";
-      } else {
-        correct=[...ds].sort((a,b)=>Number(b)-Number(a)); q="只取出剛才的數字，並由大到小排列。"; model="memory-extract-sort";
-      }
-      const ans=sequenceOptions(correct,n);
-      items.push(makeItem("工作記憶",n,{type:"memory",model,stim:mix.join(" "),q,...ans,e:`正確結果為 ${correct.join(" ")}。`}));
-    }
-
-    for(let n=41;n<=50;n++){
-      const k=n-40, seq=digitSequence(8,k+40);
-      const chosen=(k%2===0?[1,3,5,7]:[0,2,4,6]).map(i=>seq[i]);
-      let correct,q,model;
-      if(k%2===0){
-        correct=[...chosen].reverse(); q="取出第 2、4、6、8 個數字，再反向排列。"; model="memory-select-reverse";
-      } else {
-        correct=[...chosen].sort((a,b)=>Number(a)-Number(b)); q="取出第 1、3、5、7 個數字，再由小到大排列。"; model="memory-select-sort";
-      }
-      const ans=sequenceOptions(correct,n);
-      items.push(makeItem("工作記憶",n,{type:"memory",model,stim:seq.join(" "),q,...ans,e:`依指定位置處理後，正確結果為 ${correct.join(" ")}。`}));
-    }
-    return items;
-  }
-
-  function targetString(length,seed){
-    const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let s="",x=(seed*17+11)%chars.length;
-    for(let i=0;i<length;i++){s+=chars[x];x=(x+7+seed%5)%chars.length;}
-    return s;
-  }
-
-  function mutateAt(s,pos,seed){
-    const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",cur=s[pos];
-    let idx=(chars.indexOf(cur)+1+seed)%chars.length,repl=chars[idx];
-    if(repl===cur) repl=chars[(idx+1)%chars.length];
-    return s.slice(0,pos)+repl+s.slice(pos+1);
-  }
-
-  function generateSpeed(){
-    const items=[],symbols=["△","○","□","◇","◆","●","■","▲","✦","★"];
-    for(let n=1;n<=50;n++){
-      const diff=difficultyFor(n), limit=diff==="easy"?15:diff==="medium"?12:9;
-      if(n%2===0){
-        const len=diff==="easy"?4:diff==="medium"?5:6;
-        const target=targetString(len,n), correctPos=n%4, candidates=[];
-        let d=0;
-        for(let i=0;i<4;i++){
-          if(i===correctPos) candidates.push(target);
-          else { candidates.push(mutateAt(target,(n+d)%len,d+1)); d++; }
-        }
-        items.push(makeItem("處理速度",n,{
-          type:"speed",model:"speed-target-match",limit,
-          q:"找出與目標完全相同的字串。",
-          visual:`目標：${target}\n${candidates.join("   ")}`,
-          o:["第 1 個","第 2 個","第 3 個","第 4 個"],a:correctPos,
-          e:`第 ${correctPos+1} 個與目標 ${target} 完全相同。`
-        }));
-      } else {
-        const k=Math.floor((n-1)/2), start=k%10, step=1+Math.floor(k/10);
-        const triplet=[symbols[start],symbols[(start+step)%10],symbols[(start+2*step)%10]];
-        const normal=triplet.join(""), odd=[triplet[0],triplet[2],triplet[1]].join("");
-        const correctPos=k%4, groups=Array(4).fill(normal); groups[correctPos]=odd;
-        items.push(makeItem("處理速度",n,{
-          type:"speed",model:"speed-odd-group",limit,
-          q:"哪一組符號和其他三組不同？",
-          visual:groups.join("   "),
-          o:["第 1 組","第 2 組","第 3 組","第 4 組"],a:correctPos,
-          e:`第 ${correctPos+1} 組交換了後兩個符號，與其他三組不同。`
-        }));
-      }
-    }
-    return items;
-  }
-
-  function generateQuant(){
-    const items=[];
-    for(let n=1;n<=20;n++){
-      if(n%2===0){
-        const pct=[10,20,25,30,40][n%5], amount=100+25*n, correct=amount*pct/100;
-        const ans=numericOptions(correct,n,5);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-percent",q:`${amount} 的 ${pct}% 是多少？`,...ans,e:`${amount} × ${pct/100} = ${correct}。`}));
-      } else {
-        const each=3+(n%7), boxes=2+(n%6), correct=each*boxes;
-        const ans=numericOptions(correct,n,each);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-multiplicative",q:`每盒有 ${each} 個零件，${boxes} 盒共有幾個？`,...ans,e:`${each} × ${boxes} = ${correct}。`}));
-      }
-    }
-
-    for(let n=21;n<=40;n++){
-      const k=n-20;
-      if(k%2===0){
-        const start=2+(k%5),d=1+(k%4),seq=[start];
-        let inc=d;
-        for(let i=0;i<4;i++){seq.push(seq[seq.length-1]+inc);inc++;}
-        const correct=seq[seq.length-1]+inc,ans=numericOptions(correct,n,1);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-growing-difference",q:`${seq.join(", ")}, ?`,...ans,e:`相鄰差值從 +${d} 開始，每次增加 1；下一個差值是 +${inc}，所以答案為 ${correct}。`}));
-      } else {
-        const a=2+(k%4),b=3+(k%5),mult=2+(k%4),B=b*mult,correct=a*mult,ans=numericOptions(correct,n,a);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-ratio",q:`若 A:B = ${a}:${b}，而 B = ${B}，A =？`,...ans,e:`比例同乘 ${mult}，所以 A = ${a}×${mult} = ${correct}。`}));
-      }
-    }
-
-    for(let n=41;n<=50;n++){
-      const k=n-40;
-      if(k%2===0){
-        const start=2+(k%3),c=1+(k%4),seq=[start];
-        for(let i=0;i<4;i++)seq.push(seq[seq.length-1]*2+c);
-        const correct=seq[seq.length-1]*2+c,ans=numericOptions(correct,n,2+c);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-recurrence",q:`${seq.join(", ")}, ?`,...ans,e:`每一步都是 ×2 + ${c}，因此下一項為 ${seq[seq.length-1]}×2+${c}=${correct}。`}));
-      } else {
-        const a=2+(k%4),b=3+(k%4),c=4+(k%5),A=2*a,C=c,correct=`${A}:${C}`;
-        const ans=uniqueOptions(correct,[`${a}:${C}`,`${A}:${C+1}`,`${A+1}:${C}`],n);
-        items.push(makeItem("量化推理",n,{type:"normal",model:"quant-chain-ratio",q:`若 A:B = ${a}:${b}，且 B:C = ${2*b}:${c}，則 A:C =？`,...ans,e:`把第一個比例的 B 放大成 ${2*b}，得到 A:B=${2*a}:${2*b}，所以 A:C=${correct}。`}));
-      }
-    }
-    return items;
-  }
-
-  const fullBank=[
-    ...generateVerbal(),...generateFluid(),...generateSpatial(),
-    ...generateMemory(),...generateSpeed(),...generateQuant()
+  const num = (q, c, e, extra={}) => ({q, correct:String(c), wrong:[c-1,c+1,c+2].map(String), e,...extra});
+  const choice = (q, correct, wrong, e, extra={}) => ({q,correct,wrong,e,...extra});
+  const scenes = [
+    ['館員','借書','借閱證','圖書館'],['園丁','澆花','水壺','溫室'],
+    ['旅客','搭車','車票','車站'],['演員','登台','通行證','劇院'],
+    ['學員','入場練習','預約單','球館'],['訪客','參觀','入場券','展館'],
+    ['技師','維修','工單','工坊'],['讀者','取書','領取單','書店'],
+    ['船員','出港','許可證','碼頭'],['廚師','備餐','訂單','廚房'],
+    ['畫家','布展','核准單','畫廊'],['登山客','進山','登記證','登山口']
   ];
+  add(0,'necessary-condition','必要條件',n=>{
+    const [who,act,permit,place]=scenes[n%12];
+    return choice(`${place}規定：只有持有${permit}的人才可以${act}。一位${who}沒有${permit}。依規定可推知什麼？`,
+      `這位${who}不可以${act}`,[`這位${who}一定可以${act}`,`所有${who}都沒有${permit}`,`持有${permit}就一定會${act}`],`「只有」指出必要條件；缺少${permit}就不符合${act}的資格。`);
+  });
+  add(0,'reported-vs-fact','報導與事實',n=>{
+    const [who,act,,place]=scenes[n%12];
+    return choice(`一則${place}紀錄寫道：「幾位${who}表示明天打算${act}。」下列哪句沒有把意願誤當成已發生的事？`,
+      `這幾位${who}表示想${act}`,[`這幾位${who}已完成${act}`,`明天一定有人${act}`,`其他人都不想${act}`],`原文只記錄打算，不能推出完成、必然實現或其他人的意願。`);
+  });
+  add(0,'contrast-focus','轉折主旨',n=>{
+    const topics=[['雨衣','輕巧','防水'],['背包','好看','耐用'],['地圖','精美','準確'],['座椅','便宜','舒適'],['路線','短','安全'],['工具','新穎','實用'],['燈具','小巧','明亮'],['教材','有趣','清楚'],['房間','寬敞','安靜'],['餐點','漂亮','美味'],['鞋子','時髦','合腳'],['方案','快速','可靠']];
+    const [obj,a,b]=topics[n%12];
+    return choice(`比較幾款${obj}後，小岑說：「${a}固然不錯，但我更在乎${b}。」哪一項最貼近她的重點？`,
+      `選擇時更重視${b}`,[`只要${a}就會選`,`完全不在乎${b}`,`認為${a}與${b}相同`],`「但」「更」把重點放在${b}，並未否定${a}的價值。`);
+  });
+  add(0,'scope-negation','否定範圍',n=>{
+    const [,act,,place]=scenes[n%12];
+    return choice(`關於${place}的受訪者：「並非每個人都願意${act}」與哪一句意思相同？`,
+      `至少一人不願意${act}`,[`沒有人願意${act}`,`每個人都願意${act}`,`恰好一人願意${act}`],`否定「所有人」只需至少一個反例，不等於「所有人都不」。`);
+  });
+  add(0,'instruction-exception','例外條款',n=>{
+    const [,,permit,place]=scenes[n%12];
+    return choice(`${place}公告：「週末不受理申請；但已預約者可在週六辦理。」小禾已預約週六。依公告哪項成立？`,
+      '小禾可在預約的週六辦理',['小禾只能在週日辦理','所有人都可在週六辦理',`持有${permit}的人週日都可辦理`],`小禾符合已預約的例外條件；公告沒有開放所有人或週日。`);
+  });
+  add(0,'pronoun-reference','指涉辨識',n=>{
+    const objects=['筆記','雨傘','地圖','外套','相機','手冊','畫冊','信封','茶杯','圍巾','書籤','水瓶'];
+    const obj=objects[n%12];
+    return choice(`小安去找小禾。小禾把${obj}交給小安，並請「收到${obj}的人」明天歸還。引號指誰？`,
+      '小安',['小禾','兩人都不是','兩人都是'],`${obj}由小禾交給小安，所以接收者是小安。`);
+  });
+  add(0,'evidence-strength','證據強度',n=>{
+    const [,act,,place]=scenes[n%12];
+    return choice(`調查只訪問${place}的幾位常客，所有受訪者都喜歡${act}。哪個結論獲得資料直接支持？`,
+      `這幾位受訪者都喜歡${act}`,[`全城的人都喜歡${act}`,`不常來的人都討厭${act}`,`${act}使每個人更快樂`],`結論只能涵蓋已訪問的樣本，不能擴大到全城或推論因果。`);
+  });
+  add(1,'machine-composition','規則機器',n=>{const a=n+2,b=3+n%5;return num(`規則機器先把輸入乘 ${b}，再減 ${b-1}。輸入 ${a}，輸出多少？`,a*b-b+1,`${a}×${b}−${b-1}=${a*b-b+1}。`);});
+  add(1,'ordering-constraints','次序約束',n=>{const a=n+2;return choice(`編號 ${a}、${a+1}、${a+2} 的三場活動中，${a+2} 必須在 ${a} 前，${a} 必須在 ${a+1} 前。哪個順序符合？`,`${a+2} → ${a} → ${a+1}`,[`${a} → ${a+2} → ${a+1}`,`${a+1} → ${a} → ${a+2}`,`${a+2} → ${a+1} → ${a}`],'串接兩項先後限制即可得到唯一順序。');});
+  add(1,'set-overlap','集合交集',n=>{const a=n+12,b=n+9,over=3+n%5;return num(`有 ${a} 人選甲課，${b} 人選乙課，共有 ${a+b-over} 人至少選了一課。兩課都選的有幾人？`,over,`${a}+${b}−${a+b-over}=${over}；重複計算的部分是交集。`);});
+  add(1,'code-deduction','符碼對照',n=>{const a=n+11;return choice(`已知「山河」編成 ${a}-${a+1}，「河風」編成 ${a+1}-${a+2}，每字固定一碼。「風山」如何編？`,`${a+2}-${a}`,[`${a}-${a+2}`,`${a+1}-${a}`,`${a+2}-${a+1}`],'從共同的「河」對應中分離各字代碼，再依風、山的順序組合。');});
+  add(1,'invariant-transfer','守恆推理',n=>{const a=n+10,b=n+6,k=2+n%5;return num(`甲袋有 ${a} 顆，乙袋有 ${b} 顆。甲移 ${k} 顆給乙，再由乙移 1 顆給甲。兩袋合計剩多少顆？`,a+b,`轉移只改變位置，總數維持 ${a}+${b}=${a+b}。`);});
+  add(1,'pairing-capacity','配對限制',n=>{const a=n+8,b=n+5;return num(`桌上有 ${a} 把鎖與 ${b} 把鑰匙。每把鑰匙恰能配一把不同的鎖，每鎖最多一把鑰匙。最多配成幾組？`,b,`鑰匙較少，每把只能配一組，因此最多 ${b} 組。`);});
+  add(1,'matrix-difference','矩陣差值',n=>{const a=n+8,b=2+n%6;return num('觀察矩陣：每列第三格等於第一格減第二格。缺失格是多少？',a+4-b-2,`${a+4}−${b+2}=${a+2-b}。`,{type:'matrix',cells:[a,b,a-b,a+2,b+1,a+1-b,a+4,b+2,'?'].map(String)});});
+  add(2,'grid-displacement','方格位移',n=>{const x=n+3,y=2+n%9;return choice(`棋子從 (${x}, ${y}) 出發，向右 3 格再向上 2 格；右為 x 增加，上為 y 增加。終點是？`,`(${x+3}, ${y+2})`,[`(${x-3}, ${y+2})`,`(${x+3}, ${y-2})`,`(${x+2}, ${y+3})`],'水平加 3、垂直加 2，兩個座標分別更新。');});
+  add(2,'mirror-coordinate','鏡面位置',n=>{const x=n+2,y=3+n%8;return choice(`點 (${x}, ${y}) 對 y 軸作左右鏡射後的座標是？`,`(${-x}, ${y})`,[`(${x}, ${-y})`,`(${-x}, ${-y})`,`(${y}, ${x})`],'對 y 軸鏡射只改變 x 的正負。');});
+  add(2,'viewpoint-heading','方位旋轉',n=>{const angle=(n%72)*5,turn=n<72?45:135,end=(angle+turn)%360;return choice(`羅盤以正北為 0°，順時針計角度。指針原指 ${angle}°，再順時針旋轉 ${turn}°，現在指向幾度？`,`${end}°`,[`${(angle-turn+360)%360}°`,`${angle}°`,`${(end+180)%360}°`],`原方位加上旋轉角度，超過 360° 扣掉一圈，得到 ${end}°。`);});
+  add(2,'rectangle-cut','切割面積',n=>{const a=n+5,b=4+n%5;return num(`一張長 ${a}、寬 ${b} 的方格紙，沿長邊裁掉寬 2、長 ${a} 的完整紙條。剩下面積是多少？`,a*(b-2),`剩餘長寬為 ${a} 與 ${b-2}，面積為 ${a*(b-2)}。`);});
+  add(2,'stack-hidden','堆疊遮擋',n=>{const a=n+2,b=2+n%7,c=1+n%4;return num(`三根方塊柱的高度分別為 ${a}、${b}、${c}，每根上下緊貼且沒有空洞。從正上方只能看見 3 個頂面。共有幾個方塊？`,a+b+c,`俯視的頂面不代表總量，總數為三柱高度相加：${a+b+c}。`);});
+  add(2,'scale-drawing','比例縮放',n=>{const a=n+3,s=2+n%4;return num(`某線段原長 ${a} 格，圖形等比例放大為原來 ${s} 倍。線段新長幾格？`,a*s,`每個線性尺寸乘 ${s}，所以 ${a}×${s}=${a*s}。`);});
+  add(2,'shortest-grid-path','格線最短路',n=>{const a=n+2,b=3+n%8;return num(`格線地圖上，終點在起點東方 ${a} 格、北方 ${b} 格。只能沿水平或垂直格線走，最短要走幾格？`,a+b,`至少走 ${a} 格水平與 ${b} 格垂直，共 ${a+b} 格。`);});
+  const memory=(body,stim)=>({...body,type:'memory',stim});
+  add(3,'memory-position','位置回憶',n=>{const a=n+11,seq=[a,a+7,a+3,a+9];return memory(num('剛才序列的第 3 個數字是？',seq[2],`第 3 個是 ${seq[2]}。`),seq.join('　'));});
+  add(3,'memory-pair','配對記憶',n=>{const a=n+10;return memory(num('剛才「山屋」對應的編號是？',a+3,`山屋配對 ${a+3}。`),`港口 ${a}　山屋 ${a+3}　書店 ${a+7}`);});
+  add(3,'memory-update','資訊更新',n=>{const a=n+3;return memory(num('依剛才的更新指令，最後數量是多少？',a+2,`${a}+4−2=${a+2}。`),`起始 ${a}；增加 4；減少 2`);});
+  add(3,'memory-filter','選擇性記憶',n=>{const a=n+10,[x,y,z]=shuffle(words,rng(n+801)).slice(0,3);return memory(choice('只回憶剛才的三個地點，保持出現順序。',`${x} → ${y} → ${z}`,[`${y} → ${x} → ${z}`,`${x} → ${z} → ${y}`,`${z} → ${y} → ${x}`],`忽略穿插數字後，地點順序是${x}、${y}、${z}。`),`${a}　${x}　${a+5}　${y}　${a+8}　${z}`);});
+  add(3,'memory-recognition','新舊辨認',n=>{const a=n+11;return memory(num('哪一個數字剛才沒有出現？',a+2,`${a+2} 未出現在刺激中。`,{wrong:[a,a+1,a+3].map(String)}),`${a}　${a+3}　${a+1}`);});
+  add(3,'memory-relative','相對位置記憶',n=>{const a=n+7;return memory(num('剛才數字 2 左邊緊鄰的數字是？',a,`數字 2 的左鄰是 ${a}。`),`${a+5}　${a}　2　${a+3}`);});
+  add(3,'memory-reorder','順序重組',n=>{const a=n+10;return memory(choice('將剛才三個數字的第一個移到最後，其餘順序不變。',`${a+2} → ${a+5} → ${a}`,[`${a+5} → ${a+2} → ${a}`,`${a} → ${a+5} → ${a+2}`,`${a+2} → ${a} → ${a+5}`],'移走首項後，保留其餘順序，再把首項接到尾端。'),`${a}　${a+2}　${a+5}`);});
+  const timed=body=>({...body,limit:18});
+  add(4,'speed-exact','精確比對',n=>{const s=`K${n+101}R${n+203}`;return timed(choice(`快速找出與「${s}」完全相同的代碼。`,s,[`R${n+101}K${n+203}`,`K${n+102}R${n+203}`,`K${n+101}R${n+204}`],'逐字比對字母與數字，不能只看開頭。'));});
+  add(4,'speed-count','目標計數',n=>{const r=rng(n+77),len=14+n%5;const s=shuffle([...Array(3+n%5).fill('●'),...Array(len).fill('○')],r).join(' ');return timed(num(`快速數出黑色實心圓的數量：${s}`,3+n%5,`只有 ● 計入，共 ${3+n%5} 個。`));});
+  add(4,'speed-pair-equality','配對搜尋',n=>{const a=n+101;return timed(choice('哪一組左右代碼完全一致？',`${a}Q / ${a}Q`,[`${a}R / ${a}Q`,`${a}Q / ${a+1}Q`,`${a+1}R / ${a}R`],'唯一一組的每個數字與字母都相同。'));});
+  add(4,'speed-parity','條件篩選',n=>{const a=2*n+10;return timed(num(`從選項快速找出唯一的奇數（候選值介於 ${a} 與 ${a+6}）。`,a+3,`${a+3} 無法被 2 整除。`,{wrong:[a,a+2,a+6].map(String)}));});
+  add(4,'speed-order','順序掃描',n=>{const a=n+20;return timed(choice('哪一列的數字嚴格由小到大？',`${a} · ${a+2} · ${a+5}`,[`${a+2} · ${a} · ${a+5}`,`${a} · ${a+5} · ${a+2}`,`${a+5} · ${a+2} · ${a}`],'從左到右每一步都增加。'));});
+  add(4,'speed-boundary','首尾條件',n=>{const a=n+100;return timed(choice('哪個代碼以 M 開頭、以 T 結尾？',`M${a}T`,[`T${a}M`,`M${a}R`,`R${a}T`],'必須同時符合開頭 M 與結尾 T。'));});
+  add(4,'speed-missing','缺項搜尋',n=>{const a=n+10;return timed(num(`完整清單應有 ${a} 到 ${a+5} 的所有整數。現在看到 ${a}、${a+1}、${a+3}、${a+4}、${a+5}，少了哪個？`,a+2,`逐項比對連續整數，缺少 ${a+2}。`));});
+  add(5,'quant-discount','折扣計算',n=>{const a=(n+10)*10;return num(`一件商品標價 ${a} 元，打八折，應付多少元？`,a*0.8,`${a}×0.8=${a*0.8} 元。`);});
+  add(5,'quant-unit-rate','單位價格',n=>{const a=n+5;return num(`4 本相同筆記本共 ${a*4} 元，單本幾元？`,a,`${a*4}÷4=${a} 元。`);});
+  add(5,'quant-average','平均補值',n=>{const a=n+10;return num(`三天平均讀 ${a} 頁；前兩天分別讀 ${a-2}、${a+5} 頁。第三天讀多少頁？`,a-3,`總共 ${a*3} 頁，扣掉前兩天 ${a*2+3} 頁，剩 ${a-3} 頁。`);});
+  add(5,'quant-remainder','整除餘數',n=>{const r=1+n%6,a=7*(n+1)+r;return num(`${a} 顆糖每袋裝 7 顆，裝滿若干袋後還剩幾顆？`,r,`${a}=7×${n+1}+${r}，餘數為 ${r}。`,{wrong:[0,(r+1)%7,(r+2)%7].filter((x,i,a)=>a.indexOf(x)===i&&x!==r).concat([7,8]).slice(0,3).map(String)});});
+  add(5,'quant-time','時刻推算',n=>{const duration=n+21,start=8*60+35,end=start+duration,fmt=t=>`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;return choice(`列車上午 8:35 出發，車程 ${duration} 分鐘。抵達時刻是？`,fmt(end),[fmt(end+10),fmt(end-10),fmt(end+60)],`8:35 加 ${duration} 分鐘為 ${fmt(end)}，每 60 分鐘進位一小時。`);});
+  add(5,'quant-probability','機率計數',n=>{const a=n+4;return choice(`袋中有 1 顆紅球與 ${a-1} 顆白球，各球被抽到的機會相同。只抽一球，紅球機率是？`,`1/${a}`,[`1/${a+1}`,`1/${a-1}`,`2/${a}`],`紅球 1 顆，總數 ${a} 顆，機率為 1/${a}。`);});
+  add(5,'quant-balance','等式求值',n=>{const a=n+5;return num(`天平平衡：3 個相同砝碼加 2 克，等於 ${3*a+2} 克。每個砝碼幾克？`,a,`先減 2 再除以 3：(${3*a+2}−2)÷3=${a}。`);});
 
-  function taskSignature(q){
-    return JSON.stringify([
-      q.d,q.model,q.q,
-      q.cells||null,
-      q.visual||null,
-      q.stim||null
-    ]);
-  }
-
-  function validateBank(bank){
-    const errors=[],ids=new Set(),signatures=new Map();
-    if(bank.length!==300)errors.push(`expected 300 items, got ${bank.length}`);
-
-    for(const q of bank){
-      if(ids.has(q.id))errors.push(`duplicate id ${q.id}`);
-      ids.add(q.id);
-
-      if(!DOMAIN_ORDER.includes(q.d))errors.push(`invalid domain ${q.id}`);
-      if(!["easy","medium","hard"].includes(q.difficulty))errors.push(`invalid difficulty ${q.id}`);
-      if(!Array.isArray(q.o)||q.o.length!==4)errors.push(`invalid options ${q.id}`);
-      if(!Number.isInteger(q.a)||q.a<0||q.a>3)errors.push(`invalid answer ${q.id}`);
-      if(Array.isArray(q.o)&&new Set(q.o.map(String)).size!==4)errors.push(`duplicate options ${q.id}`);
-      if(Array.isArray(q.o)&&q.o[q.a] == null)errors.push(`answer does not resolve ${q.id}`);
-      if(q.type==="matrix"&&(!Array.isArray(q.cells)||q.cells.length!==9))errors.push(`invalid matrix ${q.id}`);
-      if(q.d==="處理速度"){
-        if(!(Number(q.limit)>0))errors.push(`speed item missing limit ${q.id}`);
-      } else if(q.limit!=null){
-        errors.push(`non-speed item unexpectedly timed ${q.id}`);
-      }
-
-      const sig=taskSignature(q);
-      if(signatures.has(sig)) errors.push(`duplicate task signature ${signatures.get(sig)} / ${q.id}`);
-      else signatures.set(sig,q.id);
-    }
-
-    for(const domain of DOMAIN_ORDER){
-      const group=bank.filter(q=>q.d===domain);
-      const counts={
-        easy:group.filter(q=>q.difficulty==="easy").length,
-        medium:group.filter(q=>q.difficulty==="medium").length,
-        hard:group.filter(q=>q.difficulty==="hard").length
-      };
-      if(group.length!==50)errors.push(`${domain} expected 50, got ${group.length}`);
-      if(counts.easy!==20||counts.medium!==20||counts.hard!==10){
-        errors.push(`${domain} difficulty mismatch ${JSON.stringify(counts)}`);
-      }
-    }
-    return {ok:errors.length===0,errors,total:bank.length,uniqueTaskSignatures:signatures.size};
-  }
-
-  const validation=validateBank(fullBank);
-  if(!validation.ok)console.error("Question Bank v3.1 validation failed",validation.errors);
-
-  function shuffle(items){
-    const arr=[...items];
-    for(let i=arr.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [arr[i],arr[j]]=[arr[j],arr[i]];
-    }
-    return arr;
-  }
-
-  function readHistory(){
-    try{
-      const parsed=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");
-      return Array.isArray(parsed)?parsed.filter(Array.isArray).slice(-RECENT_FORM_LIMIT):[];
-    }catch{return [];}
-  }
-
-  function readCycleSeen(){
-    try{
-      const parsed=JSON.parse(localStorage.getItem(CYCLE_KEY)||"[]");
-      return Array.isArray(parsed)?new Set(parsed):new Set();
-    }catch{return new Set();}
-  }
-
-  const history=readHistory(),recentIds=new Set(history.flat()),cycleSeen=readCycleSeen();
-
-  function pickTier(pool,difficulty,count){
-    const tier=pool.filter(q=>q.difficulty===difficulty);
-    const unseen=shuffle(tier.filter(q=>!cycleSeen.has(q.id)));
-    const seenButNotRecent=shuffle(tier.filter(q=>cycleSeen.has(q.id)&&!recentIds.has(q.id)));
-    const recent=shuffle(tier.filter(q=>recentIds.has(q.id)));
-    return [...unseen,...seenButNotRecent,...recent].slice(0,count);
-  }
-
-  function pickForDomain(domain){
-    const pool=fullBank.filter(q=>q.d===domain),picked=[];
-    for(const [difficulty,count] of Object.entries(FORM_PLAN)){
-      picked.push(...pickTier(pool,difficulty,count));
-    }
-    return shuffle(picked);
-  }
-
-  const selected=DOMAIN_ORDER.flatMap(pickForDomain),selectedIds=selected.map(q=>q.id);
-  try{
-    localStorage.setItem(HISTORY_KEY,JSON.stringify([...history,selectedIds].slice(-RECENT_FORM_LIMIT)));
-    const nextCycle=new Set([...cycleSeen,...selectedIds]);
-    localStorage.setItem(CYCLE_KEY,JSON.stringify(nextCycle.size>=fullBank.length?[]:[...nextCycle]));
-  }catch{}
-
-  window.IQ_QUESTION_BANK=fullBank;
-  window.IQ_QUESTIONS=selected;
-  window.IQ_BANK_VALIDATION=validation;
-  window.IQ_BANK_META={
-    version:BANK_VERSION,revision:BANK_REVISION,totalItems:fullBank.length,
-    selectedItems:selected.length,domains:DOMAIN_ORDER.length,
-    itemsPerDomain:5,itemsPerDomainInBank:50,
-    bankDifficulty:{easy:20,medium:20,hard:10},
-    formDifficulty:FORM_PLAN,difficultyLabels:DIFFICULTY_LABEL,
-    recentFormAvoidance:RECENT_FORM_LIMIT,
-    coverageCycleItems:fullBank.length,
-    generation:"controlled-original-item-models",
-    calibrationStatus:"uncalibrated",
-    duplicateTaskGuard:true
-  };
-
-  window.addEventListener("load",()=>{
-    const restart=document.getElementById("restartBtn");
-    if(restart){
-      restart.textContent="抽新題再測";
-      restart.onclick=()=>window.location.reload();
+  const bank=[];
+  families.forEach((f,fi)=>{
+    for(let n=0;n<(f.domain===0?12:144);n++){
+      const b=f.build(n),correct=String(b.correct),wrong=[...new Set(b.wrong.map(String))];
+      if(wrong.length!==3||wrong.includes(correct)) throw Error(`Invalid choices: ${f.key}/${n}`);
+      const o=shuffle([correct,...wrong],rng(fi*144+n+917));
+      const {correct:unused,wrong:unusedWrong,...body}=b;
+      bank.push({id:`qb4-${f.key}-${String(n+1).padStart(3,'0')}`,bankVersion:version,bankRevision:'4.0',
+        source:'original-controlled-variant',d:domains[f.domain],model:`v4-${f.key}`,taskFamily:f.key,
+        taskLabel:f.label,semanticKey:f.key,difficulty:n%5<2?'easy':n%5<4?'medium':'hard',
+        type:'normal',...body,o,a:o.indexOf(correct)});
     }
   });
+  function validateBank(items){
+    const errors=[],ids=new Set(),signatures=new Set();
+    for(const q of items){
+      if(ids.has(q.id))errors.push(`duplicate ID: ${q.id}`);
+      ids.add(q.id);
+      if(!domains.includes(q.d)||!['easy','medium','hard'].includes(q.difficulty))errors.push(`invalid classification: ${q.id}`);
+      if(!q.semanticKey||!q.taskFamily||!q.e||!q.q)errors.push(`missing content: ${q.id}`);
+      if(!Array.isArray(q.o)||q.o.length!==4||new Set(q.o).size!==4||!Number.isInteger(q.a)||q.a<0||q.a>3)errors.push(`invalid choices: ${q.id}`);
+      if((q.d==='處理速度')!==(Number(q.limit)>0))errors.push(`invalid timing: ${q.id}`);
+      if(q.type==='memory'&&!q.stim)errors.push(`missing stimulus: ${q.id}`);
+      if(q.type==='matrix'&&q.cells?.length!==9)errors.push(`invalid matrix: ${q.id}`);
+      const signature=JSON.stringify([q.q,q.stim||'',q.cells||[],[...q.o].sort()]);
+      if(signatures.has(signature))errors.push(`duplicate content: ${q.id}`);
+      signatures.add(signature);
+    }
+    if(items.length!==5124)errors.push(`expected 5124 items, got ${items.length}`);
+    return {ok:!errors.length,errors,total:items.length,uniqueTaskSignatures:signatures.size};
+  }
+  const validation=validateBank(bank);
+  if(!validation.ok)throw Error(validation.errors.join('; '));
+  function validateForm(form){
+    const errors=[],counts={},semantics=new Set(),ids=new Set();
+    if(form.length!==30) errors.push('form must contain 30 items');
+    for(const q of form){
+      counts[q.taskFamily]=(counts[q.taskFamily]||0)+1;
+      if(counts[q.taskFamily]>2)errors.push(`family limit: ${q.taskFamily}`);
+      if(semantics.has(q.semanticKey))errors.push(`semantic repeat: ${q.semanticKey}`);
+      if(ids.has(q.id))errors.push(`duplicate: ${q.id}`);
+      semantics.add(q.semanticKey);ids.add(q.id);
+    }
+    for(const d of domains){const group=form.filter(q=>q.d===d);
+      if(group.length!==5)errors.push(`domain quota: ${d}`);
+      for(const [tier,count] of Object.entries({easy:2,medium:2,hard:1}))
+        if(group.filter(q=>q.difficulty===tier).length!==count)errors.push(`difficulty quota: ${d}/${tier}`);
+    }
+    return {ok:!errors.length,errors};
+  }
+  function selectForm({history=[],random=Math.random,pool=bank}={}){
+    const recent=new Set(history.slice(-8).flat()),used=new Set(),selected=[];
+    for(const d of shuffle(domains,random)){
+      const fs=shuffle([...new Set(pool.filter(q=>q.d===d).map(q=>q.semanticKey))],random).filter(k=>!used.has(k));
+      if(fs.length<5)throw Error(`Insufficient semantic diversity in ${d}`);
+      const tiers=shuffle(['easy','easy','medium','medium','hard'],random);
+      fs.slice(0,5).forEach((key,i)=>{
+        const candidates=pool.filter(q=>q.d===d&&q.semanticKey===key&&q.difficulty===tiers[i]);
+        const fresh=candidates.filter(q=>!recent.has(q.id));
+        const q=shuffle(fresh.length?fresh:candidates,random)[0];
+        if(!q)throw Error(`No eligible item: ${key}/${tiers[i]}`);
+        used.add(key);selected.push(q);
+      });
+    }
+    const form=shuffle(selected,random),report=validateForm(form);
+    if(!report.ok)throw Error(report.errors.join('; '));
+    return form;
+  }
+  const historyKey=`cognitive-iq-lab:form-history:${version}`;
+  let history=[];
+  try {const raw=JSON.parse(localStorage.getItem(historyKey)||'[]');if(Array.isArray(raw))history=raw.filter(Array.isArray).slice(-8);}catch{}
+  const selected=selectForm({history});
+  try {localStorage.setItem(historyKey,JSON.stringify([...history,selected.map(q=>q.id)].slice(-8)));}catch{}
+  window.IQ_QUESTION_BANK=bank;
+  window.IQ_QUESTIONS=selected;
+  window.IQ_DIVERSITY={families:families.map(({domain,key,label})=>({domain:domains[domain],key,label})),selectForm,validateForm,validateBank};
+  window.IQ_BANK_VALIDATION=validation;
+  window.IQ_BANK_META={version,revision:'4.0',totalItems:bank.length,selectedItems:30,domains:6,domainOrder:[...domains],
+    itemsPerDomain:5,itemsPerDomainInBank:Object.fromEntries(domains.map(d=>[d,bank.filter(q=>q.d===d).length])),
+    formDifficulty:{easy:2,medium:2,hard:1},difficultyLabels:{easy:'基礎',medium:'中等',hard:'進階'},
+    taskFamilies:42,maxFamilyPerForm:2,uniqueSemanticTemplatesPerForm:30,recentFormAvoidance:8,
+    generation:'84-verbal-items-plus-5040-controlled-variants',calibrationStatus:'uncalibrated',duplicateTaskGuard:true};
+  window.addEventListener('load',()=>{const restart=document.getElementById('restartBtn');if(restart)restart.onclick=()=>window.location.reload();});
 })();

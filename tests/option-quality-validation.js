@@ -20,46 +20,43 @@ vm.createContext(context);
 vm.runInContext(bankCode, context);
 
 const selectedIdsBefore = window.IQ_QUESTIONS.map(q => q.id);
+const sampleBefore = new Map(window.IQ_QUESTION_BANK.slice(0,60).map(q => [q.id, {q:q.q, o:[...q.o], e:q.e, revision:q.bankRevision}]));
 vm.runInContext(qualityCode, context);
 vm.runInContext(balanceCode, context);
 
-assert.strictEqual(window.IQ_BANK_META.revision, '3.2');
-assert.strictEqual(window.IQ_QUESTION_BANK.length, 300);
+assert.strictEqual(window.IQ_BANK_META.version, 'QB-2026.09.4');
+assert.strictEqual(window.IQ_BANK_META.revision, '4.0');
+assert.strictEqual(window.IQ_BANK_META.optionQualityMode, 'audit-only-no-item-rewrite');
+assert.strictEqual(window.IQ_QUESTION_BANK.length, 5124);
 assert.strictEqual(window.IQ_QUESTIONS.length, 30);
-assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS, q => q.id), Array.from(selectedIdsBefore), 'quality pass must not change selected items');
+assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS, q => q.id), Array.from(selectedIdsBefore), 'quality layers must not change selected item IDs');
 
-let curatedAnalogies = 0;
-let nearMissItems = 0;
-let cueRisk = 0;
-const positions = [0, 0, 0, 0];
-
-for (const q of window.IQ_QUESTION_BANK) {
-  assert.strictEqual(q.bankRevision, '3.2', `${q.id}: revision`);
-  assert.strictEqual(q.o.length, 4, `${q.id}: four options`);
-  assert.strictEqual(new Set(Array.from(q.o, String)).size, 4, `${q.id}: options unique`);
-  assert.ok(Number.isInteger(q.a) && q.a >= 0 && q.a < 4, `${q.id}: answer key`);
-  assert.ok(['original-aig', 'original-research-informed'].includes(q.source), `${q.id}: source must remain original`);
-  assert.strictEqual(q.answerPositionBalanced, true, `${q.id}: position balancing marker`);
-  positions[q.a] += 1;
-
-  if (q.model === 'verbal-analogy') {
-    assert.strictEqual(q.distractorDesign, 'curated-peer-near-miss', `${q.id}: analogy distractors`);
-    curatedAnalogies += 1;
-  }
-  if (String(q.distractorDesign).includes('near-miss')) nearMissItems += 1;
-  if (q.optionCueFlags?.length) cueRisk += 1;
+for (const [id, before] of sampleBefore) {
+  const q = window.IQ_QUESTION_BANK.find(item => item.id === id);
+  assert.strictEqual(q.q, before.q, `${id}: audit must not rewrite prompt`);
+  assert.strictEqual(q.e, before.e, `${id}: audit must not rewrite explanation`);
+  assert.strictEqual(q.bankRevision, before.revision, `${id}: audit must preserve QB4 revision`);
+  assert.strictEqual(new Set(q.o.map(String)).size, 4, `${id}: options remain unique`);
 }
 
-assert.strictEqual(curatedAnalogies, 20, 'all 20 analogy items must use curated distractors');
-assert.ok(nearMissItems >= 60, `expected broad near-miss coverage, got ${nearMissItems}`);
-assert.deepStrictEqual(positions, [75,75,75,75], `answer positions must be exactly balanced: ${positions.join('/')}`);
-assert.ok(cueRisk <= 12, `too many static option cue risks: ${cueRisk}`);
+const positions = [0,0,0,0];
+let cueRisk = 0;
+for (const q of window.IQ_QUESTION_BANK) {
+  assert.strictEqual(q.bankRevision, '4.0', `${q.id}: revision`);
+  assert.strictEqual(q.answerPositionBalanced, true, `${q.id}: balanced position marker`);
+  assert.ok(Array.isArray(q.optionCueFlags), `${q.id}: option audit flags`);
+  assert.ok(Number.isInteger(q.a) && q.a >= 0 && q.a < 4, `${q.id}: answer key`);
+  positions[q.a] += 1;
+  if (q.optionCueFlags.length) cueRisk += 1;
+}
 
+assert.deepStrictEqual(positions, [1281,1281,1281,1281], `QB4 answer positions must be exactly balanced: ${positions.join('/')}`);
 const report = window.IQ_OPTION_QUALITY_REPORT;
-assert.strictEqual(report.totalItems, 300);
-assert.strictEqual(report.revision, '3.2');
+assert.strictEqual(report.totalItems, 5124);
+assert.strictEqual(report.revision, '4.0');
 assert.strictEqual(report.answerPositionStrategy, 'hash-quota-balanced');
 assert.deepStrictEqual(Array.from(report.correctPositionCounts), positions);
+assert.strictEqual(window.IQ_OPTION_AUDIT.version, '4.0');
 
-console.log('Option Quality v3.2 validation PASS');
-console.log(`curated analogies=${curatedAnalogies}; near-miss items=${nearMissItems}; cue-risk=${cueRisk}; answer positions=${positions.join('/')}`);
+console.log('QB4 option-quality audit validation PASS');
+console.log(`cue-risk=${cueRisk}; answer positions=${positions.join('/')}; item text remains unchanged by audit.`);

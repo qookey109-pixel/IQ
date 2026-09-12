@@ -10,9 +10,35 @@
   const surface=q=>Math.max(0,Math.min(17,Number(q.surfaceVariant||1)-1));
   const correctOf=q=>String(q.correctContent??q.o?.[q.a]??'');
   const setChoices=(q,wrong)=>{const correct=correctOf(q),choices=[correct,...wrong.map(String)];if(new Set(choices).size!==4)throw new Error(`language finalizer duplicate choices: ${q.id}`);q.o=choices;q.a=0;q.correctContent=correct;};
+  const svg=(inner,label)=>`<svg class="qb5-spatial-svg" viewBox="0 0 360 220" width="360" height="220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  const scaleVisual=(v,a,b,s)=>{
+    if(v===0||v===5){
+      const original=v===5?'?':a,scaled=v===5?a*s:'?';
+      return svg(`<text x="68" y="42" text-anchor="middle" font-size="13">原圖</text><line x1="28" y1="82" x2="108" y2="82" stroke="currentColor" stroke-width="5"/><text x="68" y="108" text-anchor="middle" font-size="15">原長 ${original}</text><line x1="135" y1="82" x2="218" y2="82" stroke="currentColor" stroke-width="2"/><polygon points="218,82 207,76 207,88" fill="currentColor"/><text x="176" y="67" text-anchor="middle" font-size="15">× ${s}</text><text x="286" y="42" text-anchor="middle" font-size="13">放大後</text><line x1="236" y1="82" x2="336" y2="82" stroke="currentColor" stroke-width="5"/><text x="286" y="108" text-anchor="middle" font-size="15">長 ${scaled}</text>`,'比例縮放線段圖');
+    }
+    const target=v===1?'長 ?':v===2?'寬 ?':v===3?'周長 ?':v===4||v===7?'面積 ?':'長＋寬 ?';
+    const action=v===6?'平移':`× ${s}`;
+    return svg(`<text x="82" y="32" text-anchor="middle" font-size="13">原圖</text><rect x="34" y="52" width="96" height="76" fill="none" stroke="currentColor" stroke-width="3"/><text x="82" y="151" text-anchor="middle" font-size="14">長 ${a}</text><text x="18" y="90" text-anchor="middle" font-size="14" transform="rotate(-90 18 90)">寬 ${b}</text><line x1="148" y1="90" x2="214" y2="90" stroke="currentColor" stroke-width="2"/><polygon points="214,90 203,84 203,96" fill="currentColor"/><text x="181" y="73" text-anchor="middle" font-size="15">${action}</text><text x="284" y="32" text-anchor="middle" font-size="13">結果</text><rect x="233" y="47" width="102" height="86" fill="none" stroke="currentColor" stroke-width="3"/><text x="284" y="157" text-anchor="middle" font-size="15">${target}</text>`,'比例縮放矩形圖');
+  };
 
   for(const q of bank){
     const n=itemIndex(q),v=variant(q),s=surface(q);
+
+    if(q.taskFamily==='scale-drawing'){
+      const a=3+mod(n,7),b=2+mod(n*2,5);
+      let factor=2+mod(v,3);
+      if(v===0){q.q=`線段原長 ${a} 格，放大 ${factor} 倍後長多少格？`;q.e=`${a} × ${factor} = ${correctOf(q)}。`;}
+      else if(v===1){q.q=`矩形長 ${a}、寬 ${b}，等比例放大 ${factor} 倍。放大後的長是多少？`;q.e=`長度同樣放大 ${factor} 倍：${a} × ${factor} = ${correctOf(q)}。`;}
+      else if(v===2){q.q=`矩形長 ${a}、寬 ${b}，等比例放大 ${factor} 倍。放大後的寬是多少？`;q.e=`寬度同樣放大 ${factor} 倍：${b} × ${factor} = ${correctOf(q)}。`;}
+      else if(v===3){q.q=`矩形長 ${a}、寬 ${b}，等比例放大 ${factor} 倍。放大後周長是多少？`;q.e=`原周長是 2 × (${a} + ${b})，再乘 ${factor}，得到 ${correctOf(q)}。`;}
+      else if(v===4){q.q=`矩形長 ${a}、寬 ${b}，等比例放大 ${factor} 倍。放大後面積是多少？`;q.e=`面積會乘上倍率的平方：${a} × ${b} × ${factor}² = ${correctOf(q)}。`;}
+      else if(v===5){q.q=`線段放大 ${factor} 倍後長 ${a*factor} 格。原長是多少格？`;q.e=`用放大後長度除以倍率：${a*factor} ÷ ${factor} = ${correctOf(q)}。`;}
+      else if(v===6){factor=1;q.q=`矩形長 ${a}、寬 ${b}。只把圖形平移，不縮放。平移後長與寬的和是多少？`;q.e=`平移不改變尺寸，所以 ${a} + ${b} = ${correctOf(q)}。`;}
+      else {q.q=`矩形長 ${a}、寬 ${b}，長和寬都放大成 ${factor} 倍。放大後面積是多少？`;q.e=`新面積為 (${a} × ${factor}) × (${b} × ${factor}) = ${correctOf(q)}。`;}
+      q.visual=scaleVisual(v,a,b,factor);
+      q.diagramType='scale-drawing';
+      q.presentationMode='spatial-diagram';
+    }
 
     if(q.taskFamily==='quant-unit-rate'&&q.q.includes('封信件')){
       q.q=q.q
@@ -62,6 +88,7 @@
   const report=window.IQ_NATURAL_LANGUAGE||(window.IQ_NATURAL_LANGUAGE={});
   report.version='NL-2026.09.3';
   report.finalized=true;
+  report.scaleDrawingVisualGuard='unknown-target-must-use-question-mark';
   report.metrics={
     items:bank.length,
     avgStemChars:Number((lengths.reduce((a,b)=>a+b,0)/lengths.length).toFixed(1)),

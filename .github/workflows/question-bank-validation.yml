@@ -29,6 +29,7 @@ jobs:
           node --check qb5-form-equivalence.js
           node --check qb5-finalize.js
           node --check scoring-v2.js
+          node --check calibration-readiness.js
           node --check answer-quality.js
           node --check answer-position-balance.js
           node --check presentation-clarity.js
@@ -44,6 +45,7 @@ jobs:
           node --check tests/qb5-oracle-validation.js
           node --check tests/form-equivalence-validation.js
           node --check tests/scoring-v2-validation.js
+          node --check tests/calibration-readiness-validation.js
 
       - name: Validate QB5 5,124-item bank and 294 templates
         run: node tests/question-bank-validation.js
@@ -56,6 +58,9 @@ jobs:
 
       - name: Validate transparent Scoring v2
         run: node tests/scoring-v2-validation.js
+
+      - name: Validate Calibration Readiness v1
+        run: node tests/calibration-readiness-validation.js
 
       - name: Validate QB5 option quality and answer-position balance
         run: node tests/option-quality-validation.js

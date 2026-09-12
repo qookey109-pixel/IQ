@@ -29,6 +29,7 @@ jobs:
           node --check app.js
           node --check timeout-lock.js
           node --check memory-exposure.js
+          node --check scripts/export-qb4.js
 
       - name: Validate QB4 5,124-item bank
         run: node tests/question-bank-validation.js
@@ -59,3 +60,14 @@ jobs:
 
       - name: Validate forward navigation and matrix containment
         run: node tests/navigation-layout-validation.js
+
+      - name: Build full QB4 download pack
+        run: node scripts/export-qb4.js
+
+      - name: Upload QB4 5,124-item download pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: QB4-5124-updated
+          path: dist/qb4-export/
+          if-no-files-found: error
+          retention-days: 30

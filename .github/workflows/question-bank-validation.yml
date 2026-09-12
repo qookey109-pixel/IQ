@@ -20,6 +20,7 @@ jobs:
           node --check answer-quality.js
           node --check answer-position-balance.js
           node --check presentation-clarity.js
+          node --check spatial-task-diagrams.js
           node --check assessment-quality.js
           node --check item-analytics.js
           node --check item-quality-v2.js
@@ -40,6 +41,9 @@ jobs:
 
       - name: Validate QB4 low-fatigue presentation
         run: node tests/presentation-clarity-validation.js
+
+      - name: Validate shortest-grid-path diagrams and wording
+        run: node tests/spatial-task-diagrams-validation.js
 
       - name: Validate QB4 adaptive memory exposure
         run: node tests/memory-exposure-validation.js

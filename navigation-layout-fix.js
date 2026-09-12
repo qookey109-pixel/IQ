@@ -1,6 +1,8 @@
 // Navigation + matrix density safety.
 // Keeps timed-out questions locked while restoring reliable forward navigation.
 // Also renders structured matrix symbol clusters without clipping on mobile.
+// Visual questions receive explicit runtime layout classes so Safari does not
+// depend on :has() to decide whether the question/diagram split should apply.
 
 (() => {
   const CLUSTER_PREFIX = "@@cluster:";
@@ -75,10 +77,41 @@
     if (hint) hint.textContent = "選答案會自動下一題 · 也可手動前後瀏覽";
   }
 
+  function applyQuestionLayoutClass() {
+    const card = $("questionCard");
+    if (!card) return;
+
+    // app.js resets className on each render. Restore the single-screen class
+    // deliberately instead of relying on DOM structure selectors.
+    card.classList.add("compactQuestionCard");
+    card.classList.remove("hasVisualQuestion", "hasMatrixQuestion");
+    Array.from(card.classList)
+      .filter(name => name.startsWith("family-"))
+      .forEach(name => card.classList.remove(name));
+
+    const q = questions[currentIndex];
+    if (!q) return;
+
+    const hasMatrix = q.type === "matrix" && Array.isArray(q.cells) && q.cells.length > 0;
+    const hasTaskVisual = q.type !== "memory" && Boolean(q.visual);
+    const hasVisual = hasMatrix || hasTaskVisual;
+
+    if (!hasVisual) {
+      delete card.dataset.visualLayout;
+      return;
+    }
+
+    card.classList.add("hasVisualQuestion");
+    if (hasMatrix) card.classList.add("hasMatrixQuestion");
+    if (q.taskFamily) card.classList.add(`family-${String(q.taskFamily).replace(/[^a-z0-9_-]/gi, "-")}`);
+    card.dataset.visualLayout = "split";
+  }
+
   const baseRenderQuestionNavigation = renderQuestion;
   renderQuestion = function (animationClass = "") {
     const result = baseRenderQuestionNavigation(animationClass);
     updateForwardControl();
+    applyQuestionLayoutClass();
     return result;
   };
 
@@ -97,4 +130,5 @@
   const forwardButton = $("skipBtn");
   if (forwardButton) forwardButton.onclick = nextQuestion;
   updateForwardControl();
+  applyQuestionLayoutClass();
 })();

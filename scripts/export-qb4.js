@@ -26,7 +26,8 @@ const runtimeFiles = [
   'answer-quality.js',
   'answer-position-balance.js',
   'presentation-clarity.js',
-  'spatial-task-diagrams.js'
+  'spatial-task-diagrams.js',
+  'clarity-v2.js'
 ];
 for (const file of runtimeFiles) {
   vm.runInContext(fs.readFileSync(path.join(ROOT, file), 'utf8'), context, { filename: file });
@@ -35,10 +36,14 @@ for (const file of runtimeFiles) {
 const bank = window.IQ_QUESTION_BANK;
 const meta = window.IQ_BANK_META;
 const validation = window.IQ_BANK_VALIDATION;
+const clarity = window.IQ_CLARITY_V2;
 assert.ok(Array.isArray(bank), 'IQ_QUESTION_BANK missing');
 assert.strictEqual(bank.length, 5124, `expected 5124 items, got ${bank.length}`);
 assert.strictEqual(meta.version, 'QB-2026.09.4');
 assert.strictEqual(meta.revision, '4.0');
+assert.ok(clarity && clarity.version === '2.0', 'Clarity v2 runtime layer missing');
+assert.strictEqual(clarity.modifiedItems, 2532, 'Clarity v2 must update 2,532 items');
+assert.strictEqual(clarity.modifiedFamilies, 24, 'Clarity v2 must cover 24 task families');
 
 const positions = [0, 0, 0, 0];
 for (const q of bank) positions[q.a] += 1;
@@ -47,6 +52,7 @@ assert.deepStrictEqual(positions, [1281, 1281, 1281, 1281], 'answer positions mu
 const spatialDiagrams = bank.filter(q => q.taskFamily === 'shortest-grid-path');
 assert.strictEqual(spatialDiagrams.length, 144, 'shortest-grid-path family must contain 144 variants');
 assert.ok(spatialDiagrams.every(q => q.diagramType === 'grid-shortest-path' && String(q.visual || '').includes('<svg')), 'all shortest-grid-path items must include SVG diagrams');
+assert.ok(spatialDiagrams.every(q => q.q.includes('不能斜著抄對角線捷徑')), 'Clarity v2 shortest-grid-path wording missing');
 
 const exportedAt = new Date().toISOString();
 const exportMeta = {
@@ -56,17 +62,21 @@ const exportMeta = {
   runtimeOrder: runtimeFiles,
   answerPositionCounts: positions,
   spatialDiagramItems: spatialDiagrams.length,
-  note: 'Fully expanded QB4 bank after website runtime transforms, including answer-position balancing and spatial grid diagrams.'
+  clarityRevision: clarity.version,
+  clarityModifiedItems: clarity.modifiedItems,
+  clarityModifiedFamilies: clarity.modifiedFamilies,
+  note: 'Fully expanded QB4 bank after website runtime transforms, including answer-position balancing, spatial grid diagrams, and Clarity v2 wording.'
 };
 
 const payload = {
   meta: exportMeta,
   validation,
+  clarity,
   items: bank
 };
 
-fs.writeFileSync(path.join(OUT, 'QB4-5124-updated.json'), JSON.stringify(payload, null, 2));
-fs.writeFileSync(path.join(OUT, 'QB4-5124-items.json'), JSON.stringify(bank, null, 2));
+fs.writeFileSync(path.join(OUT, 'QB4-5124-clarity-v2.json'), JSON.stringify(payload, null, 2));
+fs.writeFileSync(path.join(OUT, 'QB4-5124-items-clarity-v2.json'), JSON.stringify(bank, null, 2));
 
 function csvCell(value) {
   if (value == null) return '';
@@ -75,24 +85,25 @@ function csvCell(value) {
 }
 
 const headers = [
-  'id','bankVersion','bankRevision','domain','difficulty','taskFamily','taskLabel','semanticKey','model','type','limit',
+  'id','bankVersion','bankRevision','clarityRevision','domain','difficulty','taskFamily','taskLabel','semanticKey','model','type','limit',
   'question','optionA','optionB','optionC','optionD','answerIndex','answerLetter','correctAnswer','explanation','stimulus','cells','visual','diagramType','diagramData','source'
 ];
 const rows = [headers.map(csvCell).join(',')];
 for (const q of bank) {
   const values = [
-    q.id,q.bankVersion,q.bankRevision,q.d,q.difficulty,q.taskFamily,q.taskLabel,q.semanticKey,q.model,q.type,q.limit ?? '',
+    q.id,q.bankVersion,q.bankRevision,q.clarityRevision ?? '',q.d,q.difficulty,q.taskFamily,q.taskLabel,q.semanticKey,q.model,q.type,q.limit ?? '',
     q.q,q.o?.[0] ?? '',q.o?.[1] ?? '',q.o?.[2] ?? '',q.o?.[3] ?? '',q.a,String.fromCharCode(65 + q.a),q.o?.[q.a] ?? '',q.e,
     q.stim ?? '',q.cells ?? '',q.visual ?? '',q.diagramType ?? '',q.diagramData ?? '',q.source ?? ''
   ];
   rows.push(values.map(csvCell).join(','));
 }
-fs.writeFileSync(path.join(OUT, 'QB4-5124-updated.csv'), rows.join('\n'));
+fs.writeFileSync(path.join(OUT, 'QB4-5124-clarity-v2.csv'), rows.join('\n'));
 
-const readme = `Cognitive IQ Lab — QB4 Export\n\nVersion: ${meta.version}\nRevision: ${meta.revision}\nItems: ${bank.length}\nTask families: ${meta.taskFamilies}\nAnswer positions A/B/C/D: ${positions.join(' / ')}\nSpatial shortest-grid-path diagrams: ${spatialDiagrams.length}\nExported: ${exportedAt}\n\nFiles:\n- QB4-5124-updated.json : metadata + validation + all 5,124 fully expanded items\n- QB4-5124-items.json   : bare array of all 5,124 items\n- QB4-5124-updated.csv  : spreadsheet-friendly flat export\n\nThis export reflects the website runtime order:\n${runtimeFiles.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\nImportant: easy / medium / hard are design targets, not population-calibrated psychometric parameters.\n`;
+const readme = `Cognitive IQ Lab — QB4 Clarity v2 Export\n\nVersion: ${meta.version}\nBank revision: ${meta.revision}\nClarity revision: ${clarity.version}\nItems: ${bank.length}\nTask families: ${meta.taskFamilies}\nClarity-updated items: ${clarity.modifiedItems}\nClarity-updated families: ${clarity.modifiedFamilies}\nAnswer positions A/B/C/D: ${positions.join(' / ')}\nSpatial shortest-grid-path diagrams: ${spatialDiagrams.length}\nExported: ${exportedAt}\n\nFiles:\n- QB4-5124-clarity-v2.json       : metadata + validation + all 5,124 fully expanded items\n- QB4-5124-items-clarity-v2.json : bare array of all 5,124 items\n- QB4-5124-clarity-v2.csv        : spreadsheet-friendly flat export\n\nClarity v2 changes wording/explanations only. Answer choices, correct-answer keys, difficulty, timing, IDs and existing diagrams remain unchanged.\n\nThis export reflects the website runtime order:\n${runtimeFiles.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\nImportant: easy / medium / hard are design targets, not population-calibrated psychometric parameters.\n`;
 fs.writeFileSync(path.join(OUT, 'README.txt'), readme);
 
-console.log(`QB4 export PASS: ${bank.length} items`);
+console.log(`QB4 Clarity v2 export PASS: ${bank.length} items`);
+console.log(`Clarity: ${clarity.modifiedItems} items / ${clarity.modifiedFamilies} families`);
 console.log(`A/B/C/D: ${positions.join('/')}`);
 console.log(`Spatial SVG items: ${spatialDiagrams.length}`);
 console.log(`Output: ${OUT}`);

@@ -29,6 +29,7 @@ jobs:
           node --check qb5-form-equivalence.js
           node --check qb5-finalize.js
           node --check natural-language-v2.js
+          node --check question-language-finalize.js
           node --check scoring-v2.js
           node --check calibration-readiness.js
           node --check answer-quality.js
@@ -64,7 +65,7 @@ jobs:
       - name: Validate Calibration Readiness v1
         run: node tests/calibration-readiness-validation.js
 
-      - name: Validate Natural Language v2 and Safari-safe spatial visuals
+      - name: Validate Natural Language v3 and Safari-safe spatial visuals
         run: node tests/natural-language-validation.js
 
       - name: Validate QB5 option quality and answer-position balance

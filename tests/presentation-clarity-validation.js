@@ -18,8 +18,20 @@ assert.strictEqual(bank.length,5124);
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,1008);
 assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')),'all QB5 spatial items must retain their essential SVG');
+assert.ok(spatial.every(q=>String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')),'all QB5 spatial SVGs need stable aspect-ratio containment');
+assert.ok(spatial.every(q=>String(q.visual||'').includes('font-size="13"')),'all QB5 spatial SVGs need an explicit root font size so parent CSS cannot enlarge labels');
+assert.ok(spatial.every(q=>q.visualSafeArea==='qb5-svg-safe-area-v1'),'all QB5 spatial items need safe-area normalization metadata');
 assert.ok(spatial.every(q=>q.presentationMode==='spatial-diagram'),'QB5 spatial items must render as diagram tasks');
 assert.strictEqual(new Set(spatial.map(q=>q.diagramType)).size,7,'all seven spatial families should expose diagram types');
+
+const headings=spatial.filter(q=>q.diagramType==='heading-rotation');
+assert.strictEqual(headings.length,144);
+assert.ok(headings.every(q=>String(q.visual).includes('y="32"')&&String(q.visual).includes('y="202"')),'heading compass labels must stay inside the SVG safe area');
+assert.ok(headings.every(q=>!String(q.visual).includes('y="214" text-anchor="middle">S 180°')),'heading south label must not sit on the bottom edge');
+
+const displacement=spatial.filter(q=>q.diagramType==='grid-displacement');
+assert.strictEqual(displacement.length,144);
+assert.ok(displacement.every(q=>String(q.visual).includes('viewBox="-30 -40 420 300"')),'movement paths need an expanded logical canvas so S/E and labels cannot clip');
 
 const speed=bank.filter(q=>q.d==='處理速度');
 assert.strictEqual(speed.length,1008);
@@ -41,7 +53,10 @@ for(const [id,before] of snapshots){
   assert.strictEqual(q.e,before.e,`${id}: presentation preserves explanation`);
   assert.strictEqual(q.a,before.a,`${id}: presentation preserves key`);
   assert.deepStrictEqual([...q.o],before.o,`${id}: presentation preserves options`);
-  if(q.d==='視覺空間')assert.strictEqual(q.visual,before.visual,`${id}: presentation preserves spatial SVG`);
+  if(q.d==='視覺空間'){
+    assert.ok(String(q.visual||'').includes('<svg'),`${id}: presentation keeps essential spatial SVG`);
+    assert.ok(String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"'),`${id}: presentation only adds safe rendering metadata`);
+  }
 }
 
 assert.ok(css.includes('--bg:#e9dfcf'));
@@ -53,9 +68,12 @@ assert.strictEqual(html.includes('clarity-theme.css'),false);
 assert.ok(html.indexOf('presentation-clarity.js')>html.indexOf('answer-quality.js'));
 assert.ok(html.indexOf('presentation-clarity.js')<html.indexOf('app.js'));
 
-assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version,'3.0-qb5');
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version,'3.1-qb5');
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly,false);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialDiagrams,true);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialSvgSafety.normalized,1008);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialSvgSafety.headingFixed,144);
+assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialSvgSafety.displacementFixed,144);
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.directSpeedOptions,true);
 console.log('QB5 presentation clarity validation PASS');
-console.log('1,008 spatial SVG items retained; speed/memory low-fatigue presentation preserved; warm editorial palette active.');
+console.log('1,008 spatial SVG items retained with safe-area normalization; 144 heading + 144 displacement diagrams protected from clipping.');

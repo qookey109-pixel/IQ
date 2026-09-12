@@ -48,7 +48,7 @@
     report.spatialSvgSized++;
   }
 
-  const allSignatures=new Set(bank.map(q=>signature(q));
+  const allSignatures=new Set(bank.map(q=>signature(q)));
   if(allSignatures.size!==bank.length)throw new Error(`Natural Language v2 created duplicate concrete items: ${allSignatures.size}/${bank.length}`);
 
   if(window.IQ_BANK_VALIDATION){

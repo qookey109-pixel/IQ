@@ -2,7 +2,7 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
 
-const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-finalize.js'];
+const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-finalize.js'];
 const store = {};
 const domains = ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
 const historyKey = 'cognitive-iq-lab:form-history:QB-2026.09.5';

@@ -92,10 +92,15 @@ assert.ok(spatial.every(q=>String(q.visual||'').includes('class="qb5-spatial-svg
 assert.ok(spatial.every(q=>String(q.visual||'').includes('width="360"')&&String(q.visual||'').includes('height="220"')),'all spatial SVGs need intrinsic Safari-safe dimensions');
 const css=fs.readFileSync('spatial-visual-fix.css','utf8');
 assert.match(css,/\.qb5-spatial-svg/);
-assert.match(css,/height:\s*min\(15dvh,\s*140px\)/,'spatial diagrams need a compact viewport-height budget');
-assert.match(css,/#quiz #visualHolder \.matrix/,'matrix visuals need their own compact height budget');
-assert.match(css,/@media \(max-height: 760px\)/,'short laptop windows need a visual compression breakpoint');
-assert.match(css,/@media \(max-height: 680px\)/,'very short windows need a stronger visual compression breakpoint');
+assert.match(css,/@media \(min-width: 900px\)/,'desktop visual questions need a split-layout breakpoint');
+assert.match(css,/grid-template-columns:\s*minmax\(0,\s*1\.16fr\)\s*minmax\(310px,\s*\.84fr\)/,'desktop visual questions should reserve a real right-hand diagram column');
+assert.match(css,/grid-column:\s*2;/,'diagram holder should live in the right column on desktop');
+assert.match(css,/height:\s*min\(26dvh,\s*225px\)/,'desktop spatial diagrams should be large enough to read');
+assert.match(css,/#quiz #visualHolder \.matrixGrid/,'matrix visuals need split-layout sizing too');
+assert.match(css,/@media \(max-width: 899px\)/,'tablet and phone layouts must fall back to stacking');
+assert.match(css,/@media \(min-width: 900px\) and \(max-height: 760px\)/,'short laptop windows need a split-layout compression breakpoint');
+assert.match(css,/@media \(min-width: 900px\) and \(max-height: 680px\)/,'very short desktop windows need a stronger compression breakpoint');
+assert.ok(!/\.memory[^\{]*\{[^\}]*grid-column:\s*2/s.test(css),'working-memory stimulus must not be forced into the desktop diagram split');
 
 console.log('Natural Language v3 / Visual validation PASS');
 console.log('Reference:',window.IQ_NATURAL_LANGUAGE.reference);
@@ -104,4 +109,4 @@ console.log('Retained:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.retained));
 console.log('Metrics:',JSON.stringify(window.IQ_NATURAL_LANGUAGE.metrics));
 console.log('Spatial SVG sized:',window.IQ_NATURAL_LANGUAGE.spatialSvgSized);
 console.log('Scale drawings: unknown target hidden in all 144 visuals; reverse-scale original length never leaked');
-console.log('Visual budget: spatial <= 140px; matrix <= 190px with short-height compression');
+console.log('Visual layout: desktop = question left / diagram right; tablet and phone = stacked; memory exposure unchanged');

@@ -68,7 +68,7 @@
         const base=String(q.q).replace(/^以[^，]+的位置為例，/,'').replace(/^棋子/,actors[s]);q.q=base;
       }
       else if(q.taskFamily==='mirror-coordinate'){
-        const base=String(q.q).replace(/^以[^，]+的位置為例，/,'');q.q=base.replace(/^點\s*/`${actors[s]}位於點 `);
+        const base=String(q.q).replace(/^以[^，]+的位置為例，/,'');q.q=base.replace(/^點\s*/,`${actors[s]}位於點 `);
       }
       else if(q.taskFamily==='stack-hidden'){
         q.q=`使用${materials[s]}單位方塊搭成下圖。圖中數字表示每格堆疊的方塊數；相鄰方塊互相貼合，底面不算外露面。整個造型共有多少個外露面？`;

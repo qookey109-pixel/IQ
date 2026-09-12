@@ -22,7 +22,11 @@
   const frac=(a,b)=>{const g=gcd(a,b);return `${a/g}/${b/g}`;};
   const fmtTime=m=>{m=mod(m,1440);return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;};
   function prep(q){
-    const v=variant(q),t=tier(q);
+    const v=variant(q);
+    // Non-verbal difficulty is construct-linked: variants 1–3 easy, 4–6 medium, 7–8 hard.
+    // Verbal has only two archetypes, so it retains its within-archetype easy/medium/hard item mix.
+    if(q.d!=='語文理解') q.difficulty=v<3?'easy':v<6?'medium':'hard';
+    const t=tier(q);
     q.bankVersion=VERSION;q.bankRevision=REVISION;q.constructRevision=REVISION;q.constructVariant=v+1;
     q.semanticKey=`${q.taskFamily}:v${v+1}`;q.model=`v5-${q.taskFamily}-v${v+1}`;q.complexityScore=t+1;
     q.visual=null;q.diagramType=null;q.diagramData=null;q.optionCueFlags=[];

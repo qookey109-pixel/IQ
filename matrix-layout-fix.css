@@ -1,0 +1,94 @@
+/* Safari / small-viewport safety for visual reasoning items.
+   The rendered matrix uses .matrixGrid (not .matrix). Keep one-screen layout
+   when possible, but never crop the task content. */
+
+#quiz .compactQuestionCard {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#quiz #visualHolder {
+  max-height: none;
+  overflow: visible;
+}
+
+#quiz #visualHolder .matrixGrid {
+  width: min(250px, 42vw, 25dvh);
+  max-width: 100%;
+  margin: 0 auto;
+  gap: clamp(4px, .65vh, 7px);
+}
+
+#quiz #visualHolder .matrixCell {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(3px, .55vh, 6px);
+  border-radius: clamp(9px, 1.25vh, 14px);
+  font-size: clamp(19px, 2.15vw, 30px);
+  line-height: 1.05;
+}
+
+/* A visual item gets priority over decorative spacing. */
+#quiz #visualHolder:not(:empty) + .questionMetaRow {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  #quiz #visualHolder .matrixGrid {
+    width: min(220px, 66vw, 23dvh);
+    gap: 4px;
+  }
+
+  #quiz #visualHolder .matrixCell {
+    padding: 3px;
+    border-radius: 9px;
+    font-size: clamp(17px, 5vw, 24px);
+  }
+}
+
+@media (max-height: 760px) {
+  #quiz .compactQuestionCard {
+    padding: 9px 12px;
+    gap: 4px;
+  }
+
+  #quiz #visualHolder .matrixGrid {
+    width: min(210px, 40vw, 23dvh);
+  }
+
+  #quiz .question {
+    font-size: clamp(18px, 2.2vw, 28px);
+    line-height: 1.14;
+  }
+
+  #quiz .help {
+    line-height: 1.2;
+  }
+
+  #quiz .option {
+    min-height: 38px;
+    padding-block: 6px;
+  }
+}
+
+@media (max-height: 620px) {
+  #quiz #visualHolder .matrixGrid {
+    width: min(170px, 35vw, 21dvh);
+  }
+
+  #quiz #visualHolder .matrixCell {
+    font-size: clamp(15px, 2vw, 21px);
+    border-radius: 7px;
+  }
+
+  #quiz .question {
+    font-size: clamp(16px, 2vw, 23px);
+  }
+
+  #quiz .help,
+  #quiz .hint {
+    display: none;
+  }
+}

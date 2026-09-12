@@ -1,0 +1,107 @@
+name: Question Bank Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/cognitive-iq-lab-v6
+
+jobs:
+  validate-question-bank:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check question-bank.js
+          node --check qb5-core.js
+          node --check qb5-verbal.js
+          node --check qb5-fluid.js
+          node --check qb5-spatial.js
+          node --check qb5-memory.js
+          node --check qb5-speed.js
+          node --check qb5-quant.js
+          node --check qb5-parameter-diversity.js
+          node --check qb5-ordering-diversity-fix.js
+          node --check qb5-form-equivalence.js
+          node --check qb5-finalize.js
+          node --check natural-language-v2.js
+          node --check question-language-finalize.js
+          node --check scoring-v2.js
+          node --check calibration-readiness.js
+          node --check answer-quality.js
+          node --check answer-position-balance.js
+          node --check presentation-clarity.js
+          node --check assessment-quality.js
+          node --check item-analytics.js
+          node --check item-quality-v2.js
+          node --check single-screen.js
+          node --check navigation-layout-fix.js
+          node --check app.js
+          node --check timeout-lock.js
+          node --check memory-exposure.js
+          node --check scripts/export-qb5.js
+          node --check tests/qb5-oracle-validation.js
+          node --check tests/form-equivalence-validation.js
+          node --check tests/scoring-v2-validation.js
+          node --check tests/calibration-readiness-validation.js
+          node --check tests/natural-language-validation.js
+
+      - name: Validate QB5 5,124-item bank and 294 templates
+        run: node tests/question-bank-validation.js
+
+      - name: Independently recompute all QB5 answers
+        run: node tests/qb5-oracle-validation.js
+
+      - name: Validate load-matched form equivalence
+        run: node tests/form-equivalence-validation.js
+
+      - name: Validate transparent Scoring v2
+        run: node tests/scoring-v2-validation.js
+
+      - name: Validate Calibration Readiness v1
+        run: node tests/calibration-readiness-validation.js
+
+      - name: Validate Natural Language v3 and Safari-safe spatial visuals
+        run: node tests/natural-language-validation.js
+
+      - name: Validate QB5 option quality and answer-position balance
+        run: node tests/option-quality-validation.js
+
+      - name: Validate QB5 construct-linked difficulty
+        run: node tests/qb5-difficulty-validation.js
+
+      - name: Validate Item Quality QA v2 metrics on QB5
+        run: node tests/item-quality-v2-validation.js
+
+      - name: Validate QB5 spatial and low-fatigue presentation
+        run: node tests/presentation-clarity-validation.js
+
+      - name: Validate adaptive working-memory exposure
+        run: node tests/memory-exposure-validation.js
+
+      - name: Validate local item analytics
+        run: node tests/item-analytics-validation.js
+
+      - name: Validate single-screen experience
+        run: node tests/single-screen-validation.js
+
+      - name: Validate matrix viewport safety
+        run: node tests/matrix-layout-validation.js
+
+      - name: Validate forward navigation and matrix containment
+        run: node tests/navigation-layout-validation.js
+
+      - name: Build full QB5 construct-expanded download pack
+        run: node scripts/export-qb5.js
+
+      - name: Upload QB5 construct-expanded download pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: QB5-5124-construct-expanded
+          path: dist/qb5-export/
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,47 @@
+// QB5 controlled parameter diversity.
+// Surface/context variation never creates a new semanticKey; it only prevents exact duplicate concrete items.
+(() => {
+  'use strict';
+  const E=window.QB5E;if(!E)return;
+  const {register,set,setNum,mod}=E;
+  const serial=n=>mod(n,18);
+  const contexts=['圖書館','車站','展館','劇院','球館','工坊','書店','碼頭','畫廊','山屋','市集','茶館','教室','工作室','博物館','實驗室','運動中心','社區中心'];
+  const actors=['藍色棋子','圓形棋子','三角棋子','機器人','巡檢員','郵差','旅客','搬運車','探測器','小車','導航點','標記物','搜索員','工程車','無人機','登山客','導覽員','測量員'];
+  const materials=['木製','塑膠','金屬','紙製','透明','白色','灰色','黑色','輕質','實心','空心','紅色','藍色','綠色','黃色','霧面','亮面','磁性'];
+  const products=['筆記本','鉛筆','貼紙','卡片','信封','紙盒','資料夾','標籤','票券','杯墊','明信片','小冊','紙袋','包裝盒','便條紙','書籤','紙張','圖卡'];
+  const old={};
+  function save(f){old[f]=E.handlers.get(f);}
+  function wrapContext(f,makePrefix){save(f);register(f,(q,c)=>{old[f](q,c);const p=makePrefix(c);q.q=`${p}${q.q}`;q.surfaceVariant=serial(c.n)+1;});}
+
+  // Verbal: second archetypes get genuine context-specific surface realizations.
+  const topics=[['雨衣','輕巧','防水'],['背包','外型','耐用'],['地圖','精美','準確'],['座椅','便宜','舒適'],['路線','短','安全'],['工具','新穎','實用'],['燈具','小巧','明亮'],['教材','有趣','清楚'],['房間','寬敞','安靜'],['餐點','外觀','美味'],['鞋子','時髦','合腳'],['方案','速度','可靠'],['相機','輕便','續航'],['行程','緊湊','彈性'],['軟體','功能多','穩定'],['桌子','便宜','耐重'],['外套','好看','保暖'],['耳機','小巧','音質']];
+  save('contrast-focus');register('contrast-focus',(q,c)=>{old['contrast-focus'](q,c);if(c.v!==1)return;const [obj,a,b]=topics[serial(c.n)];q.q=`小岑比較兩款${obj}後說：「甲款的${a}較好；乙款在${b}上更好。這次我寧願犧牲一點${a}。」她最後優先考量什麼？`;q.e=`她願意犧牲${a}，表示${b}的優先順位較高。`;set(q,b,[a,'兩者完全同等','只看價格']);q.surfaceVariant=serial(c.n)+1;});
+  save('scope-negation');register('scope-negation',(q,c)=>{old['scope-negation'](q,c);if(c.v!==1)return;const place=contexts[serial(c.n)];q.q=`在${place}的紀錄中，句子「不是所有完成 A 的人都完成 B」與哪一句邏輯上等價？`;q.e='「不是所有 A 都是 B」等價於「至少存在一個 A 不是 B」。';set(q,'至少有完成 A 的人沒有完成 B',['完成 A 的人全都沒有完成 B','完成 B 的人都完成 A','只有一人同時完成 A 與 B']);q.surfaceVariant=serial(c.n)+1;});
+  save('instruction-exception');register('instruction-exception',(q,c)=>{old['instruction-exception'](q,c);if(c.v!==1)return;const place=contexts[serial(c.n)],except=['密封飲用水','嬰兒食品','醫療用品'][serial(c.n)%3];q.q=`${place}規則：「一般飲食不得帶入主要區域；${except}除外。但玻璃容器即使符合例外也不得帶入。」小禾攜帶的是非玻璃材質的${except}。依規則，哪項成立？`;q.e=`${except}屬明示例外，而且不是玻璃容器，因此可以帶入。`;set(q,'可以帶入主要區域',['任何例外都不能帶入','只有玻璃容器可以帶入','規則無法判斷']);q.surfaceVariant=serial(c.n)+1;});
+  save('evidence-strength');register('evidence-strength',(q,c)=>{old['evidence-strength'](q,c);if(c.v!==1)return;const pairs=[['睡眠時間','測驗分數'],['閱讀時間','詞彙分數'],['運動時間','反應速度'],['練習次數','操作分數'],['通勤時間','疲勞評分'],['飲水量','專注評分'],['使用時間','熟練度'],['到課次數','作業分數'],['休息時間','錯誤率'],['步行量','心情評分'],['複習時間','回憶分數'],['會議次數','完成量'],['光照時間','清醒評分'],['遊戲時數','關卡分數'],['睡前閱讀','入睡時間'],['咖啡量','清醒度'],['練琴時間','演奏分數'],['戶外時間','壓力評分']];const [a,b]=pairs[serial(c.n)];q.q=`觀察資料顯示：在這批受測者中，${a}較高的人，${b}平均也較高。僅憑這項觀察，哪個說法最穩妥？`;q.e='觀察資料支持關聯，但不能單獨證明因果方向或排除第三因素。';set(q,`這批資料中${a}與${b}呈現關聯`,[`${a}增加一定造成${b}提高`,`${b}提高一定是${a}造成`,`沒有其他因素可能同時影響兩者`]);q.surfaceVariant=serial(c.n)+1;});
+
+  // Ordering: rotate real activity labels, not IDs/dates.
+  save('ordering-constraints');register('ordering-constraints',(q,c)=>{const pool=['展覽','講座','彩排','訪談','訓練','簡報','檢查','報到','攝影','會議','導覽','休息','測試','組裝','校對','包裝','審核','交付','採樣','登記','盤點','清潔','彩繪','測量'];const count=c.t===0?3:c.t===1?4:5,s=serial(c.n),labels=Array.from({length:count},(_,i)=>pool[mod(s+i*5+c.v,pool.length)]),shift=mod(s+c.v,count),order=[...labels.slice(shift),...labels.slice(0,shift)],rules=[];for(let i=0;i<order.length-1;i++)rules.push(`${order[i]}在${order[i+1]}前`);const correct=order.join(' → '),w1=[...order].reverse(),w2=[order[1],order[0],...order.slice(2)],w3=[...order];[w3[w3.length-2],w3[w3.length-1]]=[w3[w3.length-1],w3[w3.length-2]];q.q=`${labels.join('、')} 必須排成先後順序。已知：${rules.join('；')}。哪個完整順序符合全部條件？`;q.e=`串接先後條件可得到 ${correct}。`;set(q,correct,[w1.join(' → '),w2.join(' → '),w3.join(' → ')]);q.surfaceVariant=s+1;});
+
+  // Matrix concrete numbers are injective within every 18-item template block.
+  save('matrix-difference');register('matrix-difference',(q,c)=>{const s=serial(c.n),x=12+s*4+c.v,y=2+mod(s+c.v,7);let f,desc;if(c.v===0){f=(a,b)=>a-b;desc='第一格減第二格';}else if(c.v===1){f=(a,b)=>a+b;desc='前兩格相加';}else if(c.v===2){f=(a,b)=>2*a-b;desc='第一格兩倍再減第二格';}else if(c.v===3){f=(a,b)=>a+2*b;desc='第一格加第二格兩倍';}else if(c.v===4){f=(a,b)=>a*b;desc='前兩格相乘';}else if(c.v===5){f=(a,b)=>Math.abs(a-b);desc='前兩格差的絕對值';}else if(c.v===6){f=(a,b)=>Math.max(a,b)+1;desc='較大者再加 1';}else{f=(a,b)=>(a+b)/2;desc='前兩格的平均';}const rows=[];for(let rr=0;rr<3;rr++){let a=x+rr*2,b=y+rr;if(c.v===7&&(a+b)%2)a++;rows.push([a,b,f(a,b)]);}const ans=rows[2][2];q.q='觀察 3×3 數字矩陣。三列都遵循同一個規則；缺失格應是多少？';q.type='matrix';q.cells=[...rows[0],...rows[1],rows[2][0],rows[2][1],'?'].map(String);q.e=`共同規則是「${desc}」，因此缺失格為 ${ans}。`;setNum(q,ans);q.surfaceVariant=s+1;});
+
+  // Controlled surface contexts for remaining families that already have distinct rule archetypes.
+  for(const f of ['set-overlap','pairing-capacity'])wrapContext(f,c=>`在${contexts[serial(c.n)]}的這個案例中，`);
+  for(const f of ['grid-displacement','mirror-coordinate'])wrapContext(f,c=>`以${actors[serial(c.n)]}的位置為例，`);
+  wrapContext('stack-hidden',c=>`用${materials[serial(c.n)]}單位方塊搭建時，`);
+  wrapContext('scale-drawing',c=>`在${products[serial(c.n)]}的比例草圖中，`);
+  wrapContext('shortest-grid-path',c=>`${actors[serial(c.n)]}在圖中的任務是：`);
+
+  // Memory concrete stimuli use nonwrapping values so recall tasks themselves differ.
+  save('memory-position');register('memory-position',(q,c)=>{old['memory-position'](q,c);const len=4+c.t,base=1000+c.n*20,vals=Array.from({length:len},(_,i)=>base+i*3),pos=mod(serial(c.n)+c.v,len);q.stim=vals.join('　');q.q=`剛才序列中，第 ${pos+1} 個項目是什麼？`;q.e=`第 ${pos+1} 個項目是 ${vals[pos]}。`;set(q,String(vals[pos]),vals.filter((_,i)=>i!==pos).slice(0,3).map(String));q.surfaceVariant=serial(c.n)+1;});
+  save('memory-update');register('memory-update',(q,c)=>{const start=30+serial(c.n)*4+c.v,count=2+c.t;let cur=start;const ops=[];for(let i=0;i<count;i++){const val=1+mod(serial(c.n)+c.v+i,5),plus=(i+c.v)%2===0;ops.push([plus,val]);cur+=plus?val:-val;}q.type='memory';q.stim=`起始 ${start}；${ops.map(([p,x])=>`${p?'增加':'減少'} ${x}`).join('；')}`;q.q='依剛才出現的順序逐步套用更新，最後數量是多少？';q.e=`依序計算後得到 ${cur}。`;setNum(q,cur);q.surfaceVariant=serial(c.n)+1;});
+  save('memory-reorder');register('memory-reorder',(q,c)=>{old['memory-reorder'](q,c);const len=4+c.t,vals=Array.from({length:len},(_,i)=>500+c.n*11+i*5);q.stim=vals.join('　');let out;if(c.v===0)out=[...vals.slice(1),vals[0]];else if(c.v===1)out=[vals.at(-1),...vals.slice(0,-1)];else if(c.v===2)out=[...vals].reverse();else if(c.v===3)out=[vals[1],vals[0],...vals.slice(2)];else if(c.v===4){out=[...vals];const j=out.length-2;[out[1],out[j]]=[out[j],out[1]];}else if(c.v===5)out=[...vals.slice(2),...vals.slice(0,2)];else if(c.v===6)out=[vals[0],...vals.slice(1).reverse()];else out=[...vals.slice(-2),...vals.slice(0,-2)];const correct=out.join(' → ');set(q,correct,[[...out].reverse().join(' → '),vals.join(' → '),[...out.slice(1),out[0]].join(' → ')]);q.e=`依指定重排規則，得到 ${correct}。`;q.surfaceVariant=serial(c.n)+1;});
+
+  // Speed exact: eight real scanning operations, not eight renamed copies.
+  save('speed-exact');register('speed-exact',(q,c)=>{const s=serial(c.n),L=4+c.t,alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let base='';for(let i=0;i<L;i++)base+=alphabet[mod(s*7+c.v*5+i*3,alphabet.length)];let prompt,correct,wrong;if(c.v===0){prompt=`找出與「${base}」完全相同的代碼。`;correct=base;wrong=[base.slice(0,-1)+'Z',base.slice(1)+base[0],base[0]+base.slice(2)+base[1]];}else if(c.v===1){prompt=`哪個選項是「${base}」的完整反向字串？`;correct=[...base].reverse().join('');wrong=[base,correct.slice(0,-1)+'Q',correct.slice(1)+correct[0]];}else if(c.v===2){prompt=`把「${base}」第一個字元移到最後，結果是哪個？`;correct=base.slice(1)+base[0];wrong=[base,[...base].reverse().join(''),base.at(-1)+base.slice(0,-1)];}else if(c.v===3){prompt=`把「${base}」最後一個字元移到最前，結果是哪個？`;correct=base.at(-1)+base.slice(0,-1);wrong=[base,base.slice(1)+base[0],[...base].reverse().join('')];}else if(c.v===4){correct=base[0]+base[0]+base.slice(2);prompt=`哪個選項與「${base}」相比，只有第二個字元改成第一個字元？`;wrong=[base,base.slice(0,-1)+'Q',base.slice(1)+base[0]];}else if(c.v===5){correct=base.slice(0,-1)+'Q';prompt=`哪個選項只把「${base}」最後一個字元改成 Q？`;wrong=[base,'Q'+base.slice(1),base.slice(0,-2)+'Q'+base.at(-1)];}else if(c.v===6){correct=base.slice(0,2)+base.slice(2).split('').reverse().join('');prompt=`保留「${base}」前兩個字元，其餘字元反轉，結果是哪個？`;wrong=[base,[...base].reverse().join(''),base.slice(1)+base[0]];}else{correct=base.slice(0,-2)+base.at(-1)+base.at(-2);prompt=`交換「${base}」最後兩個字元，結果是哪個？`;wrong=[base,[...base].reverse().join(''),base.at(-1)+base.slice(0,-1)];}q.q=`快速判斷：${prompt}`;q.e=`依指定字串操作，正解是 ${correct}。`;set(q,correct,wrong);q.surfaceVariant=s+1;});
+
+  // Other speed / quantitative families already differ by rule; natural contexts keep the concrete records unique.
+  for(const f of ['speed-count','speed-parity','speed-order','speed-missing'])wrapContext(f,c=>`在${contexts[serial(c.n)]}的快速掃描組中，`);
+  for(const f of ['quant-unit-rate','quant-remainder','quant-time','quant-probability','quant-balance'])wrapContext(f,c=>`以${products[serial(c.n)]}這組資料為情境，`);
+})();

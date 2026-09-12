@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3ecdf">
+<title>Cognitive IQ Lab v6</title>
+<meta name="description" content="精簡單頁式多構面 IQ-style 認知測驗">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="single-screen.css">
+<link rel="stylesheet" href="matrix-layout-fix.css">
+<link rel="stylesheet" href="viewport-stability.css">
+<link rel="stylesheet" href="heritage-theme.css">
+<link rel="stylesheet" href="spatial-visual-fix.css">
+</head>
+<body>
+<main class="appShell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brandMark">Ψ</div>
+      <div>
+        <div class="brandTitle">Cognitive IQ Lab</div>
+        <div class="brandSub">完整題庫 5,124 題 · 294 種推理規則 · 每次抽 30 題</div>
+      </div>
+    </div>
+    <div class="pill">QB v5.0</div>
+  </div>
+
+  <section id="start" class="card screenPanel">
+    <div class="compactHero">
+      <div class="heroCopy">
+        <div class="sectionKicker">COGNITIVE PLAYGROUND · QB-2026.09.5</div>
+        <h1>30 題，看看你的腦袋<br class="desktopBreak">今天怎麼跑。</h1>
+        <p class="lead"><strong>完整題庫共有 5,124 題。</strong>其中包含 42 個題型家族、294 種不同的推理規則模板；294 是規則種類，不是題目數量。每個模板再搭配不同數字、圖形、刺激與自然情境形成完整題庫。</p>
+
+        <div class="quickFacts" aria-label="測驗摘要">
+          <div><strong>5,124</strong><span>完整題庫題數</span></div>
+          <div><strong>30</strong><span>每次抽題</span></div>
+          <div><strong>42</strong><span>題型家族</span></div>
+          <div><strong>294</strong><span>推理規則種類</span></div>
+        </div>
+
+        <div class="actions compactActions">
+          <button class="btn primary" id="startBtn">開始測驗</button>
+          <button class="btn secondary" id="aboutBtn">怎麼測？</button>
+        </div>
+
+        <div class="playfulDisclaimer">
+          <strong>不構成任何標準，好玩就好。</strong>
+          <span>內容僅供參考；若有出入，以你的想像力為準。</span>
+        </div>
+      </div>
+
+      <div class="assessmentDial" aria-label="題庫結構">
+        <div class="dialRing">
+          <span class="dialEyebrow">FULL QUESTION BANK</span>
+          <strong>5,124</strong>
+          <span>題 · 294 種推理規則</span>
+        </div>
+        <div class="dialLegend">
+          <div><i>01</i><span>每構面固定抽 5 題</span></div>
+          <div><i>02</i><span>記憶刺激 4–6 秒，只看一次</span></div>
+          <div><i>03</i><span>視覺空間題全部有題目圖示</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="about" class="screenModal hidden" role="dialog" aria-modal="true" aria-label="測驗說明">
+      <button class="screenClose" type="button" aria-label="關閉">×</button>
+      <div class="sectionKicker">HOW IT WORKS</div>
+      <h3>簡單玩，認真記錄。</h3>
+      <p>QB5 每次從完整 5,124 題題庫中抽 30 題，每個構面固定 5 題，維持 2 基礎、2 中等、1 進階；同一構面優先抽不同題型家族，並避開最近 8 份測驗已出現的相同題目。</p>
+      <p><strong>5,124 是實際題庫題數；294 是不同的推理規則模板數。</strong>QB5 有 42 個題型家族：語文每族 2 種規則，其餘每族 8 種；數字與自然情境只作受控具體變體，不會把單純換數字灌水成新的推理規則。</p>
+      <p>視覺空間 7 個家族的 1,008 個題庫項目現在都帶有題目內 SVG 圖示；工作記憶的目標位置、配對、更新順序與重排規則也會變化。</p>
+      <p>每份測驗會先滿足固定難度與題型配額，再從多個合法候選卷中選擇設計負荷較接近目標的一份，以減少不同抽卷之間的隨機落差。</p>
+      <p>完成測驗後可查看「校準準備度」：只在本機累積匿名 session / item-level 0/1 資料，協助判斷未來研究資料是否足夠；不自動上傳，也不把同一瀏覽器的重複測驗當成獨立受測者。</p>
+      <p class="modalFoot">結果顯示的是 0–100 的實驗性 Cognitive Performance Index，會保留原始正確率並對設計難度做透明加權；尚未做人口常模、IRT／CAT 或臨床效度驗證，因此不是正式 IQ 分數。</p>
+    </div>
+  </section>
+
+  <section id="quiz" class="card screenPanel hidden">
+    <div class="quizTop">
+      <div class="quizIdentity">
+        <div class="quizHeaderTop">
+          <div id="counter" class="counter">第 1 題 / 30</div>
+          <div id="domain" class="domainBadge">流體推理</div>
+        </div>
+        <div class="quizMeta">QB-2026.09.5 · rev 5.0 · 只有標示「限時」的題目會倒數</div>
+      </div>
+      <div class="timersPanel">
+        <div class="timerWrap">
+          <div id="timerLabel" class="timerLabel">本題時間</div>
+          <div id="timer" class="timer untimedTimer">不限時</div>
+        </div>
+        <div class="timerWrap totalTimeWrap">
+          <div class="timerLabel">總時間</div>
+          <div id="totalTimer" class="timer totalTimer">00:00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progressBlock compactProgress">
+      <div class="progressLabel"><span>進度</span><span id="progressText">1 / 30</span></div>
+      <div class="progress"><div id="progressBar" class="progressBar"></div></div>
+    </div>
+
+    <div class="navigator compactNavigator" aria-hidden="true"><div id="miniNav" class="miniNav"></div></div>
+
+    <div class="stage">
+      <div id="questionCard" class="questionCard compactQuestionCard">
+        <div id="visualHolder"></div>
+        <div class="questionMetaRow"><div id="questionTimeBadge" class="questionTimeBadge untimed">不限時</div></div>
+        <div id="question" class="question"></div>
+        <div id="help" class="help"></div>
+        <div id="options" class="options"></div>
+        <div class="footerActions">
+          <div class="actions" style="margin-top:0">
+            <button id="prevBtn" class="btn secondary">上一題</button>
+            <button id="skipBtn" class="btn secondary">下一題</button>
+          </div>
+          <div class="hint">選答案後自動下一題 · 也可手動前後瀏覽</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="card screenPanel hidden">
+    <div class="resultHeading">
+      <div><div class="sectionKicker">RESULT · QB-2026.09.5 · rev 5.0</div><h2>你的認知快照</h2></div>
+      <div class="resultMicrocopy">不是 IQ 常模，只是一張今天的腦內地圖。</div>
+    </div>
+
+    <div class="resultGrid compactResultGrid">
+      <div class="scoreCard compactScoreCard">
+        <div class="scoreTitle">Cognitive Performance Index</div>
+        <div id="indexScore" class="bigScore">100</div>
+        <div id="resultDesc" class="resultDesc"></div>
+        <p id="resultSummary"></p>
+        <div class="tinyDisclaimer">0–100 實驗性表現指數 · 非 IQ 常模</div>
+      </div>
+
+      <div class="resultVisuals">
+        <div class="chartGrid compactChartGrid">
+          <div class="chartCard primaryChart"><div class="chartTitle">六構面分布</div><svg id="radarChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="radar chart"></svg></div>
+          <div class="chartCard secondaryChart"><div class="chartTitle">答題結構</div><svg id="donutChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="donut chart"></svg></div>
+          <div class="chartCard full tertiaryChart"><div class="chartTitle">構面比較</div><svg id="barChart" viewBox="0 0 620 280" width="100%" height="260" aria-label="bar chart"></svg></div>
+        </div>
+        <div id="metrics" class="metrics compactMetrics"></div>
+      </div>
+    </div>
+
+    <div class="resultBottom">
+      <div class="actions compactActions"><button id="restartBtn" class="btn primary">抽新題再測</button><button id="reviewBtn" class="btn secondary">逐題解析</button></div>
+      <div class="playfulDisclaimer resultTagline"><strong>不構成任何標準，好玩就好。</strong><span>內容僅供參考；若有出入，以你的想像力為準。</span></div>
+    </div>
+    <div id="review" class="review screenModal hidden"></div>
+  </section>
+
+  <div class="footer">Cognitive IQ Lab · QB v5.0 · 5,124 題 · 294 種推理規則</div>
+</main>
+
+<script src="questions.js"></script>
+<script src="question-bank.js"></script>
+<script src="qb5-core.js"></script>
+<script src="qb5-verbal.js"></script>
+<script src="qb5-fluid.js"></script>
+<script src="qb5-spatial.js"></script>
+<script src="qb5-memory.js"></script>
+<script src="qb5-speed.js"></script>
+<script src="qb5-quant.js"></script>
+<script src="qb5-parameter-diversity.js"></script>
+<script src="qb5-ordering-diversity-fix.js"></script>
+<script src="qb5-form-equivalence.js"></script>
+<script src="qb5-finalize.js"></script>
+<script src="natural-language-v2.js"></script>
+<script src="question-language-finalize.js"></script>
+<script src="answer-position-balance.js"></script>
+<script src="answer-quality.js"></script>
+<script src="presentation-clarity.js"></script>
+<script src="app.js"></script>
+<script src="timeout-lock.js"></script>
+<script src="memory-exposure.js"></script>
+<script src="scoring-v2.js"></script>
+<script src="assessment-quality.js"></script>
+<script src="item-analytics.js"></script>
+<script src="item-quality-v2.js"></script>
+<script src="calibration-readiness.js"></script>
+<script src="navigation-layout-fix.js"></script>
+<script src="single-screen.js"></script>
+</body>
+</html>

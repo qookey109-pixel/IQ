@@ -2,7 +2,7 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
 
-const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-finalize.js'];
+const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-finalize.js'];
 const store = {};
 const domains = ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
 const historyKey = 'cognitive-iq-lab:form-history:QB-2026.09.5';
@@ -92,4 +92,4 @@ assert.strictEqual(history.length, 8, 'history must retain only the most recent 
 assert.ok(history.every(form => Array.isArray(form) && form.length === 30));
 
 console.log('Question Bank QB5 validation PASS');
-console.log('5,124 items; 42 families; 294 semantic templates; 1,008 spatial SVG items; distinct-family balanced forms.');
+console.log('5,124 items; 42 families; 294 semantic templates; 5,124 unique concrete signatures; 1,008 spatial SVG items; distinct-family balanced forms.');

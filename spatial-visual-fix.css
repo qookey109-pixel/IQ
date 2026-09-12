@@ -1,38 +1,102 @@
-/* QB5 spatial SVG sizing — Safari-safe single-screen rendering */
+/* QB5 visual sizing v2 — Safari-safe without crowding answer choices.
+   Intrinsic SVG size stays in the data for Safari, while the quiz UI gives
+   diagrams a strict viewport-height budget so the options keep priority. */
+
+#quiz #visualHolder:has(.qb5-spatial-svg) {
+  min-height: 0;
+  max-height: min(18dvh, 160px);
+  overflow: hidden;
+}
+
 #quiz #visualHolder .visual:has(.qb5-spatial-svg) {
-  width: min(100%, 440px);
-  max-width: 440px;
-  max-height: min(26dvh, 240px);
-  padding: 8px 10px;
+  width: min(100%, 340px);
+  max-width: 340px;
+  max-height: min(17dvh, 150px);
+  padding: 4px 7px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 #quiz .qb5-spatial-svg {
   display: block;
-  width: min(100%, 400px);
-  height: auto;
+  width: auto;
+  height: min(15dvh, 140px);
   max-width: 100%;
-  max-height: min(24dvh, 220px);
+  max-height: 140px;
   aspect-ratio: 18 / 11;
   overflow: visible;
-  flex: 0 1 400px;
+  flex: 0 1 auto;
+}
+
+/* Numeric 3×3 matrices share the same vertical budget. */
+#quiz #visualHolder .matrix {
+  width: min(190px, 42vw, 18dvh);
+  max-width: 100%;
+  max-height: min(18dvh, 190px);
+  padding: 4px;
 }
 
 /* Fallback for browsers that do not apply :has(). */
 #quiz #visualHolder .visual > .qb5-spatial-svg {
-  width: min(100%, 400px);
-  height: auto;
+  width: auto;
+  height: min(15dvh, 140px);
+  max-width: 100%;
+  max-height: 140px;
+}
+
+/* Short laptop / Safari windows: protect the two answer rows first. */
+@media (max-height: 760px) {
+  #quiz #visualHolder:has(.qb5-spatial-svg) {
+    max-height: 125px;
+  }
+  #quiz #visualHolder .visual:has(.qb5-spatial-svg) {
+    max-height: 118px;
+    padding: 3px 6px;
+  }
+  #quiz .qb5-spatial-svg,
+  #quiz #visualHolder .visual > .qb5-spatial-svg {
+    height: min(14dvh, 110px);
+    max-height: 110px;
+  }
+  #quiz #visualHolder .matrix {
+    width: min(160px, 38vw, 16dvh);
+    max-height: 160px;
+  }
+}
+
+@media (max-height: 680px) {
+  #quiz #visualHolder:has(.qb5-spatial-svg) {
+    max-height: 105px;
+  }
+  #quiz #visualHolder .visual:has(.qb5-spatial-svg) {
+    max-height: 100px;
+    padding: 2px 5px;
+  }
+  #quiz .qb5-spatial-svg,
+  #quiz #visualHolder .visual > .qb5-spatial-svg {
+    height: min(13dvh, 94px);
+    max-height: 94px;
+  }
+  #quiz #visualHolder .matrix {
+    width: min(145px, 36vw, 15dvh);
+    max-height: 145px;
+  }
 }
 
 @media (max-width: 720px) {
   #quiz #visualHolder .visual:has(.qb5-spatial-svg) {
-    width: min(100%, 360px);
-    max-height: min(24dvh, 205px);
+    width: min(100%, 290px);
+    max-height: min(15dvh, 128px);
   }
-  #quiz .qb5-spatial-svg {
-    width: min(100%, 340px);
-    max-height: min(22dvh, 190px);
+  #quiz .qb5-spatial-svg,
+  #quiz #visualHolder .visual > .qb5-spatial-svg {
+    height: min(14dvh, 118px);
+    max-height: 118px;
+  }
+  #quiz #visualHolder .matrix {
+    width: min(155px, 40vw, 17dvh);
+    max-height: 155px;
   }
 }

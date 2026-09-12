@@ -37,13 +37,14 @@ const qa = window.IQ_ITEM_QA_V2;
 assert.ok(qa, 'QA v2 API should be exposed');
 
 const preflight = qa.bankPreflight(window.IQ_QUESTION_BANK);
-assert.deepStrictEqual(Array.from(preflight.positions), [75,75,75,75], 'A/B/C/D must be exactly balanced');
+assert.deepStrictEqual(Array.from(preflight.positions), [1281,1281,1281,1281], 'QB4 A/B/C/D must be exactly balanced');
 assert.ok(preflight.positionEntropy > 0.999, `position entropy should be ~1, got ${preflight.positionEntropy}`);
 assert.ok(Array.isArray(preflight.cueItems), 'cue item list');
 assert.ok(Array.isArray(preflight.repeatedStems), 'repeated stem list');
+assert.ok(preflight.repeatedStems.length > 0, 'controlled variant families should be visible as repeated stem groups');
 
-const q = window.IQ_QUESTION_BANK.find(item => item.model === 'verbal-analogy');
-assert.ok(q, 'need a verbal analogy fixture');
+const q = window.IQ_QUESTION_BANK.find(item => item.taskFamily === 'necessary-condition') || window.IQ_QUESTION_BANK[0];
+assert.ok(q, 'need a QB4 fixture');
 const correctText = String(q.o[q.a]);
 const wrongTexts = q.o.map(String).filter((_, i) => i !== q.a);
 const entry = {
@@ -78,5 +79,5 @@ const smallSample = qa.evaluateItem(q, { ...entry, exposures: 9, correct: 6 });
 assert.strictEqual(smallSample.qualityScore, null, 'N<10 should not receive a quality score');
 assert.ok(smallSample.flags.includes('樣本不足'));
 
-console.log('Item Quality QA v2 validation PASS');
+console.log('Item Quality QA v2 / QB4 validation PASS');
 console.log(`answer positions=${preflight.positions.join('/')}; item-rest r=${item.discrimination.toFixed(2)}; distractor efficiency=${Math.round(item.distractorEfficiency*100)}%`);

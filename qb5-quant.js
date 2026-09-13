@@ -24,8 +24,8 @@
     else if(v===3){const total=unit*qty;c=unit;p=`${qty} 盒共有 ${total} 顆糖，每盒一樣多。每盒幾顆？`;ex=`${total}÷${qty}=${unit}。`;}
     else if(v===4){const need=qty+2;c=unit*need;p=`每份需要 ${unit} 克材料，做 ${need} 份共需要多少克？`;ex=`${unit}×${need}=${c}。`;}
     else if(v===5){const mins=5+t*5,total=unit*mins;c=unit;p=`機器 ${mins} 分鐘製作 ${total} 件，速率固定。每分鐘製作幾件？`;ex=`${total}÷${mins}=${unit}。`;}
-    else if(v===6){const km=qty*2,cost=unit*km;c=unit;p=`行駛 ${km} 公里共花 ${cost} 元，若每公里成本固定，每公里多少元？`;ex=`${cost}÷${km}=${unit}。`;}
-    else {c=unit*qty;p=`每組 ${unit} 人，共有 ${qty} 組。總共有多少人？`;ex=`${unit}×${qty}=${c}。`;}
+    else if(v===6){const d1=4+mod(n,4),d2=d1+3+mod(n,3),fee=10+5*mod(n,4),c1=fee+unit*d1,c2=fee+unit*d2;c=unit;p=`同一台車每趟都有固定費 ${fee} 元，另按里程計費。行駛 ${d1} 公里共 ${c1} 元，行駛 ${d2} 公里共 ${c2} 元。每公里費用是多少元？`;ex=`兩次總價相差 ${c2-c1} 元、里程相差 ${d2-d1} 公里，所以每公里 ${c} 元。`;}
+    else {const knownKm=2+mod(n,3);c=unit*qty;p=`某配送車行駛 ${knownKm} 公里共花 ${unit*knownKm} 元，成本與距離成正比。另一趟行駛 ${qty*1000} 公尺，成本多少元？`;ex=`${qty*1000} 公尺是 ${qty} 公里；先求每公里 ${unit} 元，再乘 ${qty}，得到 ${c} 元。`;}
     q.q=p;q.e=ex;setNum(q,c,[-1,1,2]);
   });
 
@@ -64,8 +64,8 @@
     else if(v===3){const d2=15+5*t;c=start+dur+d2;p=`${fmtTime(start)} 出發，第一段 ${dur} 分鐘，接著第二段 ${d2} 分鐘，中間不停留。最後到達時刻？`;ex=`總車程 ${dur+d2} 分鐘，抵達 ${fmtTime(c)}。`;}
     else if(v===4){c=dur;isClock=false;p=`活動從 ${fmtTime(start)} 到 ${fmtTime(start+dur)}，共持續幾分鐘？`;ex=`終點減起點，共 ${dur} 分鐘。`;}
     else if(v===5){const s=23*60+30,d=45+15*t;c=s+d;p=`列車 ${fmtTime(s)} 出發，行駛 ${d} 分鐘。跨過午夜後抵達時刻（24 小時制）是？`;ex=`跨日後為 ${fmtTime(c)}。`;}
-    else if(v===6){const rest=15;c=start+dur+rest;p=`${fmtTime(start)} 開始工作 ${dur} 分鐘，休息 ${rest} 分鐘後再開始。再次開始時刻？`;ex=`總共經過 ${dur+rest} 分鐘，得到 ${fmtTime(c)}。`;}
-    else {c=dur;isClock=false;p=`從 ${fmtTime(start)} 到 ${fmtTime(start+dur)}，經過多少分鐘？`;ex=`兩時刻差為 ${dur} 分鐘。`;}
+    else if(v===6){const d1=10+5*mod(n,3),rest=5+5*mod(n,2),d2=dur+15-d1-rest;c=start+dur+15;p=`${fmtTime(start)} 開始第一段 ${d1} 分鐘，休息 ${rest} 分鐘，再進行第二段 ${d2} 分鐘。全部完成時是幾點？`;ex=`總共經過 ${d1}+${rest}+${d2}=${dur+15} 分鐘，所以完成時刻是 ${fmtTime(c)}。`;}
+    else {const prep=15+5*mod(n,3),rest=10+5*mod(n,2),end=start+prep+rest+dur;c=dur;isClock=false;p=`活動 ${fmtTime(start)} 開始，先準備 ${prep} 分鐘，再休息 ${rest} 分鐘，之後進行最後一段，到 ${fmtTime(end)} 結束。最後一段進行了幾分鐘？`;ex=`總經過 ${end-start} 分鐘，扣掉前面的 ${prep}+${rest} 分鐘，最後一段是 ${dur} 分鐘。`;}
     q.q=p;q.e=ex;if(isClock)set(q,fmtTime(c),[fmtTime(c+10),fmtTime(c-10),fmtTime(c+60)]);else setNum(q,c,[-10,10,20]);
   });
 
@@ -78,7 +78,7 @@
     else if(v===4){const den=T*(T-1);c=frac(R*(R-1),den);p=`袋中 ${R} 紅、${W} 白，連抽 2 顆且不放回。兩顆都是紅球的機率？`;ex=`${R}/${T}×${R-1}/${T-1}=${c}。`;wrong=[frac(R,T),frac(R*R,T*T),frac(W*(W-1),den)];}
     else if(v===5){const den=T*(T-1);c=frac(2*R*W,den);p=`袋中 ${R} 紅、${W} 白，不放回抽 2 顆。恰好一紅一白的機率？`;ex=`紅白或白紅兩種次序，相加得到 ${c}。`;wrong=[frac(R*W,den),frac(R,T),frac(W,T)];}
     else if(v===6){const den=T*(T-1);c=frac(W*(W-1),den);p=`袋中 ${R} 紅、${W} 白，不放回抽 2 顆。兩顆都是白球的機率？`;ex=`${W}/${T}×${W-1}/${T-1}=${c}。`;wrong=[frac(W,T),frac(W*W,T*T),frac(R*(R-1),den)];}
-    else {c=frac(W,T);p=`袋中 ${R} 紅、${W} 白。抽 1 顆，沒有抽到紅球的機率？`;ex=`補事件為白球：${c}。`;wrong=[frac(R,T),frac(1,T),frac(R+1,T)];}
+    else {c=frac(W,T);p=`袋中有 ${R} 顆紅球、${W} 顆白球。不放回連抽 2 顆，不看第一顆的顏色。第二顆是白球的機率是多少？`;ex=`每一顆原本的球出現在第二個位置的機會相同，因此第二顆為白球的機率仍是 ${W}/${T}=${c}。`;wrong=uniq([frac(R,T),frac(W,T-1),frac(W-1,T-1),frac(1,T),frac(2,T),frac(W-1,T)]).filter(x=>x!==c).slice(0,3);}
     q.q=p;q.e=ex;set(q,c,wrong);
   });
 
@@ -90,8 +90,8 @@
     else if(v===3){p=`方程 ${a}x + ${b} = ${a*x+b}。x 是多少？`;ex=`先減 ${b} 再除以 ${a}，x=${x}。`;}
     else if(v===4){p=`${a} 個相同盒子各重 x 克，再加 ${b} 克，總重 ${a*x+b} 克。求 x。`;ex=`(${a*x+b}−${b})÷${a}=${x}。`;}
     else if(v===5){p=`方程 ${a}x + ${b} = ${a*x+b}。x 是多少？`;ex=`移項後 ${a}x=${a*x}，所以 x=${x}。`;}
-    else if(v===6){p=`方程 ${a}x = ${a*x}。x 是多少？`;ex=`等式兩邊除以 ${a}，x=${x}。`;}
-    else {const c=3+mod(n,5);p=`${a} 個相同物件與 ${c} 克砝碼平衡於 ${a*x+c} 克。每個物件幾克？`;ex=`扣除 ${c} 再除以 ${a}，得到 ${x}。`;}
+    else if(v===6){const r=1+mod(n,2),l=r+2+mod(n,2),d=b+(l-r)*x;p=`方程 ${l}x + ${b} = ${r}x + ${d}。x 是多少？`;ex=`移項得 ${l-r}x=${d-b}，所以 x=${x}。`;}
+    else {const den=2+mod(n,3),coef=2+mod(n*2,4),offset=den*(2+mod(n,3))-mod(coef*x,den),target=(coef*x+offset)/den;p=`方程 (${coef}x + ${offset}) ÷ ${den} = ${target}。x 是多少？`;ex=`先乘 ${den}，再減 ${offset}，最後除以 ${coef}，得到 x=${x}。`;}
     q.q=p;q.e=ex;setNum(q,x,[-1,1,2]);
   });
 })();

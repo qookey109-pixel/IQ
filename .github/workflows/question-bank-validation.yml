@@ -37,6 +37,8 @@ jobs:
           node --check memory-integrity.js
           node --check hard-construct-integrity.js
           node --check processing-speed-integrity.js
+          node --check memory-usability.js
+          node --check spatial-reliability.js
           node --check presentation-clarity.js
           node --check assessment-quality.js
           node --check item-analytics.js
@@ -56,6 +58,8 @@ jobs:
           node --check tests/memory-integrity-validation.js
           node --check tests/hard-construct-integrity-validation.js
           node --check tests/processing-speed-integrity-validation.js
+          node --check tests/memory-usability-validation.js
+          node --check tests/spatial-reliability-validation.js
 
       - name: Validate QB5 5,124-item bank and 294 templates
         run: node tests/question-bank-validation.js
@@ -89,6 +93,12 @@ jobs:
 
       - name: Validate full-bank production hygiene sweep
         run: node tests/full-bank-sweep-validation.js
+
+      - name: Validate final memory usability integrity
+        run: node tests/memory-usability-validation.js
+
+      - name: Validate final spatial reliability integrity
+        run: node tests/spatial-reliability-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js

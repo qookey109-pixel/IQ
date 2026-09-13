@@ -9,14 +9,16 @@ vm.createContext(context);
 const runtime=[
   'question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js',
   'qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js',
-  'natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','presentation-clarity.js'
+  'natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','full-bank-polish.js','presentation-clarity.js'
 ];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK;
 assert.strictEqual(bank.length,5124);
 assert.strictEqual(window.IQ_FULL_BANK_SWEEP?.version,'FBQ-2026.09.1');
+assert.strictEqual(window.IQ_FULL_BANK_POLISH?.version,'FBP-2026.09.1');
 assert.strictEqual(window.IQ_BANK_META?.fullBankSweep,'FBQ-2026.09.1');
+assert.strictEqual(window.IQ_BANK_META?.fullBankPolish,'FBP-2026.09.1');
 
 const marker=/·\d+$/;
 const floatArtifact=/-?\d+\.\d{6,}/;
@@ -49,10 +51,12 @@ for(const q of bank){
 }
 assert.deepStrictEqual(positions,[1281,1281,1281,1281],'A/B/C/D answer-position balance must remain exact');
 
-const reported=familyCue['reported-vs-fact'];
-assert.strictEqual(reported.longest,0,'reported-vs-fact must not reveal the key through the longest option');
-const evidence=familyCue['evidence-strength'];
-assert.strictEqual(evidence.longest,0,'evidence-strength must not reveal the key through option length');
+for(const family of ['reported-vs-fact','scope-negation','evidence-strength']){
+  assert.strictEqual(familyCue[family].longest,0,`${family}: correct option must not be uniquely longest`);
+  assert.strictEqual(familyCue[family].shortest,0,`${family}: correct option must not be uniquely shortest`);
+}
+assert.strictEqual(familyCue['necessary-condition'].longest,0,'necessary-condition: correct option must not stand out as longest');
+
 const speedOrder=bank.filter(q=>q.taskFamily==='speed-order');
 assert.ok(speedOrder.every(q=>new Set(q.o.map(compact)).size===1),'speed-order options must use the same token/length envelope');
 const memoryRecognition=bank.filter(q=>q.taskFamily==='memory-recognition');
@@ -61,6 +65,10 @@ const speedParity=bank.filter(q=>q.taskFamily==='speed-parity');
 assert.ok(speedParity.every(q=>new Set(q.o.map(x=>String(Math.abs(Math.trunc(Number(x)))).length)).size===1),'speed-parity options must use the same digit width');
 const memoryReorder=bank.filter(q=>q.taskFamily==='memory-reorder');
 assert.ok(memoryReorder.every(q=>q.q.startsWith('將剛才的序列依照「')),'memory-reorder wording should be direct and natural');
+const probability=bank.filter(q=>q.taskFamily==='quant-probability');
+assert.ok(probability.every(q=>!q.o.includes('0/1')&&!q.o.includes('1/1')),'probability options should display canonical 0/1 values as 0 or 1');
+const invariant=bank.filter(q=>q.taskFamily==='invariant-transfer');
+assert.ok(invariant.every(q=>!String(q.q).includes('若干')),'invariant-transfer wording should avoid vague 若干 wording');
 
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,1008);
@@ -70,4 +78,5 @@ assert.ok(spatial.every(q=>String(q.visual||'').includes('preserveAspectRatio="x
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'final option audit must have zero flagged cue-risk items');
 console.log('Full-bank sweep validation PASS');
 console.log('Items:',bank.length,'Unique-longest keys:',uniqueLongest,'Unique-shortest keys:',uniqueShortest);
-console.log('Repairs:',JSON.stringify(window.IQ_FULL_BANK_SWEEP));
+console.log('Sweep:',JSON.stringify(window.IQ_FULL_BANK_SWEEP));
+console.log('Polish:',JSON.stringify(window.IQ_FULL_BANK_POLISH));

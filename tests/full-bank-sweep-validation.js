@@ -1,86 +1,10 @@
-const fs=require('fs');
-const vm=require('vm');
-const assert=require('assert');
-
-const store={};
-const window={addEventListener(){}};
-const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
-vm.createContext(context);
-const runtime=[
-  'question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js',
-  'qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js',
-  'natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','full-bank-polish.js','presentation-clarity.js'
-];
-for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
-
-const bank=window.IQ_QUESTION_BANK;
-assert.strictEqual(bank.length,5124);
-assert.strictEqual(window.IQ_FULL_BANK_SWEEP?.version,'FBQ-2026.09.1');
-assert.strictEqual(window.IQ_MEMORY_INTEGRITY?.version,'WMI-2026.09.1');
-assert.strictEqual(window.IQ_FULL_BANK_POLISH?.version,'FBP-2026.09.1');
-assert.strictEqual(window.IQ_BANK_META?.fullBankSweep,'FBQ-2026.09.1');
-assert.strictEqual(window.IQ_BANK_META?.memoryIntegrity,'WMI-2026.09.1');
-assert.strictEqual(window.IQ_BANK_META?.fullBankPolish,'FBP-2026.09.1');
-
-const marker=/·\d+$/;
-const floatArtifact=/-?\d+\.\d{6,}/;
-const badLiteral=/\b(?:NaN|Infinity|undefined|null)\b/;
-const artificial=/這組資料為情境|的這個案例中|快速掃描組中|規則機器|的紀錄中，句子/;
-const positions=[0,0,0,0];
-const compact=v=>Array.from(String(v).replace(/\s/g,'')).length;
-let uniqueLongest=0,uniqueShortest=0;
-const familyCue={};
-
-for(const q of bank){
-  assert.ok(Array.isArray(q.o)&&q.o.length===4,`${q.id}: exactly four options required`);
-  assert.strictEqual(new Set(q.o.map(String)).size,4,`${q.id}: options must be unique`);
-  assert.ok(Number.isInteger(q.a)&&q.a>=0&&q.a<4,`${q.id}: valid answer index required`);
-  assert.strictEqual(String(q.o[q.a]),String(q.correctContent),`${q.id}: visible answer must match correctContent`);
-  positions[q.a]++;
-
-  const allText=[q.q,q.e,q.stim||'',...(q.o||[])].map(x=>String(x??''));
-  assert.ok(!q.o.some(x=>marker.test(String(x))),`${q.id}: synthetic ·N dedupe marker leaked to an option`);
-  assert.ok(!allText.some(x=>floatArtifact.test(x)),`${q.id}: floating-point artifact leaked to user-facing text`);
-  assert.ok(!allText.some(x=>badLiteral.test(x)),`${q.id}: invalid program literal leaked to user-facing text`);
-  assert.ok(!artificial.test(String(q.q||'')),`${q.id}: artificial template wrapper returned`);
-
-  const lens=q.o.map(compact),ci=q.a,wrong=lens.filter((_,i)=>i!==ci);
-  const longest=lens[ci]>Math.max(...wrong),shortest=lens[ci]<Math.min(...wrong);
-  if(longest)uniqueLongest++;
-  if(shortest)uniqueShortest++;
-  const rec=familyCue[q.taskFamily]||(familyCue[q.taskFamily]={n:0,longest:0,shortest:0});
-  rec.n++;if(longest)rec.longest++;if(shortest)rec.shortest++;
-}
-assert.deepStrictEqual(positions,[1281,1281,1281,1281],'A/B/C/D answer-position balance must remain exact');
-
-for(const family of ['reported-vs-fact','scope-negation','evidence-strength']){
-  assert.strictEqual(familyCue[family].longest,0,`${family}: correct option must not be uniquely longest`);
-  assert.strictEqual(familyCue[family].shortest,0,`${family}: correct option must not be uniquely shortest`);
-}
-assert.strictEqual(familyCue['necessary-condition'].longest,0,'necessary-condition: correct option must not stand out as longest');
-
-const speedOrder=bank.filter(q=>q.taskFamily==='speed-order');
-assert.ok(speedOrder.every(q=>new Set(q.o.map(compact)).size===1),'speed-order options must use the same token/length envelope');
-const memoryRecognition=bank.filter(q=>q.taskFamily==='memory-recognition');
-assert.ok(memoryRecognition.every(q=>new Set(q.o.map(compact)).size===1),'memory-recognition options must have equal visible width');
-assert.ok(memoryRecognition.every(q=>q.o.every(x=>/^[A-T]\d$/.test(String(x)))),'memory-recognition options must not leak novelty through an out-of-alphabet code');
-const speedParity=bank.filter(q=>q.taskFamily==='speed-parity');
-assert.ok(speedParity.every(q=>new Set(q.o.map(x=>String(Math.abs(Math.trunc(Number(x)))).length)).size===1),'speed-parity options must use the same digit width');
-const memoryReorder=bank.filter(q=>q.taskFamily==='memory-reorder');
-assert.ok(memoryReorder.every(q=>q.q.startsWith('將剛才的序列依照「')),'memory-reorder wording should be direct and natural');
-const probability=bank.filter(q=>q.taskFamily==='quant-probability');
-assert.ok(probability.every(q=>!q.o.includes('0/1')&&!q.o.includes('1/1')),'probability options should display canonical 0/1 values as 0 or 1');
-const invariant=bank.filter(q=>q.taskFamily==='invariant-transfer');
-assert.ok(invariant.every(q=>!String(q.q).includes('若干')),'invariant-transfer wording should avoid vague 若干 wording');
-
-const spatial=bank.filter(q=>q.d==='視覺空間');
-assert.strictEqual(spatial.length,1008);
-assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')),'all spatial items must retain a diagram');
-assert.ok(spatial.every(q=>String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')),'all final spatial SVGs must be aspect-safe');
-
-assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'final option audit must have zero flagged cue-risk items');
-console.log('Full-bank sweep validation PASS');
-console.log('Items:',bank.length,'Unique-longest keys:',uniqueLongest,'Unique-shortest keys:',uniqueShortest);
-console.log('Sweep:',JSON.stringify(window.IQ_FULL_BANK_SWEEP));
-console.log('Memory integrity:',JSON.stringify(window.IQ_MEMORY_INTEGRITY));
-console.log('Polish:',JSON.stringify(window.IQ_FULL_BANK_POLISH));
+const fs=require('fs');const vm=require('vm');const assert=require('assert');
+const store={},window={addEventListener(){}};const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};vm.createContext(context);
+const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js','full-bank-polish.js','presentation-clarity.js'];for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
+const bank=window.IQ_QUESTION_BANK;assert.strictEqual(bank.length,5124);assert.strictEqual(window.IQ_FULL_BANK_SWEEP?.version,'FBQ-2026.09.1');assert.strictEqual(window.IQ_MEMORY_INTEGRITY?.version,'WMI-2026.09.1');assert.strictEqual(window.IQ_HARD_CONSTRUCT_INTEGRITY?.version,'HCI-2026.09.1');assert.strictEqual(window.IQ_FULL_BANK_POLISH?.version,'FBP-2026.09.1');assert.strictEqual(window.IQ_BANK_META?.memoryIntegrity,'WMI-2026.09.1');assert.strictEqual(window.IQ_BANK_META?.hardConstructIntegrity,'HCI-2026.09.1');
+const marker=/·\d+$/,floatArtifact=/-?\d+\.\d{6,}/,badLiteral=/\b(?:NaN|Infinity|undefined|null)\b/,artificial=/這組資料為情境|的這個案例中|快速掃描組中|規則機器|的紀錄中，句子/;const positions=[0,0,0,0],compact=v=>Array.from(String(v).replace(/\s/g,'')).length;let uniqueLongest=0,uniqueShortest=0;const familyCue={};
+for(const q of bank){assert.ok(Array.isArray(q.o)&&q.o.length===4,`${q.id}: exactly four options required`);assert.strictEqual(new Set(q.o.map(String)).size,4,`${q.id}: options must be unique`);assert.ok(Number.isInteger(q.a)&&q.a>=0&&q.a<4);assert.strictEqual(String(q.o[q.a]),String(q.correctContent));positions[q.a]++;const all=[q.q,q.e,q.stim||'',...q.o].map(x=>String(x??''));assert.ok(!q.o.some(x=>marker.test(String(x))),`${q.id}: synthetic marker`);assert.ok(!all.some(x=>floatArtifact.test(x)),`${q.id}: float artifact`);assert.ok(!all.some(x=>badLiteral.test(x)),`${q.id}: invalid literal`);assert.ok(!artificial.test(String(q.q||'')),`${q.id}: artificial wrapper`);const lens=q.o.map(compact),wrong=lens.filter((_,i)=>i!==q.a),longest=lens[q.a]>Math.max(...wrong),shortest=lens[q.a]<Math.min(...wrong);if(longest)uniqueLongest++;if(shortest)uniqueShortest++;const rec=familyCue[q.taskFamily]||(familyCue[q.taskFamily]={n:0,longest:0,shortest:0});rec.n++;if(longest)rec.longest++;if(shortest)rec.shortest++;}
+assert.deepStrictEqual(positions,[1281,1281,1281,1281]);for(const f of ['reported-vs-fact','scope-negation','evidence-strength']){assert.strictEqual(familyCue[f].longest,0,`${f}: longest cue`);assert.strictEqual(familyCue[f].shortest,0,`${f}: shortest cue`);}assert.strictEqual(familyCue['necessary-condition'].longest,0);
+const speedOrder=bank.filter(q=>q.taskFamily==='speed-order');assert.ok(speedOrder.every(q=>new Set(q.o.map(compact)).size===1),'speed-order equal envelope');const memoryRecognition=bank.filter(q=>q.taskFamily==='memory-recognition');assert.ok(memoryRecognition.every(q=>new Set(q.o.map(compact)).size===1));assert.ok(memoryRecognition.every(q=>q.o.every(x=>/^[A-T]\d$/.test(String(x)))));const speedParity=bank.filter(q=>q.taskFamily==='speed-parity');assert.ok(speedParity.every(q=>new Set(q.o.map(x=>String(Math.abs(Math.trunc(Number(x)))).length)).size===1));const probability=bank.filter(q=>q.taskFamily==='quant-probability');assert.ok(probability.every(q=>!q.o.includes('0/1')&&!q.o.includes('1/1')));const invariant=bank.filter(q=>q.taskFamily==='invariant-transfer');assert.ok(invariant.every(q=>!String(q.q).includes('若干')));
+const spatial=bank.filter(q=>q.d==='視覺空間');assert.strictEqual(spatial.length,1008);assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')));assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'final option audit clean');const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);assert.strictEqual(new Set(bank.map(sig)).size,5124,'final production signatures unique');
+console.log('Full-bank sweep validation PASS');console.log('Items:',bank.length,'Unique-longest:',uniqueLongest,'Unique-shortest:',uniqueShortest);console.log('Memory:',JSON.stringify(window.IQ_MEMORY_INTEGRITY));console.log('Hard:',JSON.stringify(window.IQ_HARD_CONSTRUCT_INTEGRITY));console.log('Polish:',JSON.stringify(window.IQ_FULL_BANK_POLISH));

@@ -69,8 +69,10 @@
   function rewriteFilter(q){
     const tok=splitStim(q);if(tok.length<6||tok.length%2!==0)return;
     const locs=[],count=tok.length/2;for(let i=0;i<count;i++)locs.push(tok[i*2+1]);
-    const nums=makeNumbers(q,count,37),order=seededShuffle(Array.from({length:count},(_,i)=>i),itemIndex(q)*43+variant(q)*11+5);
-    const L=order.map(i=>locs[i]),N=order.map(i=>nums[i]),stim=[];for(let i=0;i<count;i++)stim.push(String(N[i]),L[i]);q.stim=stim.join('　');
+    const nums=makeNumbers(q,count,37);let order=seededShuffle(Array.from({length:count},(_,i)=>i),itemIndex(q)*43+variant(q)*11+5);
+    let L=order.map(i=>locs[i]),N=order.map(i=>nums[i]);
+    if(isStrictMonotonic(N)&&order.length>2){[order[0],order[1]]=[order[1],order[0]];L=order.map(i=>locs[i]);N=order.map(i=>nums[i]);}
+    const stim=[];for(let i=0;i<count;i++)stim.push(String(N[i]),L[i]);q.stim=stim.join('　');
     const answerPlaces=String(q.q).includes('地點'),correct=answerPlaces?L.map(String):N.map(String);
     const rev=[...correct].reverse(),swap=[...correct];[swap[0],swap[1]]=[swap[1],swap[0]];const rotate=[...correct.slice(1),correct[0]];
     const wrong=sequenceDistractors(correct,[rev,swap,rotate,[correct.at(-1),...correct.slice(0,-1)]]);

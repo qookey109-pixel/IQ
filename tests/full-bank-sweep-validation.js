@@ -9,15 +9,17 @@ vm.createContext(context);
 const runtime=[
   'question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js',
   'qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js',
-  'natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','full-bank-polish.js','presentation-clarity.js'
+  'natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','full-bank-polish.js','presentation-clarity.js'
 ];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK;
 assert.strictEqual(bank.length,5124);
 assert.strictEqual(window.IQ_FULL_BANK_SWEEP?.version,'FBQ-2026.09.1');
+assert.strictEqual(window.IQ_MEMORY_INTEGRITY?.version,'WMI-2026.09.1');
 assert.strictEqual(window.IQ_FULL_BANK_POLISH?.version,'FBP-2026.09.1');
 assert.strictEqual(window.IQ_BANK_META?.fullBankSweep,'FBQ-2026.09.1');
+assert.strictEqual(window.IQ_BANK_META?.memoryIntegrity,'WMI-2026.09.1');
 assert.strictEqual(window.IQ_BANK_META?.fullBankPolish,'FBP-2026.09.1');
 
 const marker=/·\d+$/;
@@ -61,6 +63,7 @@ const speedOrder=bank.filter(q=>q.taskFamily==='speed-order');
 assert.ok(speedOrder.every(q=>new Set(q.o.map(compact)).size===1),'speed-order options must use the same token/length envelope');
 const memoryRecognition=bank.filter(q=>q.taskFamily==='memory-recognition');
 assert.ok(memoryRecognition.every(q=>new Set(q.o.map(compact)).size===1),'memory-recognition options must have equal visible width');
+assert.ok(memoryRecognition.every(q=>q.o.every(x=>/^[A-T]\d$/.test(String(x)))),'memory-recognition options must not leak novelty through an out-of-alphabet code');
 const speedParity=bank.filter(q=>q.taskFamily==='speed-parity');
 assert.ok(speedParity.every(q=>new Set(q.o.map(x=>String(Math.abs(Math.trunc(Number(x)))).length)).size===1),'speed-parity options must use the same digit width');
 const memoryReorder=bank.filter(q=>q.taskFamily==='memory-reorder');
@@ -79,4 +82,5 @@ assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'final option
 console.log('Full-bank sweep validation PASS');
 console.log('Items:',bank.length,'Unique-longest keys:',uniqueLongest,'Unique-shortest keys:',uniqueShortest);
 console.log('Sweep:',JSON.stringify(window.IQ_FULL_BANK_SWEEP));
+console.log('Memory integrity:',JSON.stringify(window.IQ_MEMORY_INTEGRITY));
 console.log('Polish:',JSON.stringify(window.IQ_FULL_BANK_POLISH));

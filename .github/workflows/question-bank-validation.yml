@@ -49,6 +49,7 @@ jobs:
           node --check tests/scoring-v2-validation.js
           node --check tests/calibration-readiness-validation.js
           node --check tests/natural-language-validation.js
+          node --check tests/full-bank-sweep-validation.js
 
       - name: Validate QB5 5,124-item bank and 294 templates
         run: node tests/question-bank-validation.js
@@ -70,6 +71,9 @@ jobs:
 
       - name: Validate QB5 option quality and answer-position balance
         run: node tests/option-quality-validation.js
+
+      - name: Validate full-bank production hygiene sweep
+        run: node tests/full-bank-sweep-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js

@@ -73,7 +73,9 @@
     let L=order.map(i=>locs[i]),N=order.map(i=>nums[i]);
     if(isStrictMonotonic(N)&&order.length>2){[order[0],order[1]]=[order[1],order[0]];L=order.map(i=>locs[i]);N=order.map(i=>nums[i]);}
     const stim=[];for(let i=0;i<count;i++)stim.push(String(N[i]),L[i]);q.stim=stim.join('　');
-    const answerPlaces=String(q.q).includes('地點'),correct=answerPlaces?L.map(String):N.map(String);
+    const answerPlaces=String(q.q).includes('忽略數字'),answerNumbers=String(q.q).includes('忽略地點');
+    if(answerPlaces===answerNumbers)throw new Error(`memory integrity: ambiguous filter instruction for ${q.id}`);
+    const correct=answerPlaces?L.map(String):N.map(String);
     const rev=[...correct].reverse(),swap=[...correct];[swap[0],swap[1]]=[swap[1],swap[0]];const rotate=[...correct.slice(1),correct[0]];
     const wrong=sequenceDistractors(correct,[rev,swap,rotate,[correct.at(-1),...correct.slice(0,-1)]]);
     q.e=answerPlaces?`地點依序為 ${correct.join(' → ')}。`:`數字依序為 ${correct.join(' → ')}。`;

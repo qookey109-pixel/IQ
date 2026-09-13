@@ -52,6 +52,9 @@
     }
     return out;
   }
+  function withoutChar(value,char,replacement){
+    return String(value).split('').map(x=>x===char?replacement:x).join('');
+  }
 
   function exact(q,n,v,t){
     const len=4+t*2+(v===7?1:0),mode=(v===1||v===4||v===7)?1:0,target=code(n+v*31,len,mode);
@@ -111,12 +114,21 @@
     const num=String(100+mod(n*17+v*23,800)),mid=code(n+v*11,2+t,0);let correct,wrong,prompt;
     if(v===0){correct=`M${num}T`;prompt='哪個代碼以 M 開頭、T 結尾？';wrong=[`T${num}M`,`M${num}R`,`R${num}T`];}
     else if(v===1){correct=`K${mid}7`;prompt='哪個代碼以 K 開頭、數字 7 結尾？';wrong=[`7${mid}K`,`K${mid}8`,`R${mid}7`];}
-    else if(v===2){correct=`AQ${mid}`;prompt='哪個代碼第二個字元是 Q？';wrong=[`QA${mid}`,`AR${mid}`,`A${mid}Q`];}
-    else if(v===3){correct=`B${mid}X5`;prompt='哪個代碼同時包含 X 且以 5 結尾？';wrong=[`B${mid}X6`,`B${mid}Y5`,`X${mid}B6`];}
+    else if(v===2){correct=`AQ${mid}`;prompt='哪個代碼第二個字元是 Q？';wrong=[`QA${mid}`,`AR${mid}`,`AT${mid}`];}
+    else if(v===3){
+      const noX=withoutChar(mid,'X','Y');
+      correct=`B${mid}X5`;prompt='哪個代碼同時包含 X 且以 5 結尾？';wrong=[`B${mid}X6`,`B${noX}Y5`,`X${mid}B6`];
+    }
     else if(v===4){correct=`R${mid}R`;prompt='哪個代碼首尾字母相同？';wrong=[`R${mid}T`,`T${mid}R`,`Q${mid}P`];}
     else if(v===5){correct=`7${mid}K`;prompt='哪個代碼以數字開頭、字母結尾？';wrong=[`K${mid}7`,`K${mid}R`,`R${mid}8`];}
-    else if(v===6){correct=`M${mid}XM`;prompt='哪個代碼同時符合「首尾都是 M」且「中間含 X」？';wrong=[`M${mid}XN`,`N${mid}XM`,`M${mid}YM`];}
-    else {correct=`A${mid}QB`;prompt='哪個代碼同時符合「第二個字元不是 Q」且「倒數第二個字元是 Q」？';wrong=[`AQ${mid}B`,`A${mid}RB`,`Q${mid}QA`];}
+    else if(v===6){
+      const noX=withoutChar(mid,'X','Y');
+      correct=`M${mid}XM`;prompt='哪個代碼同時符合「首尾都是 M」且「中間含 X」？';wrong=[`M${mid}XN`,`N${mid}XM`,`M${noX}YM`];
+    }
+    else {
+      const safeMid=(mid[0]==='Q'?'R':mid[0])+mid.slice(1);
+      correct=`A${safeMid}QB`;prompt='哪個代碼同時符合「第二個字元不是 Q」且「倒數第二個字元是 Q」？';wrong=[`AQ${safeMid}B`,`A${safeMid}RB`,`Q${safeMid}RA`];
+    }
     q.taskLabel='位置掃描';q.q=`快速掃描：${prompt}`;q.e='只檢查指定位置／字元，不需要做算術運算。';
     install(q,correct,wrong,'speed-boundary-visual-conditions');
   }

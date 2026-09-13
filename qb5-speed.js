@@ -17,9 +17,54 @@
   });
 
   register('speed-pair-equality',(q,{n,v})=>{
-    const a=100+mod(n*7,800),letters='QRMNTKPS',L=letters[v],correct=`${a}${L} / ${a}${L}`;
-    q.q='哪一組左右代碼完全一致？';q.e='逐字比較後，只有正解左右完全相同。';
-    set(q,correct,[`${a}${L} / ${a+1}${L}`,`${a}${letters[(v+1)%8]} / ${a}${L}`,`${a+1}${L} / ${a}${L}`]);
+    const a=100+mod(n*7,800),letters='QRMNTKPS',L=letters[v],next=letters[(v+1)%letters.length];
+    const exact=(num,letter=L)=>`${num}${letter} / ${num}${letter}`;
+    const mismatch=(left,right,letter=L)=>`${left}${letter} / ${right}${letter}`;
+    const digitSum=num=>String(num).split('').reduce((s,d)=>s+Number(d),0);
+    const reverseDiff=num=>Math.abs(num-Number(String(num).split('').reverse().join('')));
+    const candidates=predicate=>{const out=[];for(let off=1;off<800&&out.length<3;off++){const x=100+mod((a-100)+off,800);if(x!==a&&predicate(x)&&!out.includes(x))out.push(x);}return out;};
+    const correct=exact(a);let prompt,wrong,ex;
+
+    if(v===0){
+      prompt='哪一組左右代碼完全一致？';
+      wrong=[mismatch(a,a===899?898:a+1),`${a}${next} / ${a}${L}`,mismatch(a===899?898:a+1,a)];
+      ex='逐字比較左右兩側，只有正解完全相同。';
+    }else if(v===1){
+      prompt=`四組左右都完全一致。哪一組的尾字母是「${L}」？`;
+      wrong=[exact(a,letters[(v+1)%8]),exact(a,letters[(v+2)%8]),exact(a,letters[(v+3)%8])];
+      ex=`先確認左右一致，再找尾字母 ${L}。`;
+    }else if(v===2){
+      const ones=a%10,nums=candidates(x=>x%10!==ones);
+      prompt=`四組左右都完全一致。哪一組數字部分的個位數是 ${ones}？`;
+      wrong=nums.map(x=>exact(x));
+      ex=`正解左右一致，且數字部分個位數為 ${ones}。`;
+    }else if(v===3){
+      const parity=a%2?'奇':'偶',nums=candidates(x=>(x%2)!==(a%2));
+      prompt=`四組左右都完全一致。哪一組數字部分是${parity}數？`;
+      wrong=nums.map(x=>exact(x));
+      ex=`正解左右一致，且數字部分是${parity}數。`;
+    }else if(v===4){
+      const rem=a%3,nums=candidates(x=>x%3!==rem);
+      prompt=`四組左右都完全一致。哪一組數字部分除以 3 餘 ${rem}？`;
+      wrong=nums.map(x=>exact(x));
+      ex=`正解數字部分除以 3 的餘數是 ${rem}。`;
+    }else if(v===5){
+      const sum=digitSum(a),nums=candidates(x=>digitSum(x)!==sum);
+      prompt=`四組左右都完全一致。哪一組數字部分各位數字和為 ${sum}？`;
+      wrong=nums.map(x=>exact(x));
+      ex=`正解數字部分各位數字相加為 ${sum}。`;
+    }else if(v===6){
+      const edge=Math.floor(a/100)+a%10,nums=candidates(x=>Math.floor(x/100)+x%10!==edge);
+      prompt=`四組左右都完全一致。哪一組同時符合「尾字母是 ${L}」且「數字部分百位數＋個位數＝${edge}」？`;
+      wrong=[exact(a,next),exact(nums[0]),exact(nums[1],next)];
+      ex=`正解同時通過尾字母與首尾數字加總兩個條件。`;
+    }else{
+      const diff=reverseDiff(a),nums=candidates(x=>reverseDiff(x)!==diff);
+      prompt=`四組左右都完全一致。哪一組同時符合「尾字母是 ${L}」且「數字部分與反向數字的差為 ${diff}」？`;
+      wrong=[exact(a,next),exact(nums[0]),exact(nums[1],next)];
+      ex=`把數字部分反向後比較差值，再檢查尾字母；只有正解同時符合。`;
+    }
+    q.q=prompt;q.e=ex;set(q,correct,wrong);
   });
 
   register('speed-parity',(q,{n,v})=>{

@@ -28,7 +28,9 @@ for(const q of bank.filter(q=>q.taskFamily==='memory-pair')){
 for(const q of bank.filter(q=>q.taskFamily==='memory-filter')){
   const tok=split(q),nums=[],locs=[];for(let i=0;i<tok.length;i+=2){nums.push(Number(tok[i]));locs.push(tok[i+1]);}
   assert.ok(!monotonic(nums),`${q.id}: filter numbers must not advertise the correct order`);
-  const expected=(String(q.q).includes('地點')?locs:nums.map(String)).join(' → ');assert.strictEqual(String(q.correctContent),expected,`${q.id}: filter answer`);
+  const asksPlaces=String(q.q).startsWith('忽略數字，只回憶剛才出現的地點'),asksNumbers=String(q.q).startsWith('忽略地點，只回憶剛才出現的數字');
+  assert.notStrictEqual(asksPlaces,asksNumbers,`${q.id}: filter instruction must unambiguously name the retained stream`);
+  const expected=(asksPlaces?locs:nums.map(String)).join(' → ');assert.strictEqual(String(q.correctContent),expected,`${q.id}: filter answer must follow the retained stream, not a shared keyword heuristic`);
 }
 for(const q of bank.filter(q=>q.taskFamily==='memory-recognition')){
   const stim=split(q),correct=String(q.correctContent),wrong=q.o.filter((_,i)=>i!==q.a).map(String);
@@ -47,4 +49,4 @@ for(const q of bank.filter(q=>q.taskFamily==='memory-reorder')){
 const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281],'memory integrity must preserve exact A/B/C/D balance');
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'memory integrity must leave zero option-audit cue flags');
 console.log('Working Memory Integrity v1 PASS');
-console.log('864 final memory items rewritten without monotonic/outlier shortcuts; answers independently rechecked from the visible stimulus.');
+console.log('864 final memory items rewritten; 144 filter items independently parse retained stream semantics; no monotonic/outlier shortcuts remain.');

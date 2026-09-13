@@ -12,6 +12,8 @@
   const setChoices=(q,wrong)=>{const correct=correctOf(q),choices=[correct,...wrong.map(String)];if(new Set(choices).size!==4)throw new Error(`language finalizer duplicate choices: ${q.id}`);q.o=choices;q.a=0;q.correctContent=correct;};
   const scaleLineLabels='ABCDEFGHJKLMNPQRST'.split('');
   const scaleRectObjects=['卡片','照片','海報','地圖','標籤紙','紙張','票券','明信片','便條紙','書籤','圖卡','桌牌','名牌','封面','圖紙','貼紙','頁面','版面'];
+  const hardRateVehicles=['小貨車','電動車','巡檢車','巴士','接駁車','貨車','測試車','工程車','配送車','服務車','公務車','廂型車','機車','自行車','電輔車','觀光車','校車','搬運車'];
+  const hardTimeTasks=['包裝作業','校對作業','巡檢作業','整理作業','列印作業','盤點作業','裝訂作業','配送作業','檢測作業','分類作業','掃描作業','採樣作業','測量作業','登記作業','審核作業','清潔作業','組裝作業','標記作業'];
   const svg=(inner,label)=>`<svg class="qb5-spatial-svg" viewBox="0 0 360 220" width="360" height="220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
   const scaleVisual=(v,a,b,s,subject)=>{
     if(v===0||v===5){
@@ -44,11 +46,41 @@
       q.presentationMode='spatial-diagram';
     }
 
-    if(q.taskFamily==='quant-unit-rate'&&q.q.includes('封信件')){
-      q.q=q.q
-        .replace('平均每個多少元？','平均每封多少元？')
-        .replace('每盒有幾個？','每盒有幾封？')
-        .replace('每分鐘製作幾個？','每分鐘製作幾封？');
+    if(q.taskFamily==='quant-unit-rate'){
+      if(v===6){
+        const unit=5+mod(n,12),d1=4+mod(n,4),d2=d1+3+mod(n,3),fee=10+5*mod(n,4),c1=fee+unit*d1,c2=fee+unit*d2,vehicle=hardRateVehicles[s];
+        q.q=`${vehicle}每趟都有固定費 ${fee} 元，另按里程計費。行駛 ${d1} 公里共 ${c1} 元，行駛 ${d2} 公里共 ${c2} 元。每公里費用是多少元？`;
+        q.e=`兩次總價相差 ${c2-c1} 元、里程相差 ${d2-d1} 公里，所以每公里 ${unit} 元。`;
+      }else if(v===7){
+        const unit=5+mod(n,12),qty=3+2+mod(v,3),knownKm=2+mod(n,3),vehicle=hardRateVehicles[s];
+        q.q=`${vehicle}行駛 ${knownKm} 公里共花 ${unit*knownKm} 元，成本與距離成正比。另一趟行駛 ${qty*1000} 公尺，成本多少元？`;
+        q.e=`${qty*1000} 公尺是 ${qty} 公里；先求每公里 ${unit} 元，再乘 ${qty}，得到 ${unit*qty} 元。`;
+      }else if(q.q.includes('封信件')){
+        q.q=q.q
+          .replace('平均每個多少元？','平均每封多少元？')
+          .replace('每盒有幾個？','每盒有幾封？')
+          .replace('每分鐘製作幾個？','每分鐘製作幾封？');
+      }
+    }
+
+    if(q.taskFamily==='quant-time'&&v>=6){
+      const start=8*60+20+mod(n*7,180),dur=20+mod(n*11,100),task=hardTimeTasks[s];
+      const fmt=m=>{m=mod(m,1440);return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;};
+      if(v===6){
+        const d1=10+5*mod(n,3),rest=5+5*mod(n,2),d2=dur+15-d1-rest,end=start+dur+15;
+        q.q=`${task} ${fmt(start)} 開始：第一階段 ${d1} 分鐘，休息 ${rest} 分鐘，再進行第二階段 ${d2} 分鐘。全部完成時是幾點？`;
+        q.e=`總共經過 ${d1}+${rest}+${d2}=${dur+15} 分鐘，所以完成時刻是 ${fmt(end)}。`;
+      }else{
+        const prep=15+5*mod(n,3),rest=10+5*mod(n,2),end=start+prep+rest+dur;
+        q.q=`${task} ${fmt(start)} 開始，先準備 ${prep} 分鐘，再休息 ${rest} 分鐘，之後進行最後一階段，到 ${fmt(end)} 結束。最後一階段進行了幾分鐘？`;
+        q.e=`總經過 ${end-start} 分鐘，扣掉準備 ${prep} 分鐘與休息 ${rest} 分鐘，最後一階段是 ${dur} 分鐘。`;
+      }
+    }
+
+    if(q.taskFamily==='quant-probability'&&v===7){
+      const R=1+mod(n,4),W=3+mod(n*2,5),T=R+W;
+      q.q=`袋中有 ${R} 顆紅球、${W} 顆白球。不放回連抽 2 顆，不看第一顆的顏色。第二顆是白球的機率是多少？`;
+      q.e=`每一顆原本的球出現在第二個位置的機會相同，因此第二顆為白球的機率仍是 ${W}/${T}=${correctOf(q)}。`;
     }
 
     if(q.taskFamily==='speed-parity'){

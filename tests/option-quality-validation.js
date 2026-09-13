@@ -11,9 +11,11 @@ for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{
 const selectedIdsBefore=window.IQ_QUESTIONS.map(q=>q.id);
 vm.runInContext(fs.readFileSync('answer-position-balance.js','utf8'),context,{filename:'answer-position-balance.js'});
 vm.runInContext(fs.readFileSync('answer-quality.js','utf8'),context,{filename:'answer-quality.js'});
+vm.runInContext(fs.readFileSync('memory-integrity.js','utf8'),context,{filename:'memory-integrity.js'});
 
 assert.strictEqual(window.IQ_BANK_META.version,'QB-2026.09.5');
 assert.strictEqual(window.IQ_BANK_META.revision,'5.0');
+assert.strictEqual(window.IQ_BANK_META.memoryIntegrity,'WMI-2026.09.1');
 assert.strictEqual(window.IQ_QUESTION_BANK.length,5124);
 assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS,q=>q.id),Array.from(selectedIdsBefore),'balancing/audit must preserve selected IDs');
 
@@ -36,6 +38,9 @@ for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='reported-vs-fac
 for(const family of ['scope-negation','evidence-strength']){
   for(const q of window.IQ_QUESTION_BANK.filter(x=>x.taskFamily===family))assert.ok(!q.optionCueFlags.includes('length-cue'),`${q.id}: no obvious length cue`);
 }
+for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='memory-recognition')){
+  assert.ok(q.o.every(x=>/^[A-T]\d$/.test(String(x))),`${q.id}: recognition choices must share the same plausible format/alphabet`);
+}
 for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='quant-remainder')){
   let d=null;
   let m=q.q.match(/每袋裝\s*(\d+)/);if(m)d=Number(m[1]);
@@ -50,5 +55,6 @@ const report=window.IQ_OPTION_QUALITY_REPORT;
 assert.strictEqual(report.totalItems,5124);
 assert.strictEqual(report.answerPositionStrategy,'hash-quota-balanced');
 assert.deepStrictEqual(Array.from(report.correctPositionCounts),positions);
+assert.strictEqual(report.cueRiskItems,0,'post-memory final option audit must remain clean');
 console.log('QB5 option-quality validation PASS');
-console.log(`positions=${positions.join('/')}; targeted verbal/remainder cue checks PASS`);
+console.log(`positions=${positions.join('/')}; targeted verbal/remainder/memory cue checks PASS`);

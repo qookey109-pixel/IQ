@@ -36,6 +36,7 @@ jobs:
           node --check answer-position-balance.js
           node --check memory-integrity.js
           node --check hard-construct-integrity.js
+          node --check processing-speed-integrity.js
           node --check presentation-clarity.js
           node --check assessment-quality.js
           node --check item-analytics.js
@@ -54,6 +55,7 @@ jobs:
           node --check tests/full-bank-sweep-validation.js
           node --check tests/memory-integrity-validation.js
           node --check tests/hard-construct-integrity-validation.js
+          node --check tests/processing-speed-integrity-validation.js
 
       - name: Validate QB5 5,124-item bank and 294 templates
         run: node tests/question-bank-validation.js
@@ -81,6 +83,9 @@ jobs:
 
       - name: Validate strengthened hard construct integrity
         run: node tests/hard-construct-integrity-validation.js
+
+      - name: Validate processing-speed construct integrity
+        run: node tests/processing-speed-integrity-validation.js
 
       - name: Validate full-bank production hygiene sweep
         run: node tests/full-bank-sweep-validation.js

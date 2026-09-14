@@ -1,262 +1,103 @@
-/* QB5 visual layout v4 — explicit runtime split layout.
-   Desktop: question on the left, task diagram on the right, options below.
-   Tablet/phone: stacked. Memory exposure remains outside this layout.
-
-   navigation-layout-fix.js adds .hasVisualQuestion after every render so
-   Safari does not depend on :has() for the core layout decision. */
-
-/* ---------- Shared visual sizing ---------- */
-#quiz #visualHolder {
-  min-width: 0;
-  min-height: 0;
+/* QB5 readability — content-first diagrams, no decorative image frame.
+   Explicit runtime classes keep Safari layout stable. Memory exposure is
+   deliberately excluded: its timing and stimulus presentation are unchanged. */
+#quiz #questionCard.hasVisualQuestion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
+  grid-template-rows: auto auto auto max-content max-content;
+  gap: 16px 32px;
+  align-content: start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: clamp(16px, 2vw, 28px);
 }
-
-#quiz #visualHolder .visual:has(.qb5-spatial-svg),
-#quiz .hasVisualQuestion #visualHolder .visual {
-  width: min(100%, 440px);
-  max-width: 440px;
-  padding: 5px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+#quiz #questionCard.hasVisualQuestion .questionMetaRow { grid-column: 1; grid-row: 1; align-self: end; }
+#quiz #questionCard.hasVisualQuestion #question {
+  grid-column: 1; grid-row: 2;
+  font-size: clamp(22px, 2.15vw, 32px);
+  line-height: 1.45;
+  text-wrap: pretty;
 }
-
-#quiz .qb5-spatial-svg {
-  display: block;
-  width: auto;
-  height: min(26dvh, 225px);
-  max-width: 100%;
-  max-height: 225px;
-  aspect-ratio: 18 / 11;
+#quiz #questionCard.hasVisualQuestion #help {
+  grid-column: 1; grid-row: 3; align-self: start;
+  font-size: 14px; line-height: 1.6;
+}
+#quiz #questionCard.hasVisualQuestion #visualHolder {
+  grid-column: 2; grid-row: 1 / 4;
+  width: 100%; min-width: 0; min-height: clamp(340px, 40dvh, 420px); height: auto;
+  max-height: none;
+  display: flex; align-items: center; justify-content: center;
   overflow: visible;
-  flex: 0 1 auto;
 }
-
-#quiz #visualHolder .matrix,
-#quiz #visualHolder .matrixGrid {
-  width: min(235px, 23vw, 24dvh);
-  max-width: 100%;
-  max-height: 235px;
-  padding: 4px;
+#quiz #questionCard.hasVisualQuestion #visualHolder .visual {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; max-width: 560px; height: auto; max-height: none;
+  margin: 0; padding: 0;
+  border: 0; border-radius: 0; box-shadow: none; background: none;
+  overflow: visible; white-space: normal; color: #30271f;
 }
-
-/* Grid-displacement paths occupy a deliberately small part of the 360×220
-   SVG viewBox. Enlarge only this family so arrows and labels are readable. */
-#quiz .family-grid-displacement .qb5-spatial-svg {
-  transform: scale(1.38);
-  transform-origin: 50% 50%;
+#quiz #questionCard.hasVisualQuestion .qb5-spatial-svg {
+  display: block; width: 100%; height: auto;
+  max-width: 100%; max-height: clamp(340px, 40dvh, 420px);
+  aspect-ratio: auto;
+  overflow: visible; transform: none;
+  font-family: inherit;
 }
-
-/* ---------- Desktop split layout ---------- */
-@media (min-width: 900px) {
-  #quiz #questionCard.hasVisualQuestion {
-    display: grid;
-    grid-template-columns: minmax(0, 1.16fr) minmax(310px, .84fr);
-    grid-template-rows: auto auto auto minmax(108px, 1fr) auto;
-    column-gap: clamp(22px, 2.7vw, 42px);
-    row-gap: clamp(5px, .75vh, 8px);
-    align-content: stretch;
-    overflow: hidden;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder {
-    grid-column: 2;
-    grid-row: 1 / 4;
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-    height: min(29dvh, 250px);
-    max-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    overflow: hidden;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .questionMetaRow {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: end;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #question {
-    grid-column: 1;
-    grid-row: 2;
-    align-self: center;
-    font-size: clamp(20px, 2.15vw, 31px);
-    line-height: 1.2;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #help {
-    grid-column: 1;
-    grid-row: 3;
-    align-self: start;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #options {
-    grid-column: 1 / -1;
-    grid-row: 4;
-    min-height: 108px;
-    align-content: start;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(44px, auto));
-    gap: clamp(6px, .8vh, 8px);
-    overflow: visible;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #options .option {
-    min-height: 44px;
-    max-height: none;
-    padding: 8px 12px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .footerActions {
-    grid-column: 1 / -1;
-    grid-row: 5;
-    min-height: 40px;
-    align-self: end;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder .visual {
-    width: min(100%, 440px);
-    max-width: 440px;
-    max-height: 240px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg {
-    width: auto;
-    height: min(26dvh, 225px);
-    max-width: 100%;
-    max-height: 225px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrixGrid,
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrix {
-    width: min(235px, 23vw, 24dvh);
-    max-width: 100%;
-    max-height: 235px;
-  }
+#quiz #questionCard.hasVisualQuestion #visualHolder .matrix,
+#quiz #questionCard.hasVisualQuestion #visualHolder .matrixGrid {
+  width: min(100%, 330px); max-width: 100%; max-height: none;
+  padding: 0; margin: 0; gap: 6px;
 }
-
-/* Short desktop / laptop Safari: keep the split, shrink diagram before answers. */
-@media (min-width: 900px) and (max-height: 760px) {
-  #quiz #questionCard.hasVisualQuestion {
-    grid-template-columns: minmax(0, 1.2fr) minmax(270px, .8fr);
-    grid-template-rows: auto auto auto minmax(96px, 1fr) auto;
-    column-gap: 20px;
-    row-gap: 4px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder {
-    height: min(24dvh, 190px);
-    max-height: 190px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg {
-    height: min(22dvh, 175px);
-    max-height: 175px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #options {
-    min-height: 96px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrixGrid,
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrix {
-    width: min(185px, 21vw, 21dvh);
-    max-height: 185px;
-  }
+#quiz #questionCard.hasVisualQuestion #visualHolder .matrixCell {
+  min-width: 0; min-height: 0; aspect-ratio: 1;
 }
-
-@media (min-width: 900px) and (max-height: 680px) {
-  #quiz #questionCard.hasVisualQuestion {
-    grid-template-rows: auto auto auto minmax(88px, 1fr) auto;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder {
-    height: min(21dvh, 155px);
-    max-height: 155px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg {
-    height: min(20dvh, 150px);
-    max-height: 150px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #options {
-    min-height: 88px;
-    gap: 5px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #options .option {
-    min-height: 40px;
-    padding-block: 6px;
-  }
-
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrixGrid,
-  #quiz #questionCard.hasVisualQuestion.hasMatrixQuestion #visualHolder .matrix {
-    width: min(160px, 20vw, 20dvh);
-    max-height: 160px;
-  }
+#quiz #questionCard.hasMatrixQuestion #visualHolder { min-height: 330px; }
+#quiz #questionCard.hasVisualQuestion #options {
+  grid-column: 1 / -1; grid-row: 4;
+  min-height: 0; align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto;
+  gap: 10px; overflow: visible;
 }
-
-/* ---------- Tablet / phone: stacked ---------- */
+#quiz #questionCard.hasVisualQuestion #options .option {
+  min-height: 52px; max-height: none; padding: 12px 16px;
+  font-size: clamp(16px, 1.5vw, 21px); line-height: 1.45;
+}
+#quiz #questionCard.hasVisualQuestion .footerActions {
+  grid-column: 1 / -1; grid-row: 5;
+  min-height: 48px; align-self: end;
+  position: static;
+}
+#quiz #questionCard.hasVisualQuestion .footerActions .btn { min-height: 44px; }
+#quiz #questionCard.hasVisualQuestion .option:focus-visible,
+#quiz #questionCard.hasVisualQuestion .btn:focus-visible {
+  outline: 3px solid #865c32; outline-offset: 3px;
+}
+/* Preserve legibility on short screens: scroll the question, never shrink
+   the diagram to fit. Navigation stays in normal flow and is reachable. */
 @media (max-width: 899px) {
   #quiz #questionCard.hasVisualQuestion {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, auto) auto auto auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(6, max-content);
+    gap: 12px; align-content: start;
+    padding: 16px;
   }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder,
-  #quiz #questionCard.hasVisualQuestion .questionMetaRow,
-  #quiz #questionCard.hasVisualQuestion #question,
-  #quiz #questionCard.hasVisualQuestion #help,
-  #quiz #questionCard.hasVisualQuestion #options,
-  #quiz #questionCard.hasVisualQuestion .footerActions {
-    grid-column: 1;
-  }
-
-  #quiz #questionCard.hasVisualQuestion #visualHolder {
-    grid-row: 1;
-    max-height: min(17dvh, 145px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #quiz #questionCard.hasVisualQuestion .questionMetaRow { grid-row: 2; }
-  #quiz #questionCard.hasVisualQuestion #question { grid-row: 3; }
-  #quiz #questionCard.hasVisualQuestion #help { grid-row: 4; }
-  #quiz #questionCard.hasVisualQuestion #options { grid-row: 5; }
-  #quiz #questionCard.hasVisualQuestion .footerActions { grid-row: 6; }
-
-  #quiz .qb5-spatial-svg {
-    height: min(16dvh, 135px);
-    max-height: 135px;
-  }
-
-  #quiz #visualHolder .matrix,
-  #quiz #visualHolder .matrixGrid {
-    width: min(165px, 42vw, 18dvh);
-    max-height: 165px;
-  }
+  #quiz #questionCard.hasVisualQuestion .questionMetaRow { grid-column: 1; grid-row: 1; }
+  #quiz #questionCard.hasVisualQuestion #question { grid-column: 1; grid-row: 2; font-size: clamp(20px, 3.8vw, 28px); }
+  #quiz #questionCard.hasVisualQuestion #visualHolder { grid-column: 1; grid-row: 3; min-height: auto; padding-block: 6px; }
+  #quiz #questionCard.hasVisualQuestion #help { grid-column: 1; grid-row: 4; font-size: 13px; }
+  #quiz #questionCard.hasVisualQuestion #options { grid-column: 1; grid-row: 5; }
+  #quiz #questionCard.hasVisualQuestion .footerActions { grid-column: 1; grid-row: 6; }
+  #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg { max-width: 440px; max-height: 350px; }
 }
-
-@media (max-width: 720px) {
-  #quiz #questionCard.hasVisualQuestion #visualHolder {
-    max-height: min(15dvh, 128px);
-  }
-
-  #quiz .qb5-spatial-svg {
-    height: min(14dvh, 118px);
-    max-height: 118px;
-  }
-
-  #quiz #visualHolder .matrix,
-  #quiz #visualHolder .matrixGrid {
-    width: min(155px, 40vw, 17dvh);
-    max-height: 155px;
-  }
+@media (max-width: 480px) {
+  #quiz #questionCard.hasVisualQuestion { padding: 12px; gap: 10px; }
+  #quiz #questionCard.hasVisualQuestion #options { grid-template-columns: 1fr; gap: 8px; }
+  #quiz #questionCard.hasVisualQuestion #options .option { min-height: 48px; padding: 10px 12px; }
+  #quiz #questionCard.hasVisualQuestion .footerActions { flex-wrap: wrap; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #quiz #questionCard.hasVisualQuestion { animation: none; scroll-behavior: auto; }
 }

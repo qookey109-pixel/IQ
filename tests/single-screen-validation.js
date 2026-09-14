@@ -3,6 +3,8 @@ const assert = require('assert');
 
 const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('single-screen.css', 'utf8');
+assert.ok(css.includes('container-type: inline-size'), 'dial must size text against its own circle');
+assert.ok(css.includes('font-size: 24cqw'), 'bank count must fit compact and landscape dials');
 const js = fs.readFileSync('single-screen.js', 'utf8');
 
 for (const id of ['start','quiz','result','startBtn','aboutBtn','counter','domain','timer','totalTimer','question','options','prevBtn','skipBtn','indexScore','metrics','reviewBtn']) {

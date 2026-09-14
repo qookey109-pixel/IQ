@@ -131,6 +131,9 @@ jobs:
       - name: Validate final 2,058-item / 42-question production runtime
         run: node tests/compact-final-production-validation.js
 
+      - name: Validate visual readability without assessment-content changes
+        run: node tests/visual-readability-validation.js
+
       - name: Build QB5 2,058-item download pack
         run: node scripts/export-qb5.js
 

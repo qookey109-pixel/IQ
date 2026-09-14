@@ -197,6 +197,7 @@ body {
 
 .dialRing {
   width: min(29vw, 310px);
+  container-type: inline-size;
   aspect-ratio: 1;
   border: 1px solid #d6dfeb;
   border-radius: 50%;
@@ -222,7 +223,7 @@ body {
 .dialRing strong {
   z-index: 1;
   color: var(--ink-strong);
-  font-size: clamp(54px, 6.4vw, 92px);
+  font-size: 24cqw;
   line-height: .92;
   letter-spacing: -.055em;
 }
@@ -808,7 +809,7 @@ body {
   }
 
   .dialRing strong {
-    font-size: clamp(31px, 11vw, 48px);
+    font-size: 24cqw;
   }
 
   .dialRing > span {

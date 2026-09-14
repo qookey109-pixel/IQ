@@ -92,14 +92,14 @@ assert.ok(spatial.every(q=>String(q.visual||'').includes('class="qb5-spatial-svg
 assert.ok(spatial.every(q=>String(q.visual||'').includes('width="360"')&&String(q.visual||'').includes('height="220"')),'all spatial SVGs need intrinsic Safari-safe dimensions');
 const css=fs.readFileSync('spatial-visual-fix.css','utf8');
 assert.match(css,/\.qb5-spatial-svg/);
-assert.match(css,/@media \(min-width: 900px\)/,'desktop visual questions need a split-layout breakpoint');
-assert.match(css,/grid-template-columns:\s*minmax\(0,\s*1\.16fr\)\s*minmax\(310px,\s*\.84fr\)/,'desktop visual questions should reserve a real right-hand diagram column');
+assert.match(css,/grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(340px,\s*1fr\)/,'desktop visual questions must reserve half the content width for diagrams');
 assert.match(css,/grid-column:\s*2;/,'diagram holder should live in the right column on desktop');
-assert.match(css,/height:\s*min\(26dvh,\s*225px\)/,'desktop spatial diagrams should be large enough to read');
-assert.match(css,/#quiz #visualHolder \.matrixGrid/,'matrix visuals need split-layout sizing too');
+assert.match(css,/max-height:\s*clamp\(340px,\s*40dvh,\s*420px\)/,'desktop spatial diagrams must not be compressed below their readable size');
+assert.match(css,/#visualHolder \.matrixGrid/,'matrix visuals need split-layout sizing too');
 assert.match(css,/@media \(max-width: 899px\)/,'tablet and phone layouts must fall back to stacking');
-assert.match(css,/@media \(min-width: 900px\) and \(max-height: 760px\)/,'short laptop windows need a split-layout compression breakpoint');
-assert.match(css,/@media \(min-width: 900px\) and \(max-height: 680px\)/,'very short desktop windows need a stronger compression breakpoint');
+assert.match(css,/overflow-y:\s*auto/,'short screens must scroll instead of shrinking the diagrams');
+assert.ok(!/transform:\s*scale\(/.test(css),'diagram enlargement must not rely on a clipping-prone transform');
+assert.match(css,/border:\s*0;[\s\S]*box-shadow:\s*none;\s*background:\s*none/,'remove decorative diagram frames, not table lines');
 assert.ok(!/\.memory[^\{]*\{[^\}]*grid-column:\s*2/s.test(css),'working-memory stimulus must not be forced into the desktop diagram split');
 
 console.log('Natural Language v3 / Visual validation PASS');

@@ -92,6 +92,11 @@
     const q = questions[currentIndex];
     if (!q) return;
 
+    // A small-screen visual question may scroll. New questions always start
+    // at the prompt, while rerendering the same item preserves reading position.
+    if (card.dataset.presentedItem !== q.id) card.scrollTop = 0;
+    card.dataset.presentedItem = q.id;
+
     const hasMatrix = q.type === "matrix" && Array.isArray(q.cells) && q.cells.length > 0;
     const hasTaskVisual = q.type !== "memory" && Boolean(q.visual);
     const hasVisual = hasMatrix || hasTaskVisual;

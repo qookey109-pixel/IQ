@@ -5,7 +5,7 @@
   const byId = id => document.getElementById(id);
 
   function loadStabilityLayer() {
-    if (!document.querySelector('link[data-viewport-stability]')) {
+    if (!document.querySelector('link[data-viewport-stability], link[href="viewport-stability.css"]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'viewport-stability.css';
@@ -13,7 +13,7 @@
       document.head.appendChild(link);
     }
 
-    if (!document.querySelector('script[data-navigation-layout-fix]')) {
+    if (!document.querySelector('script[data-navigation-layout-fix], script[src="navigation-layout-fix.js"]')) {
       const script = document.createElement('script');
       script.src = 'navigation-layout-fix.js';
       script.dataset.navigationLayoutFix = 'true';

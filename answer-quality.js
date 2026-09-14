@@ -99,8 +99,20 @@
     }else if(c.startsWith('主辦方預測明天可能有')){
       const tail=c.slice('主辦方預測明天可能有'.length);
       wrong=[`主辦方表示明天確定有${tail}`,`主辦方記錄今天已經有${tail}`,`主辦方宣稱明天一定會有${tail}`];
+    }else{
+      // New evidence-language items deliberately paraphrase the source instead of
+      // copying it. Preserve the existing semantic distractor errors, but phrase
+      // them at a comparable evidence-statement length so the correct paraphrase
+      // is not identifiable simply because it is the longest option.
+      const currentWrong=(q.o||[]).filter((_,i)=>i!==q.a).map(x=>cleanDisplay(x));
+      const leads=['依這份文字可推定，','依這份文字可認定，','依這份文字足以斷定，'];
+      wrong=currentWrong.map((text,i)=>{
+        const compact=Array.from(String(text).replace(/\s/g,'')).length;
+        const target=Math.ceil(Array.from(c.replace(/\s/g,'')).length*.58);
+        return compact>=target?text:`${leads[i%leads.length]}${text}`;
+      });
     }
-    if(wrong){installChoices(q,c,wrong,'reported-evidence-balanced');sweep.verbalCueRepairs++;}
+    if(wrong&&wrong.length>=3){installChoices(q,c,wrong,'reported-evidence-balanced');sweep.verbalCueRepairs++;}
   }
 
   function repairScope(q){

@@ -6,6 +6,7 @@ const runtime = ['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js'
 const store = {};
 const domains = ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理'];
 const historyKey = 'cognitive-iq-lab:form-history:QB-2026.09.5';
+const TOTAL_ITEMS=5908, MEMORY_ITEMS=1792;
 
 function runForm() {
   const window = { addEventListener() {} };
@@ -29,10 +30,11 @@ assert.strictEqual(first.IQ_BANK_META.version, 'QB-2026.09.5');
 assert.strictEqual(first.IQ_BANK_META.revision, '5.0');
 assert.strictEqual(first.IQ_BANK_META.taskFamilies, 42);
 assert.strictEqual(first.IQ_BANK_META.semanticTemplates, 294);
-assert.strictEqual(first.IQ_BANK_META.totalItems, 5124);
+assert.strictEqual(first.IQ_BANK_META.totalItems, TOTAL_ITEMS);
+assert.strictEqual(first.IQ_BANK_META.workingMemoryPoolItems, MEMORY_ITEMS);
 assert.strictEqual(first.IQ_BANK_META.spatialSvgItems, 1008);
 assert.strictEqual(first.IQ_BANK_META.formEquivalence, '64-candidate-design-load-matching');
-assert.strictEqual(first.IQ_QUESTION_BANK.length, 5124);
+assert.strictEqual(first.IQ_QUESTION_BANK.length, TOTAL_ITEMS);
 assert.strictEqual(first.IQ_QUESTIONS.length, 30);
 assert.strictEqual(first.IQ_BANK_VALIDATION.semanticTemplates, 294);
 assert.ok(first.IQ_FORM_EQUIVALENCE_LAST);
@@ -43,14 +45,15 @@ for(const family of new Set(first.IQ_QUESTION_BANK.map(q=>q.taskFamily))){
   const items=first.IQ_QUESTION_BANK.filter(q=>q.taskFamily===family),sigs=new Set(items.map(signature));
   const dup=items.length-sigs.size;if(dup)duplicateByFamily[family]={items:items.length,unique:sigs.size,duplicates:dup};
 }
-if(first.IQ_BANK_VALIDATION.uniqueTaskSignatures!==5124)console.error('QB5 duplicate signatures by family:',JSON.stringify(duplicateByFamily,null,2));
-assert.strictEqual(first.IQ_BANK_VALIDATION.uniqueTaskSignatures, 5124, 'QB5 must not emit exact duplicate items');
+if(first.IQ_BANK_VALIDATION.uniqueTaskSignatures!==TOTAL_ITEMS)console.error('QB5 duplicate signatures by family:',JSON.stringify(duplicateByFamily,null,2));
+assert.strictEqual(first.IQ_BANK_VALIDATION.uniqueTaskSignatures, TOTAL_ITEMS, 'QB5 must not emit exact duplicate items');
 
 for (const domain of domains) {
   const bank = first.IQ_QUESTION_BANK.filter(q => q.d === domain);
   const expectedSemantics = domain === '語文理解' ? 14 : 56;
   assert.strictEqual(new Set(bank.map(q => q.semanticKey)).size, expectedSemantics, `${domain}: semantic template count`);
-  assert.strictEqual(bank.length, domain === '語文理解' ? 84 : 1008, `${domain}: bank size`);
+  const expectedBankSize=domain==='語文理解'?84:domain==='工作記憶'?MEMORY_ITEMS:1008;
+  assert.strictEqual(bank.length, expectedBankSize, `${domain}: bank size`);
 
   const form = first.IQ_QUESTIONS.filter(q => q.d === domain);
   assert.strictEqual(form.length, 5, `${domain}: form count`);
@@ -81,7 +84,7 @@ for (const q of first.IQ_QUESTION_BANK) {
   if (q.type === 'matrix') assert.strictEqual(q.cells.length, 9, `${q.id}: matrix cell count`);
 }
 assert.strictEqual(spatial, 1008);
-assert.strictEqual(memory, 1008);
+assert.strictEqual(memory, MEMORY_ITEMS);
 
 for (let run = 2; run <= 12; run++) {
   const w = runForm();
@@ -96,4 +99,4 @@ assert.strictEqual(history.length, 8, 'history must retain only the most recent 
 assert.ok(history.every(form => Array.isArray(form) && form.length === 30));
 
 console.log('Question Bank QB5 validation PASS');
-console.log('5,124 items; 42 families; 294 semantic templates; 5,124 unique concrete signatures; 1,008 spatial SVG items; load-matched distinct-family forms.');
+console.log('5,908 items; 42 families; 294 semantic templates; 5,908 unique concrete signatures; 1,792 working-memory items; 1,008 spatial SVG items; load-matched distinct-family forms.');

@@ -10,15 +10,15 @@ const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK;
-assert.strictEqual(bank.length,5124);
+assert.strictEqual(bank.length,5908);
 assert.strictEqual(window.IQ_BANK_META.naturalLanguageRevision,'NL-2026.09.3');
 assert.strictEqual(window.IQ_BANK_META.languageStyle,'direct-taiwan-zh-hant');
-assert.strictEqual(window.IQ_BANK_VALIDATION.uniqueTaskSignatures,5124);
+assert.strictEqual(window.IQ_BANK_VALIDATION.uniqueTaskSignatures,5908);
 assert.match(window.IQ_NATURAL_LANGUAGE.reference,/speak-human-tw/);
 assert.strictEqual(window.IQ_NATURAL_LANGUAGE.finalized,true);
 
 const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...(q.o||[])].map(String).sort()]);
-assert.strictEqual(new Set(bank.map(sig)).size,5124,'Language pass must preserve 5,124 unique concrete items');
+assert.strictEqual(new Set(bank.map(sig)).size,5908,'Language pass must preserve 5,908 unique concrete items');
 
 const machines=bank.filter(q=>q.taskFamily==='machine-composition');
 assert.ok(machines.every(q=>!q.q.includes('規則機器')),'machine-composition should not use verbose 規則機器 wording');

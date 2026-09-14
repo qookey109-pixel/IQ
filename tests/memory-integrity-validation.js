@@ -8,10 +8,11 @@ vm.createContext(context);
 const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js'];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const bank=window.IQ_QUESTION_BANK;
-assert.strictEqual(bank.length,5124);
+assert.strictEqual(bank.length,5908);
+assert.strictEqual(bank.filter(q=>q.d==='工作記憶').length,1792);
 assert.strictEqual(window.IQ_MEMORY_INTEGRITY?.version,'WMI-2026.09.1');
 assert.strictEqual(window.IQ_BANK_META?.memoryIntegrity,'WMI-2026.09.1');
-for(const key of ['position','pair','filter','recognition','relative','reorder'])assert.strictEqual(window.IQ_MEMORY_INTEGRITY[key],144,`${key}: expected 144 rewritten items`);
+for(const key of ['position','pair','filter','recognition','relative','reorder'])assert.strictEqual(window.IQ_MEMORY_INTEGRITY[key],256,`${key}: expected 256 rewritten items`);
 
 const split=q=>String(q.stim||'').trim().split(/[\s　]+/).filter(Boolean);
 const monotonic=vals=>vals.length>1&&(vals.every((x,i)=>i===0||x>vals[i-1])||vals.every((x,i)=>i===0||x<vals[i-1]));
@@ -46,7 +47,7 @@ function reorder(vals,v){if(v===0)return [...vals.slice(1),vals[0]];if(v===1)ret
 for(const q of bank.filter(q=>q.taskFamily==='memory-reorder')){
   const vals=split(q).map(Number);assert.ok(!monotonic(vals),`${q.id}: reorder stimulus must not disclose transformation by sorted shape`);assert.strictEqual(reorder(vals,variant(q)).join(' → '),String(q.correctContent),`${q.id}: reorder answer`);
 }
-const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281],'memory integrity must preserve exact A/B/C/D balance');
+const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1477,1477,1477,1477],'memory integrity must preserve exact A/B/C/D balance');
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'memory integrity must leave zero option-audit cue flags');
 console.log('Working Memory Integrity v1 PASS');
-console.log('864 final memory items rewritten; 144 filter items independently parse retained stream semantics; no monotonic/outlier shortcuts remain.');
+console.log('1,536 final memory items rewritten across six WMI families; 256 filter items independently parse retained-stream semantics; no monotonic/outlier shortcuts remain.');

@@ -7,11 +7,17 @@
   grid-template-rows: auto auto auto max-content max-content;
   gap: 16px 32px;
   align-content: start;
+  max-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scroll-padding-block: 16px 88px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: clamp(16px, 2vw, 28px);
+  padding-bottom: max(clamp(20px, 2.4vw, 34px), env(safe-area-inset-bottom));
 }
 #quiz #questionCard.hasVisualQuestion .questionMetaRow { grid-column: 1; grid-row: 1; align-self: end; }
 #quiz #questionCard.hasVisualQuestion #question {
@@ -29,6 +35,7 @@
   width: 100%; min-width: 0; min-height: clamp(340px, 40dvh, 420px); height: auto;
   max-height: none;
   display: flex; align-items: center; justify-content: center;
+  align-self: start;
   overflow: visible;
 }
 #quiz #questionCard.hasVisualQuestion #visualHolder .visual {
@@ -60,6 +67,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: auto;
   gap: 10px; overflow: visible;
+  scroll-margin-block: 18px 84px;
 }
 #quiz #questionCard.hasVisualQuestion #options .option {
   min-height: 52px; max-height: none; padding: 12px 16px;
@@ -69,20 +77,32 @@
   grid-column: 1 / -1; grid-row: 5;
   min-height: 48px; align-self: end;
   position: static;
+  scroll-margin-block-end: 18px;
 }
 #quiz #questionCard.hasVisualQuestion .footerActions .btn { min-height: 44px; }
 #quiz #questionCard.hasVisualQuestion .option:focus-visible,
 #quiz #questionCard.hasVisualQuestion .btn:focus-visible {
   outline: 3px solid #865c32; outline-offset: 3px;
 }
-/* Preserve legibility on short screens: scroll the question, never shrink
-   the diagram to fit. Navigation stays in normal flow and is reachable. */
+
+/* Short desktop windows must still expose all four choices through a normal
+   vertical scroll instead of clipping the bottom half of the card. */
+@media (min-width: 900px) and (max-height: 780px) {
+  #quiz #questionCard.hasVisualQuestion { gap: 12px 26px; }
+  #quiz #questionCard.hasVisualQuestion #visualHolder { min-height: 280px; }
+  #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg { max-height: 320px; }
+}
+
+/* Preserve legibility on narrow screens: scroll the question, never squeeze
+   choices outside the viewport. Navigation remains reachable at the end. */
 @media (max-width: 899px) {
   #quiz #questionCard.hasVisualQuestion {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: repeat(6, max-content);
     gap: 12px; align-content: start;
     padding: 16px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    overflow-y: auto;
   }
   #quiz #questionCard.hasVisualQuestion .questionMetaRow { grid-column: 1; grid-row: 1; }
   #quiz #questionCard.hasVisualQuestion #question { grid-column: 1; grid-row: 2; font-size: clamp(20px, 3.8vw, 28px); }
@@ -93,7 +113,7 @@
   #quiz #questionCard.hasVisualQuestion .qb5-spatial-svg { max-width: 440px; max-height: 350px; }
 }
 @media (max-width: 480px) {
-  #quiz #questionCard.hasVisualQuestion { padding: 12px; gap: 10px; }
+  #quiz #questionCard.hasVisualQuestion { padding: 12px; padding-bottom: max(22px, env(safe-area-inset-bottom)); gap: 10px; }
   #quiz #questionCard.hasVisualQuestion #options { grid-template-columns: 1fr; gap: 8px; }
   #quiz #questionCard.hasVisualQuestion #options .option { min-height: 48px; padding: 10px 12px; }
   #quiz #questionCard.hasVisualQuestion .footerActions { flex-wrap: wrap; gap: 8px; }

@@ -6,9 +6,24 @@
   const handlers = new Map();
   const VERSION = 'QB-2026.09.5';
   const REVISION = '5.0';
+  const MEMORY_FAMILIES=['memory-position','memory-pair','memory-update','memory-filter','memory-recognition','memory-relative','memory-reorder'];
+  const MEMORY_ITEMS_PER_FAMILY=256;
+  const BASE_ITEMS_PER_NONVERBAL_FAMILY=144;
+  function expandMemoryPool(){
+    for(const family of MEMORY_FAMILIES){
+      const items=bank.filter(q=>q?.taskFamily===family);
+      if(items.length===MEMORY_ITEMS_PER_FAMILY)continue;
+      if(items.length!==BASE_ITEMS_PER_NONVERBAL_FAMILY)throw new Error(`memory pool expansion: expected 144 base items for ${family}, got ${items.length}`);
+      const template=items[0];
+      for(let n=BASE_ITEMS_PER_NONVERBAL_FAMILY;n<MEMORY_ITEMS_PER_FAMILY;n++){
+        bank.push({...template,id:`qb4-${family}-${String(n+1).padStart(3,'0')}`,source:'memory-pool-expansion-v1',difficulty:'easy',o:[...template.o],cells:Array.isArray(template.cells)?[...template.cells]:template.cells});
+      }
+    }
+  }
+  expandMemoryPool();
   const idx = q => { const m=String(q?.id||'').match(/-(\d{3})$/); return m ? Number(m[1])-1 : 0; };
   const tier = q => q.difficulty==='hard' ? 2 : q.difficulty==='medium' ? 1 : 0;
-  const variant = q => q.d==='語文理解' ? Math.min(1,Math.floor(idx(q)/6)) : Math.min(7,Math.floor(idx(q)/18));
+  const variant = q => q.d==='語文理解' ? Math.min(1,Math.floor(idx(q)/6)) : q.d==='工作記憶' ? Math.min(7,Math.floor(idx(q)/32)) : Math.min(7,Math.floor(idx(q)/18));
   const mod=(n,m)=>((n%m)+m)%m;
   const uniq=a=>[...new Set(a.map(String))];
   function wrong(correct,candidates){
@@ -40,5 +55,5 @@
       if(!q||seen.has(q))continue; seen.add(q); const ctx=prep(q); const fn=handlers.get(q.taskFamily); if(fn)fn(q,ctx);
     }
   }
-  window.QB5E={bank,selected,handlers,VERSION,REVISION,idx,tier,variant,mod,uniq,wrong,set,setNum,gcd,frac,fmtTime,register,apply};
+  window.QB5E={bank,selected,handlers,VERSION,REVISION,idx,tier,variant,mod,uniq,wrong,set,setNum,gcd,frac,fmtTime,register,apply,MEMORY_FAMILIES,MEMORY_ITEMS_PER_FAMILY};
 })();

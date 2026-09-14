@@ -6,7 +6,7 @@ const store={};
 const window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;},removeItem(k){delete store[k];}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
-const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','qb5-compact-bank.js','qb5-verbal-surface-expansion.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js','processing-speed-integrity.js','full-bank-polish.js','memory-usability.js','spatial-reliability.js','presentation-clarity.js','qb5-42-form.js'];
+const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','qb5-compact-bank.js','qb5-verbal-surface-expansion.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js','processing-speed-integrity.js','full-bank-polish.js','memory-usability.js','spatial-reliability.js','spatial-task-refinement.js','presentation-clarity.js','qb5-42-form.js'];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK,form=window.IQ_QUESTIONS,meta=window.IQ_BANK_META;
@@ -55,6 +55,12 @@ assert.ok(Math.max(...positions)-Math.min(...positions)<=1,`2,058-item bank answ
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,392);
 assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')&&q.spatialReliability==='SRI-2026.09.1'));
+assert.strictEqual(meta.spatialTaskRefinement,'STR-2026.09.1');
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.total,112);
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.gridDisplacement,56);
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.mirrorCoordinate,56);
+assert.ok(bank.filter(q=>q.taskFamily==='grid-displacement').every(q=>q.spatialTaskRefinement==='STR-2026.09.1'&&q.spatialIntegrityData?.endpointCoordinatesShown===false));
+assert.ok(bank.filter(q=>q.taskFamily==='mirror-coordinate').every(q=>q.spatialTaskRefinement==='STR-2026.09.1'&&q.spatialIntegrityData?.axesLabeled===true));
 const memory=bank.filter(q=>q.d==='工作記憶');
 assert.strictEqual(memory.length,392);
 assert.ok(memory.every(q=>q.type==='memory'&&String(q.stim||'').trim().length>0&&q.limit==null));
@@ -89,4 +95,4 @@ assert.strictEqual(window.IQ_DIVERSITY.validateForm(form).ok,true);
 assert.ok(window.IQ_FORM_EQUIVALENCE_LAST&&window.IQ_FORM_EQUIVALENCE_LAST.maxAbsPct<=20);
 
 console.log('QB5 42-item final-production validation PASS');
-console.log(`2,058 = 294 constructs × 7 surfaces; 42 families; answer positions=${positions.join('/')}; spatial=392; memory=392; speed=392; production form=42 with all seven families/domain.`);
+console.log(`2,058 = 294 constructs × 7 surfaces; 42 families; answer positions=${positions.join('/')}; spatial=392; coordinate refinement=112; memory=392; speed=392; production form=42 with all seven families/domain.`);

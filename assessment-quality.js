@@ -43,6 +43,7 @@ renderQuestion = function (animationClass = "") {
 
 finishTest = function () {
   saveElapsedBeforeLeave();
+  settleTimedQuestions();
   stopTimer();
   stopTotalTimer();
 

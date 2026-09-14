@@ -77,6 +77,9 @@ jobs:
       - name: Validate transparent Scoring v2
         run: node tests/scoring-v2-validation.js
 
+      - name: Validate runtime timing deadlines and answer submission
+        run: node tests/timing-runtime-validation.js
+
       - name: Validate Calibration Readiness v1
         run: node tests/calibration-readiness-validation.js
 

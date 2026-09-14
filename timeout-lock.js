@@ -7,6 +7,28 @@ let expiredQuestionsLock = Array(totalQuestions).fill(false);
 let totalTimerInterval = null;
 let totalStartMs = 0;
 let finalTotalSeconds = 0;
+let questionDeadlines = Array(totalQuestions).fill(null);
+let submittedTimedQuestions = Array(totalQuestions).fill(false);
+let answerAdvancePending = false;
+let timingAttempt = 0;
+window.IQ_TIMING_VERSION = '2.1';
+
+// Absolute deadlines survive navigation and delayed/background timer callbacks.
+function refreshTimedQuestion(index = currentIndex) {
+  if (!isTimedQuestion(index) || questionDeadlines[index] == null || submittedTimedQuestions[index]) return;
+  const limit = getQuestionLimit(index);
+  remainingTimes[index] = Math.max(0, Math.min(limit, (questionDeadlines[index] - Date.now()) / 1000));
+  elapsedTimes[index] = limit - remainingTimes[index];
+}
+
+function settleTimedQuestions() {
+  questions.forEach((q, index) => {
+    refreshTimedQuestion(index);
+    if (isTimedQuestion(index) && questionDeadlines[index] != null && !submittedTimedQuestions[index] && remainingTimes[index] <= 0) {
+      expiredQuestionsLock[index] = true;
+    }
+  });
+}
 
 function isTimedQuestion(index = currentIndex) {
   const q = questions[index];
@@ -58,7 +80,13 @@ function stopTotalTimer() {
 
 const baseInitState = initState;
 initState = function () {
+  stopTimer();
   baseInitState();
+  timingAttempt++;
+  enteredAt = 0;
+  answerAdvancePending = false;
+  questionDeadlines = Array(totalQuestions).fill(null);
+  submittedTimedQuestions = Array(totalQuestions).fill(false);
   expiredQuestionsLock = Array(totalQuestions).fill(false);
   remainingTimes = questions.map(q =>
     Number.isFinite(Number(q.limit)) && Number(q.limit) > 0 ? Number(q.limit) : null
@@ -247,7 +275,7 @@ updateTimerUI = function () {
   }
 
   const seconds = Math.max(0, Number(remainingTimes[currentIndex]) || 0);
-  timer.textContent = formatTime(seconds);
+  timer.textContent = formatTime(Math.ceil(seconds));
   timer.classList.toggle("urgent", seconds <= 5 && seconds > 0);
 };
 
@@ -258,11 +286,7 @@ saveElapsedBeforeLeave = function () {
   const spent = Math.max(0, (now - enteredAt) / 1000);
 
   if (isTimedQuestion()) {
-    const before = Math.max(0, Number(remainingTimes[currentIndex]) || 0);
-    const after = Math.max(0, before - spent);
-    const actualSpent = before - after;
-    remainingTimes[currentIndex] = after;
-    elapsedTimes[currentIndex] += actualSpent;
+    refreshTimedQuestion();
   } else {
     elapsedTimes[currentIndex] += spent;
     remainingTimes[currentIndex] = null;
@@ -303,7 +327,9 @@ function expireCurrentQuestionLocked() {
   renderMiniNav();
 
   const expiredIndex = currentIndex;
+  const expiredAttempt = timingAttempt;
   setTimeout(() => {
+    if (timingAttempt !== expiredAttempt) return;
     if (currentIndex !== expiredIndex) return;
     if (!expiredQuestionsLock[expiredIndex]) return;
 
@@ -316,6 +342,19 @@ function expireCurrentQuestionLocked() {
 }
 
 startTimer = function () {
+  if (isTimedQuestion() && !submittedTimedQuestions[currentIndex]) {
+    if (questionDeadlines[currentIndex] == null) questionDeadlines[currentIndex] = Date.now() + getQuestionLimit() * 1000;
+    refreshTimedQuestion();
+    if (remainingTimes[currentIndex] <= 0 && !expiredQuestionsLock[currentIndex]) {
+      expireCurrentQuestionLocked();
+      return;
+    }
+  }
+  if (submittedTimedQuestions[currentIndex]) {
+    enteredAt = 0;
+    updateTimerUI();
+    return;
+  }
   if (expiredQuestionsLock[currentIndex]) {
     updateTimerUI();
     return;
@@ -345,6 +384,8 @@ startTimer = function () {
 
 renderQuestion = function (animationClass = "") {
   stopTimer();
+  answerAdvancePending = false;
+  settleTimedQuestions();
 
   const q = questions[currentIndex];
   $("counter").textContent = `第 ${currentIndex + 1} 題 / ${totalQuestions}`;
@@ -398,7 +439,9 @@ renderQuestion = function (animationClass = "") {
     visualHolder.innerHTML = `<div class="visual memory" id="memoryStim">${q.stim}</div>`;
     updateTimerUI();
 
+    const memoryAttempt = timingAttempt;
     setTimeout(() => {
+      if (timingAttempt !== memoryAttempt) return;
       if (currentIndex >= totalQuestions || questions[currentIndex] !== q) return;
       if (expiredQuestionsLock[currentIndex]) return;
 
@@ -413,7 +456,9 @@ renderQuestion = function (animationClass = "") {
   } else {
     questionEl.textContent = q.q;
     helpEl.textContent = isTimedQuestion()
-      ? `這題限時 ${getQuestionLimit()} 秒，倒數結束後會鎖定。`
+      ? (submittedTimedQuestions[currentIndex]
+        ? "此題已提交；作答時間已記錄，不能更改答案。"
+        : `這題限時 ${getQuestionLimit()} 秒；離開本題仍持續倒數，提交後不能更改。`)
       : "這題不限時，請依自己的節奏選出最合理的答案。";
 
     if (q.type === "matrix" && q.cells) {
@@ -435,7 +480,7 @@ renderQuestion = function (animationClass = "") {
     optionsEl.innerHTML = q.o.map((opt, idx) => {
       const selected = answers[currentIndex] === idx ? "selected" : "";
       return `
-        <button class="option ${selected}" onclick="selectAnswer(${idx})">
+        <button class="option ${selected}" ${submittedTimedQuestions[currentIndex] ? 'disabled' : ''} onclick="selectAnswer(${idx})">
           <span style="opacity:.55;margin-right:8px">${String.fromCharCode(65 + idx)}.</span>${opt}
         </button>
       `;
@@ -444,11 +489,21 @@ renderQuestion = function (animationClass = "") {
 };
 
 selectAnswer = function (choice) {
+  if (memoryLock || isAnimating || answerAdvancePending || submittedTimedQuestions[currentIndex]) return;
+  if (!Number.isInteger(choice) || choice < 0 || choice >= questions[currentIndex].o.length) return;
+  refreshTimedQuestion();
   const timedAndExpired = isTimedQuestion() &&
     (expiredQuestionsLock[currentIndex] || Number(remainingTimes[currentIndex]) <= 0);
 
-  if (memoryLock || isAnimating || timedAndExpired) return;
+  if (timedAndExpired) {
+    expireCurrentQuestionLocked();
+    return;
+  }
 
+  saveElapsedBeforeLeave();
+  stopTimer();
+  if (isTimedQuestion()) submittedTimedQuestions[currentIndex] = true;
+  answerAdvancePending = true;
   answers[currentIndex] = choice;
   renderMiniNav();
 
@@ -456,7 +511,10 @@ selectAnswer = function (choice) {
     el.classList.toggle("selected", idx === choice);
   });
 
+  const answeredIndex = currentIndex;
+  const answeredAttempt = timingAttempt;
   setTimeout(() => {
+    if (currentIndex !== answeredIndex || timingAttempt !== answeredAttempt) return;
     if (isTimedQuestion() && expiredQuestionsLock[currentIndex]) return;
 
     if (currentIndex < totalQuestions - 1) {

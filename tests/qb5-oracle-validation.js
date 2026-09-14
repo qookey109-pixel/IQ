@@ -32,11 +32,43 @@ const contrastTopics=[['雨衣','輕巧','防水'],['背包','外型','耐用'],
 const evidencePairs=[['睡眠時間','測驗分數'],['閱讀時間','詞彙分數'],['運動時間','反應速度'],['練習次數','操作分數'],['通勤時間','疲勞評分'],['飲水量','專注評分'],['使用時間','熟練度'],['到課次數','作業分數'],['休息時間','錯誤率'],['步行量','心情評分'],['複習時間','回憶分數'],['會議次數','完成量'],['光照時間','清醒評分'],['遊戲時數','關卡分數'],['睡前閱讀','入睡時間'],['咖啡量','清醒度'],['練琴時間','演奏分數'],['戶外時間','壓力評分']];
 const places=['竹林','港口','書店','花園','車站','山屋','劇院','工坊','市集','燈塔','茶館','畫廊'];
 
+// Independent reviewed answer semantics for the refined evidence-language family.
+// The oracle intentionally stores only the expected conclusions; it does not reuse
+// production stems, distractors or the generator's case tuples.
+const reportedIntentOracle=[
+  '目前能確定的是，有志工表達了下週參與整理的意向',
+  '紀錄能支持的是，有讀者表達了明天來領書的打算',
+  '目前只能確定，有學員表達了週末參加加練的意向',
+  '紀錄直接支持的是，有技師表達了明早檢查設備的計畫',
+  '目前能確定的是，有志工表達了下週協助布展的意願',
+  '紀錄能支持的是，有船員表達了明天提早到班的打算',
+  '目前只能確定，有畫家表達了週五提前送件的意向',
+  '紀錄直接支持的是，有旅客表達了改搭早班的打算',
+  '目前能確定的是，有學員表達了下次提早到場複習的意願',
+  '紀錄能支持的是，有演員表達了明天提早排練的意向',
+  '目前只能確定，有研究助理表達了下週提早整理樣本的計畫',
+  '紀錄直接支持的是，有工作人員表達了明天提前布置的意願'
+];
+const reportedForecastOracle=[
+  '戶外攤位明天下午有可能暫停，但目前並未確定',
+  '自助借書區明晚有提早關閉的可能，但仍取決於維修進度',
+  '明早部分班次有可能調整時間，目前不是確定結果',
+  '下午有可能啟用分流，但是否實施仍要看現場人數',
+  '晚間部分球場可能暫停使用，但目前仍需等待檢查結果',
+  '今晚部分航班有延後的可能，但目前尚未確定',
+  '今晚入場時間可能延後，但仍要視設備測試情況而定',
+  '明早第一場課有可能順延，目前仍取決於材料到貨情況',
+  '明晚活動可能改到室內，但目前並未確定',
+  '明日上午可能延後開放，但仍取決於布展進度',
+  '明早部分步道可能暫停，目前仍要看降雨情況',
+  '明天下午戶外賽程可能調整，但目前還不是確定安排'
+];
+
 function verbal(q,n,v){
   const [who,act,,place]=scenes[n%12];
   switch(q.taskFamily){
     case 'necessary-condition': return v===0?`這位${who}不具備${act}資格`:`這位${who}目前不具備${act}資格`;
-    case 'reported-vs-fact': return v===0?`這幾位${who}表示打算${act}`:`主辦方預測明天可能有${who}${act}`;
+    case 'reported-vs-fact': return (v===0?reportedIntentOracle:reportedForecastOracle)[n%12];
     case 'contrast-focus': return v===0?`優先考量${contrastBase[n%contrastBase.length][2]}`:contrastTopics[serial(n)][2];
     case 'scope-negation': return v===0?`至少有受訪者不願意${act}`:'至少有完成 A 的人沒有完成 B';
     case 'instruction-exception': return v===0?'小禾可在預約的週六辦理':'可以帶入主要區域';

@@ -108,8 +108,9 @@
     signatures.add(JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].sort()]));
     semantics.add(q.semanticKey);
   }
-  if(bank.length!==5124)errors.push(`expected 5124 items, got ${bank.length}`);
+  if(bank.length!==5908)errors.push(`expected 5908 items, got ${bank.length}`);
   if(semantics.size!==294)errors.push(`expected 294 semantic templates, got ${semantics.size}`);
+  if(bank.filter(q=>q.d==='工作記憶').length!==1792)errors.push('working-memory pool must contain 1,792 items');
   if(bank.filter(q=>q.d==='視覺空間'&&String(q.visual||'').includes('<svg')).length!==1008)errors.push('all 1008 spatial items must have SVG diagrams');
   if(errors.length)throw new Error(errors.slice(0,40).join('; '));
 
@@ -166,11 +167,11 @@
   };
   window.IQ_BANK_META={
     ...(window.IQ_BANK_META||{}),version:VERSION,revision:REVISION,totalItems:bank.length,selectedItems:30,domains:6,taskFamilies:42,
-    semanticTemplates:semantics.size,spatialSvgItems:1008,verbalArchetypesPerFamily:2,otherArchetypesPerFamily:8,
-    generation:'84-verbal-items-plus-5040-controlled-construct-variants',constructExpansion:'QB5',naturalLanguageRevision:'NL-2026.09.1',
+    semanticTemplates:semantics.size,spatialSvgItems:1008,workingMemoryPoolItems:1792,verbalArchetypesPerFamily:2,otherArchetypesPerFamily:8,
+    generation:'84-verbal-items-plus-5824-controlled-construct-variants',constructExpansion:'QB5',naturalLanguageRevision:'NL-2026.09.1',
     difficultyPolicy:'tier-specific span, operation count and constraint load',calibrationStatus:'uncalibrated',recentFormAvoidance:8,
     formEquivalence:EQ?'64-candidate-design-load-matching':'quota-only'
   };
-  window.IQ_QB5={version:REVISION,semanticTemplates:semantics.size,uniqueTaskSignatures:signatures.size,spatialSvgItems:1008,
+  window.IQ_QB5={version:REVISION,semanticTemplates:semantics.size,uniqueTaskSignatures:signatures.size,spatialSvgItems:1008,workingMemoryPoolItems:1792,
     naturalLanguageRevision:'NL-2026.09.1',principle:'construct diversity first; psychometric calibration still pending'};
 })();

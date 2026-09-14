@@ -15,6 +15,7 @@ const idx=q=>{const m=String(q.id).match(/-(\d{3})$/);return m?Number(m[1])-1:0;
 const variant=q=>Number(q.constructVariant)-1;
 const tier=q=>q.difficulty==='hard'?2:q.difficulty==='medium'?1:0;
 const serial=n=>mod(n,18);
+const memorySerial=n=>mod(n,32);
 const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1;};
 const frac=(a,b)=>{const g=gcd(a,b);return `${a/g}/${b/g}`;};
 const fmtTime=m=>{m=mod(m,1440);return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;};
@@ -99,14 +100,29 @@ function spatial(q,n,v,t){
   }
 }
 
-function memory(q,n,v,t){
-  if(q.taskFamily==='memory-position'){const len=4+t,base=1000+n*20,vals=Array.from({length:len},(_,i)=>base+i*3),pos=mod(serial(n)+v,len);return String(vals[pos]);}
-  if(q.taskFamily==='memory-pair'){const count=3+t,start=mod(v,places.length-count),names=places.slice(start,start+count),vals=names.map((_,i)=>10+mod(n*5+i*7+v,90)),k=mod(n+v,count);return String(vals[k]);}
-  if(q.taskFamily==='memory-update'){const start=30+serial(n)*4+v,count=2+t;let cur=start;for(let i=0;i<count;i++){const val=1+mod(serial(n)+v+i,5),plus=(i+v)%2===0;cur+=plus?val:-val;}return String(cur);}
-  if(q.taskFamily==='memory-filter'){const count=3+t,start=mod(v,places.length-count),locs=places.slice(start,start+count),nums=locs.map((_,i)=>20+mod(n+i*4,50));return v%2===0?locs.join(' → '):nums.join(' → ');}
-  if(q.taskFamily==='memory-recognition'){const len=4+t,vals=Array.from({length:len},(_,i)=>String.fromCharCode(65+mod(n+i*3+v,20))+String(1+mod(n+i,9)));if(v%2===0)return `Z${10+mod(n+v,80)}`;return vals[mod(n+v,len)];}
-  if(q.taskFamily==='memory-relative'){const len=5+t,vals=Array.from({length:len},(_,i)=>100+mod(n*7+i*11+v,700)),right=v%2===1,dist=t===2&&v>=4?2:1,span=Math.max(1,len-2*dist),k=dist+mod(n+v,span);return String(vals[k+(right?dist:-dist)]);}
-  if(q.taskFamily==='memory-reorder'){const len=4+t,vals=Array.from({length:len},(_,i)=>500+n*11+i*5);let out;if(v===0)out=[...vals.slice(1),vals[0]];else if(v===1)out=[vals.at(-1),...vals.slice(0,-1)];else if(v===2)out=[...vals].reverse();else if(v===3)out=[vals[1],vals[0],...vals.slice(2)];else if(v===4){out=[...vals];const j=out.length-2;[out[1],out[j]]=[out[j],out[1]];}else if(v===5)out=[...vals.slice(2),...vals.slice(0,2)];else if(v===6)out=[vals[0],...vals.slice(1).reverse()];else out=[...vals.slice(-2),...vals.slice(0,-2)];return out.join(' → ');}
+function memory(q){
+  const tokens=String(q.stim||'').trim().split(/[\s　]+/).filter(Boolean);
+  if(q.taskFamily==='memory-position'){
+    const m=String(q.q).match(/第\s*(\d+)\s*個/);if(!m)return undefined;return tokens[Number(m[1])-1];
+  }
+  if(q.taskFamily==='memory-pair'){
+    const target=String(q.q).match(/「([^」]+)」/)?.[1];for(let i=0;i<tokens.length-1;i+=2)if(tokens[i]===target)return tokens[i+1];return undefined;
+  }
+  if(q.taskFamily==='memory-update'){
+    const start=Number(String(q.stim).match(/起始\s*(\d+)/)?.[1]);if(!Number.isFinite(start))return undefined;let cur=start;for(const m of String(q.stim).matchAll(/(增加|減少)\s*(\d+)/g)){const x=Number(m[2]);cur+=m[1]==='增加'?x:-x;}return String(cur);
+  }
+  if(q.taskFamily==='memory-filter'){
+    const nums=[],locs=[];for(let i=0;i<tokens.length-1;i+=2){nums.push(tokens[i]);locs.push(tokens[i+1]);}return String(q.q).includes('忽略數字')?locs.join(' → '):nums.join(' → ');
+  }
+  if(q.taskFamily==='memory-recognition'){
+    const opts=q.o.map(String),present=new Set(tokens);if(String(q.q).includes('沒有出現'))return opts.find(x=>!present.has(x));return opts.find(x=>present.has(x));
+  }
+  if(q.taskFamily==='memory-relative'){
+    const target=String(q.q).match(/「([^」]+)」/)?.[1],m=String(q.q).match(/第\s*(\d+)\s*個/),dist=m?Number(m[1]):1,k=tokens.indexOf(target),right=String(q.q).includes('右邊');if(k<0)return undefined;return tokens[k+(right?dist:-dist)];
+  }
+  if(q.taskFamily==='memory-reorder'){
+    const vals=tokens,rule=String(q.q).match(/「([^」]+)」/)?.[1];let out;if(rule==='把第一個移到最後')out=[...vals.slice(1),vals[0]];else if(rule==='把最後一個移到最前')out=[vals.at(-1),...vals.slice(0,-1)];else if(rule==='整列反轉')out=[...vals].reverse();else if(rule==='交換前兩個')out=[vals[1],vals[0],...vals.slice(2)];else if(rule==='交換第二個與倒數第二個'){out=[...vals];const j=out.length-2;[out[1],out[j]]=[out[j],out[1]];}else if(rule==='把前兩個整組移到最後')out=[...vals.slice(2),...vals.slice(0,2)];else if(rule==='第一個不動，其餘反轉')out=[vals[0],...vals.slice(1).reverse()];else if(rule==='把最後兩個整組移到最前')out=[...vals.slice(-2),...vals.slice(0,-2)];else return undefined;return out.join(' → ');
+  }
 }
 
 function speed(q,n,v,t){
@@ -131,7 +147,7 @@ function quant(q,n,v,t){
   if(q.taskFamily==='quant-balance'){return String(4+mod(n,12));}
 }
 
-function expected(q){const n=idx(q),v=variant(q),t=tier(q);if(q.d==='語文理解')return verbal(q,n,v);if(q.d==='流體推理')return fluid(q,n,v,t);if(q.d==='視覺空間')return spatial(q,n,v,t);if(q.d==='工作記憶')return memory(q,n,v,t);if(q.d==='處理速度')return speed(q,n,v,t);if(q.d==='量化推理')return quant(q,n,v,t);}
+function expected(q){const n=idx(q),v=variant(q),t=tier(q);if(q.d==='語文理解')return verbal(q,n,v);if(q.d==='流體推理')return fluid(q,n,v,t);if(q.d==='視覺空間')return spatial(q,n,v,t);if(q.d==='工作記憶')return memory(q);if(q.d==='處理速度')return speed(q,n,v,t);if(q.d==='量化推理')return quant(q,n,v,t);}
 
 const failures=[];
 const familyCount={};
@@ -142,9 +158,10 @@ for(const q of bank){
   if(oracle!==String(q.correctContent)||oracle!==correct)failures.push({id:q.id,family:q.taskFamily,oracle,correctContent:String(q.correctContent),actual:correct});
 }
 
-assert.strictEqual(bank.length,5124);
+assert.strictEqual(bank.length,5908);
+assert.strictEqual(bank.filter(q=>q.d==='工作記憶').length,1792);
 assert.strictEqual(Object.keys(familyCount).length,42);
 assert.strictEqual(new Set(bank.map(q=>q.semanticKey)).size,294);
 assert.deepStrictEqual(failures,[],`Oracle mismatches:\n${JSON.stringify(failures.slice(0,30),null,2)}`);
 console.log('QB5 independent oracle validation PASS');
-console.log('5,124 / 5,124 answers independently recomputed across all 42 families and 294 semantic templates.');
+console.log('5,908 / 5,908 answers independently recomputed across all 42 families and 294 semantic templates; working-memory answers are independently derived from final stimuli/instructions.');

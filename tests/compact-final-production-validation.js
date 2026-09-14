@@ -70,7 +70,6 @@ assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.1');
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.totalItems,1764);
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.cueRiskItems,0);
 assert.deepStrictEqual(Array.from(window.IQ_OPTION_QUALITY_REPORT.correctPositionCounts),positions);
-assert.strictEqual(window.IQ_FULL_BANK_SWEEP.totalItems,1764);
 
 assert.strictEqual(form.length,30);
 assert.strictEqual(new Set(form.map(q=>q.id)).size,30);

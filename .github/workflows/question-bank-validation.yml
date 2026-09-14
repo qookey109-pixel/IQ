@@ -29,6 +29,8 @@ jobs:
           node --check qb5-form-equivalence.js
           node --check qb5-finalize.js
           node --check qb5-compact-bank.js
+          node --check qb5-verbal-surface-expansion.js
+          node --check qb5-42-form.js
           node --check natural-language-v2.js
           node --check question-language-finalize.js
           node --check scoring-v2.js
@@ -63,13 +65,13 @@ jobs:
           node --check tests/spatial-reliability-validation.js
           node --check tests/compact-final-production-validation.js
 
-      - name: Validate QB5 1,764-item bank and 294 templates
+      - name: Validate QB5 2,058-item bank and 42-item forms
         run: node tests/question-bank-validation.js
 
       - name: Independently recompute all QB5 source answers
         run: node tests/qb5-oracle-validation.js
 
-      - name: Validate load-matched form equivalence
+      - name: Validate load-matched source form equivalence
         run: node tests/form-equivalence-validation.js
 
       - name: Validate transparent Scoring v2
@@ -81,7 +83,7 @@ jobs:
       - name: Validate Natural Language v3 and Safari-safe spatial visuals
         run: node tests/natural-language-validation.js
 
-      - name: Validate QB5 option quality and answer-position balance
+      - name: Validate QB5 source option quality and answer-position balance
         run: node tests/option-quality-validation.js
 
       - name: Validate working-memory anti-shortcut integrity
@@ -93,7 +95,7 @@ jobs:
       - name: Validate processing-speed construct integrity
         run: node tests/processing-speed-integrity-validation.js
 
-      - name: Validate full-bank production hygiene sweep
+      - name: Validate source-superset production hygiene sweep
         run: node tests/full-bank-sweep-validation.js
 
       - name: Validate final memory usability integrity
@@ -126,16 +128,16 @@ jobs:
       - name: Validate forward navigation and matrix containment
         run: node tests/navigation-layout-validation.js
 
-      - name: Validate final compact production runtime
+      - name: Validate final 2,058-item / 42-question production runtime
         run: node tests/compact-final-production-validation.js
 
-      - name: Build compact QB5 download pack
+      - name: Build QB5 2,058-item download pack
         run: node scripts/export-qb5.js
 
-      - name: Upload compact QB5 download pack
+      - name: Upload QB5 2,058-item download pack
         uses: actions/upload-artifact@v4
         with:
-          name: QB5-1764-balanced-bank
+          name: QB5-2058-balanced-bank
           path: dist/qb5-export/
           if-no-files-found: error
           retention-days: 30

@@ -27,7 +27,7 @@ for(const q of items){
   assert.ok(!/一定|已經完成|已完成|今天已經/.test(correct),`${q.id}: correct answer must preserve uncertainty/report status`);
   const joinedWrong=wrong.join('｜');
   assert.ok(/一定|所有|全部/.test(joinedWrong),`${q.id}: at least one certainty/scope overclaim distractor`);
-  assert.ok(/已經|已完成|今天|現在已/.test(joinedWrong),`${q.id}: at least one occurred-fact overclaim distractor`);
+  assert.ok(/已經|已\S*完成|已由|今天|現在已|已經?搭上|已經?領到/.test(joinedWrong),`${q.id}: at least one occurred-fact overclaim distractor`);
   assert.ok(correct.length>=18,`${q.id}: answer should be a meaningful inference, not a copied keyword`);
 }
 

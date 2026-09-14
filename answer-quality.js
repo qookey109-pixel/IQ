@@ -101,16 +101,20 @@
       wrong=[`主辦方表示明天確定有${tail}`,`主辦方記錄今天已經有${tail}`,`主辦方宣稱明天一定會有${tail}`];
     }else{
       // New evidence-language items deliberately paraphrase the source instead of
-      // copying it. Preserve the existing semantic distractor errors, but phrase
-      // them at a comparable evidence-statement length so the correct paraphrase
-      // is not identifiable simply because it is the longest option.
+      // copying it. Keep one concise semantic error, one comparable statement and
+      // one deliberately overconfident evidence claim. The correct paraphrase then
+      // sits inside the option-length envelope instead of being uniquely longest.
       const currentWrong=(q.o||[]).filter((_,i)=>i!==q.a).map(x=>cleanDisplay(x));
-      const leads=['依這份文字可推定，','依這份文字可認定，','依這份文字足以斷定，'];
-      wrong=currentWrong.map((text,i)=>{
-        const compact=Array.from(String(text).replace(/\s/g,'')).length;
-        const target=Math.ceil(Array.from(c.replace(/\s/g,'')).length*.58);
-        return compact>=target?text:`${leads[i%leads.length]}${text}`;
-      });
+      const compact=v=>Array.from(String(v).replace(/\s/g,'')).length;
+      const cLen=compact(c);
+      const sorted=[...currentWrong].sort((a,b)=>compact(a)-compact(b));
+      const short=sorted[0];
+      const midBase=sorted[1];
+      const longBase=sorted[2];
+      const mid=compact(midBase)>=Math.max(1,cLen-3)?midBase:`依這份文字可推定，${midBase}`;
+      let long=`只根據這份文字，就足以斷定：${longBase}`;
+      if(compact(long)<=cLen)long=`只根據這份文字，就足以斷定且不需其他證據：${longBase}`;
+      wrong=[short,mid,long];
     }
     if(wrong&&wrong.length>=3){installChoices(q,c,wrong,'reported-evidence-balanced');sweep.verbalCueRepairs++;}
   }

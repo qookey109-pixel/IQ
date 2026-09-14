@@ -32,8 +32,14 @@ for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='necessary-condi
   assert.ok(String(q.o[q.a]).includes('不具備'),`${q.id}: correct answer should stay at qualification level`);
 }
 for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='reported-vs-fact')){
-  if(q.q.includes('打算'))assert.ok(String(q.o[q.a]).includes('打算'),`${q.id}: preserve reported wording`);
-  assert.ok(!String(q.o[q.a]).includes('表示想'),`${q.id}: do not weaken 打算 to 想`);
+  const answer=String(q.o[q.a]);
+  if(/打算|想|意願|計畫/.test(q.q)){
+    assert.ok(/打算|意向|意願|計畫/.test(answer),`${q.id}: reported intention must remain an intention in the paraphrase`);
+    assert.ok(!/一定|已完成|已經完成/.test(answer),`${q.id}: reported intention must not become a completed/certain fact`);
+  }else{
+    assert.ok(/可能|有可能|取決於|仍要看|尚未確定|不是確定|並未確定/.test(answer),`${q.id}: forecast answer must preserve uncertainty`);
+    assert.ok(!/一定/.test(answer),`${q.id}: forecast answer must not become certainty`);
+  }
 }
 for(const family of ['scope-negation','evidence-strength']){
   for(const q of window.IQ_QUESTION_BANK.filter(x=>x.taskFamily===family))assert.ok(!q.optionCueFlags.includes('length-cue'),`${q.id}: no obvious length cue`);

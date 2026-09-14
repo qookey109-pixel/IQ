@@ -2,11 +2,11 @@
 // 294 semantic constructs × 6 concrete surface variants = 1,764 final bank items.
 (() => {
   'use strict';
-  const source=Array.isArray(window.IQ_QUESTION_BANK)?window.IQ_QUESTION_BANK:[];
-  if(!source.length)return;
+  const bank=Array.isArray(window.IQ_QUESTION_BANK)?window.IQ_QUESTION_BANK:[];
+  if(!bank.length)return;
   const idIndex=q=>{const m=String(q?.id||'').match(/-(\d{3})$/);return m?Number(m[1])-1:-1;};
   const keep=q=>q?.d==='語文理解'||(idIndex(q)>=0&&idIndex(q)%18<6);
-  const bank=source.filter(keep);
+  for(let i=bank.length-1;i>=0;i--)if(!keep(bank[i]))bank.splice(i,1);
   const expected=1764;
   if(bank.length!==expected)throw new Error(`QB5 compact topology expected ${expected} items, got ${bank.length}`);
 
@@ -16,8 +16,9 @@
   const uneven=[...semanticCounts].filter(([,count])=>count!==6);
   if(uneven.length)throw new Error(`QB5 compact topology requires 6 surfaces per construct: ${uneven.slice(0,8).map(([k,c])=>`${k}=${c}`).join(', ')}`);
 
+  // bank is compacted in place so QB5E/finalizer closures and future form selection all see the same 1,764-item array.
   window.IQ_QUESTION_BANK=bank;
-  if(window.QB5E){window.QB5E.bank=bank;window.QB5E.selected=[];}
+  if(window.QB5E)window.QB5E.bank=bank;
 
   const originalSelect=window.IQ_DIVERSITY?.selectForm;
   if(typeof originalSelect==='function'){

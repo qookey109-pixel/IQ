@@ -42,6 +42,7 @@ jobs:
           node --check processing-speed-integrity.js
           node --check memory-usability.js
           node --check spatial-reliability.js
+          node --check spatial-task-refinement.js
           node --check presentation-clarity.js
           node --check assessment-quality.js
           node --check item-analytics.js
@@ -63,7 +64,11 @@ jobs:
           node --check tests/processing-speed-integrity-validation.js
           node --check tests/memory-usability-validation.js
           node --check tests/spatial-reliability-validation.js
+          node --check tests/spatial-task-refinement-validation.js
+          node --check tests/verbal-evidence-integrity-validation.js
           node --check tests/compact-final-production-validation.js
+          node --check tests/timing-runtime-validation.js
+          node --check tests/visual-readability-validation.js
 
       - name: Validate QB5 2,058-item bank and 42-item forms
         run: node tests/question-bank-validation.js
@@ -86,6 +91,9 @@ jobs:
       - name: Validate Natural Language v3 and Safari-safe spatial visuals
         run: node tests/natural-language-validation.js
 
+      - name: Validate reported-vs-fact evidence-language integrity
+        run: node tests/verbal-evidence-integrity-validation.js
+
       - name: Validate QB5 source option quality and answer-position balance
         run: node tests/option-quality-validation.js
 
@@ -106,6 +114,9 @@ jobs:
 
       - name: Validate final spatial reliability integrity
         run: node tests/spatial-reliability-validation.js
+
+      - name: Validate coordinate spatial task refinement and Safari scrollability
+        run: node tests/spatial-task-refinement-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js
@@ -134,7 +145,7 @@ jobs:
       - name: Validate final 2,058-item / 42-question production runtime
         run: node tests/compact-final-production-validation.js
 
-      - name: Validate visual readability without assessment-content changes
+      - name: Validate visual readability against reviewed content baseline
         run: node tests/visual-readability-validation.js
 
       - name: Build QB5 2,058-item download pack

@@ -15,7 +15,8 @@ assert.strictEqual(window.IQ_BANK_META.version,'QB-2026.09.5');
 assert.strictEqual(window.IQ_BANK_META.revision,'5.0');
 assert.strictEqual(window.IQ_BANK_META.memoryIntegrity,'WMI-2026.09.1');
 assert.strictEqual(window.IQ_BANK_META.processingSpeedIntegrity,'PSI-2026.09.1');
-assert.strictEqual(window.IQ_QUESTION_BANK.length,5124);
+assert.strictEqual(window.IQ_QUESTION_BANK.length,5908);
+assert.strictEqual(window.IQ_QUESTION_BANK.filter(q=>q.d==='工作記憶').length,1792);
 assert.deepStrictEqual(Array.from(window.IQ_QUESTIONS,q=>q.id),Array.from(selectedIdsBefore),'balancing/audit must preserve selected IDs');
 
 const positions=[0,0,0,0];
@@ -26,7 +27,7 @@ for(const q of window.IQ_QUESTION_BANK){
   assert.strictEqual(String(q.o[q.a]),String(q.correctContent),`${q.id}: correct content binding`);
   positions[q.a]++;
 }
-assert.deepStrictEqual(positions,[1281,1281,1281,1281],'QB5 A/B/C/D must be exactly balanced');
+assert.deepStrictEqual(positions,[1477,1477,1477,1477],'QB5 A/B/C/D must be exactly balanced');
 
 for(const q of window.IQ_QUESTION_BANK.filter(q=>q.taskFamily==='necessary-condition')){
   assert.ok(String(q.o[q.a]).includes('不具備'),`${q.id}: correct answer should stay at qualification level`);
@@ -56,9 +57,9 @@ for(const q of window.IQ_QUESTION_BANK.filter(q=>q.d==='處理速度')){
 }
 
 const report=window.IQ_OPTION_QUALITY_REPORT;
-assert.strictEqual(report.totalItems,5124);
+assert.strictEqual(report.totalItems,5908);
 assert.strictEqual(report.answerPositionStrategy,'hash-quota-balanced');
 assert.deepStrictEqual(Array.from(report.correctPositionCounts),positions);
 assert.strictEqual(report.cueRiskItems,0,'final production option audit must remain clean');
 console.log('QB5 option-quality validation PASS');
-console.log(`positions=${positions.join('/')}; targeted verbal/remainder/memory/speed cue checks PASS`);
+console.log(`positions=${positions.join('/')}; 5,908 items including 1,792 working-memory items; targeted verbal/remainder/memory/speed cue checks PASS`);

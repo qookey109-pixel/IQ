@@ -1,22 +1,24 @@
-// Cognitive IQ Lab — compact bank topology
-// 294 semantic constructs × 6 concrete surface variants = 1,764 final bank items.
+// Cognitive IQ Lab — compact bank topology stage
+// Keeps seven source surfaces for every non-verbal construct; verbal receives its seventh surface in the next production stage.
 (() => {
   'use strict';
   const bank=Array.isArray(window.IQ_QUESTION_BANK)?window.IQ_QUESTION_BANK:[];
   if(!bank.length)return;
   const idIndex=q=>{const m=String(q?.id||'').match(/-(\d{3})$/);return m?Number(m[1])-1:-1;};
-  const keep=q=>q?.d==='語文理解'||(idIndex(q)>=0&&idIndex(q)%18<6);
+  const keep=q=>q?.d==='語文理解'||(idIndex(q)>=0&&idIndex(q)%18<7);
   for(let i=bank.length-1;i>=0;i--)if(!keep(bank[i]))bank.splice(i,1);
-  const expected=1764;
-  if(bank.length!==expected)throw new Error(`QB5 compact topology expected ${expected} items, got ${bank.length}`);
+  const expected=2044;
+  if(bank.length!==expected)throw new Error(`QB5 compact stage expected ${expected} items, got ${bank.length}`);
 
   const semanticCounts=new Map();
   for(const q of bank)semanticCounts.set(q.semanticKey,(semanticCounts.get(q.semanticKey)||0)+1);
-  if(semanticCounts.size!==294)throw new Error(`QB5 compact topology expected 294 semantic constructs, got ${semanticCounts.size}`);
-  const uneven=[...semanticCounts].filter(([,count])=>count!==6);
-  if(uneven.length)throw new Error(`QB5 compact topology requires 6 surfaces per construct: ${uneven.slice(0,8).map(([k,c])=>`${k}=${c}`).join(', ')}`);
+  if(semanticCounts.size!==294)throw new Error(`QB5 compact stage expected 294 semantic constructs, got ${semanticCounts.size}`);
+  const bad=[...semanticCounts].filter(([key,count])=>{
+    const sample=bank.find(q=>q.semanticKey===key);
+    return count!==(sample?.d==='語文理解'?6:7);
+  });
+  if(bad.length)throw new Error(`QB5 compact stage surface mismatch: ${bad.slice(0,8).map(([k,c])=>`${k}=${c}`).join(', ')}`);
 
-  // bank is compacted in place so QB5E/finalizer closures and future form selection all see the same 1,764-item array.
   window.IQ_QUESTION_BANK=bank;
   if(window.QB5E)window.QB5E.bank=bank;
 
@@ -44,9 +46,9 @@
   window.IQ_BANK_VALIDATION={...(window.IQ_BANK_VALIDATION||{}),ok:true,errors:[],total:bank.length,uniqueTaskSignatures:signatures.size,semanticTemplates:semanticCounts.size};
   window.IQ_BANK_META={
     ...(window.IQ_BANK_META||{}),totalItems:bank.length,selectedItems:30,semanticTemplates:semanticCounts.size,
-    spatialSvgItems:spatial,memoryItems:memory,surfaceVariantsPerConstruct:6,
-    generation:'294-semantic-constructs-times-6-controlled-surfaces',bankTopology:'294x6=1764'
+    spatialSvgItems:spatial,memoryItems:memory,
+    generation:'compact-stage-14x6-verbal-plus-280x7-nonverbal',bankTopologyStage:'2044-before-verbal-seventh-surface'
   };
-  window.IQ_QB5={...(window.IQ_QB5||{}),semanticTemplates:semanticCounts.size,uniqueTaskSignatures:signatures.size,spatialSvgItems:spatial,bankTopology:'294x6=1764'};
-  window.IQ_COMPACT_BANK={version:'CBT-2026.09.1',total:bank.length,semanticConstructs:semanticCounts.size,surfacesPerConstruct:6,spatialItems:spatial,memoryItems:memory};
+  window.IQ_QB5={...(window.IQ_QB5||{}),semanticTemplates:semanticCounts.size,uniqueTaskSignatures:signatures.size,spatialSvgItems:spatial,bankTopologyStage:'2044-before-verbal-seventh-surface'};
+  window.IQ_COMPACT_BANK={version:'CBT-2026.09.2',stageTotal:bank.length,semanticConstructs:semanticCounts.size,verbalSurfaces:6,nonVerbalSurfaces:7,spatialItems:spatial,memoryItems:memory};
 })();

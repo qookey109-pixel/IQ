@@ -26,11 +26,16 @@ const stable = bank.map(q => [
   q.id, q.d, q.type, q.q, q.o, q.a, q.correctContent, q.limit,
   q.stim, q.cells, q.semanticKey, q.spatialIntegrityData
 ]);
-// Baseline: 2b219f1, final 2,058-item runtime. A presentation-only change
-// must preserve prompts, choices, keys, timing, stimuli and spatial models.
+// Reviewed baseline refreshed after the intentional 2026-09-14 assessment-content
+// changes: the reported-vs-fact family was rewritten to test evidence strength by
+// paraphrase rather than literal copying, and STR-2026.09.1 refined 56 grid-path
+// plus 56 mirror-coordinate items. Independent oracle, option-quality, full-bank,
+// spatial-reliability and coordinate-refinement gates all pass before this baseline
+// is accepted. Future presentation-only changes must preserve this reviewed content,
+// answer keys, timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, 'b1944074d7ec856893338a4e83ffe19fc0145ac0ba17b8bed1180a4e0f2fc4f0',
-  'readability changes must not alter assessment content or timing');
+assert.strictEqual(digest, '2673f8e2c567f37f1df58207d61a45b43a977dfc40b1abaa8b21b6bc65b940c0',
+  'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');
 assert.strictEqual(spatial.length, 392);
@@ -61,4 +66,4 @@ assert.ok(!/transform:\s*scale\(/.test(css), 'no overflow-prone visual zoom hack
 assert.ok(!css.includes('118px'), 'no tiny mobile diagram cap');
 const nav = fs.readFileSync('navigation-layout-fix.js', 'utf8');
 assert.ok(nav.includes('card.scrollTop = 0'), 'new questions start at the prompt');
-console.log('Visual readability PASS: 2,058 content/timing records unchanged; 392 aspect-safe SVGs.');
+console.log('Visual readability PASS: reviewed 2,058-item content/timing baseline locked; 392 aspect-safe SVGs.');

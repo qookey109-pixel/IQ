@@ -11,14 +11,14 @@
   });
 
   register('memory-pair',(q,{n,v,t})=>{
-    const count=3+t,start=mod(v,places.length-count),names=places.slice(start,start+count),vals=names.map((_,i)=>10+mod(n*5+i*7+v,90)),k=mod(n+v,count);
+    const count=3+t,s=mod(n,32),start=mod(v*3+s,places.length),names=Array.from({length:count},(_,i)=>places[mod(start+i*5,places.length)]),step=7+v,vals=names.map((_,i)=>10+s+i*step),k=mod(s+v,count);
     q.type='memory';q.stim=names.map((x,i)=>`${x} ${vals[i]}`).join('　');q.q=`剛才「${names[k]}」配對的編號是？`;q.e=`${names[k]} 配對 ${vals[k]}。`;
     set(q,String(vals[k]),vals.filter((_,i)=>i!==k).map(String).concat([String(vals[k]+1)]));
   });
 
   register('memory-update',(q,{n,v,t})=>{
-    const start=5+mod(n,12),count=2+t,patterns=[['+',3],['-',2],['+',4],['-',1],['+',2],['-',3],['+',5],['-',2]];let cur=start;const ops=[];
-    for(let i=0;i<count;i++){const [op,val]=patterns[mod(v+i,patterns.length)];ops.push([op,val]);cur=op==='+'?cur+val:cur-val;}
+    const s=mod(n,32),start=20+s,count=2+t;let cur=start;const ops=[];
+    for(let i=0;i<count;i++){const plus=mod(v+i,2)===0,val=1+mod(v*2+s+i*3,8);ops.push([plus?'+':'-',val]);cur+=plus?val:-val;}
     q.type='memory';q.stim=`起始 ${start}；${ops.map(([op,val])=>`${op==='+'?'增加':'減少'} ${val}`).join('；')}`;
     q.q='依剛才出現的順序逐步套用更新，最後數量是多少？';q.e=`依序計算後得到 ${cur}。`;setNum(q,cur,[-2,-1,1]);
   });

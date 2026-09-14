@@ -13,7 +13,8 @@ const bank=window.IQ_QUESTION_BANK;
 const EQ=window.QB5_FORM_EQUIVALENCE;
 assert.ok(EQ);
 assert.strictEqual(EQ.version,'1.0');
-assert.strictEqual(bank.length,5124);
+assert.strictEqual(bank.length,5908);
+assert.strictEqual(bank.filter(q=>q.d==='工作記憶').length,1792);
 assert.ok(bank.every(q=>Number.isFinite(Number(q.formLoad))&&q.formLoad>0),'every item must have a finite design-load score');
 assert.strictEqual(Object.keys(window.IQ_FORM_EQUIVALENCE_TARGETS).length,6);
 assert.ok(window.IQ_FORM_EQUIVALENCE_LAST);
@@ -35,4 +36,4 @@ for(let i=0;i<24;i++){
 
 assert.strictEqual(window.IQ_BANK_META.formEquivalence,'64-candidate-design-load-matching');
 console.log('QB5 form-equivalence validation PASS');
-console.log('Fixed quotas retained; 64-candidate design-load matching keeps residual domain load within guardrails.');
+console.log('Fixed quotas retained across the 5,908-item bank; 64-candidate design-load matching keeps residual domain load within guardrails.');

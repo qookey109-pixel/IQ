@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "CIL-EXT-DATASETS-2026.09.1",
+  "productNormEligible": false,
+  "productIqUnlocked": false,
+  "datasets": [
+    {
+      "id": "icar-sapa-2010-2013",
+      "name": "Selected ICAR Data from the SAPA-Project",
+      "status": "enabled-offline",
+      "primaryUse": ["reliability", "irt", "age-dif", "factor-structure", "pipeline-validation"],
+      "population": "online convenience sample",
+      "ageRangeAvailable": [14, 90],
+      "cilAgeFilter": [18, 65],
+      "participantsReported": 96958,
+      "itemCount": 60,
+      "domains": {
+        "LN": 9,
+        "MR": 11,
+        "VR": 16,
+        "R3D": 24
+      },
+      "responses": "already-scored binary 0/1 with missing-by-design",
+      "license": "CC0 Public Domain Dedication",
+      "source": "https://doi.org/10.7910/DVN/AD9RVY",
+      "article": "https://doi.org/10.5334/jopd.25",
+      "redistribution": "Do not commit the third-party raw dataset into this repository; obtain it from the cited repository and process locally.",
+      "limitations": [
+        "Convenience sample, not a representative population norm.",
+        "English-language administration.",
+        "Sparse SAPA administration: participants answered random subsets rather than all 60 items.",
+        "External data cannot be merged into Cognitive IQ Lab product norms."
+      ]
+    },
+    {
+      "id": "oecd-piaac",
+      "name": "OECD Survey of Adult Skills (PIAAC)",
+      "status": "manual-access-candidate",
+      "primaryUse": ["adult-skill-method-comparison", "external-validity-design-reference"],
+      "population": "adult probability samples across participating countries",
+      "source": "https://www.oecd.org/en/about/programmes/piaac/piaac-data.html",
+      "access": "Public Use Files require acceptance of OECD terms and may require research/institution information.",
+      "autoDownload": false,
+      "productNormEligible": false,
+      "limitations": [
+        "Do not automate around OECD access terms.",
+        "Do not redistribute restricted or terms-bound microdata.",
+        "Not item-equivalent to Cognitive IQ Lab."
+      ]
+    },
+    {
+      "id": "oecd-pisa",
+      "name": "OECD PISA cognitive item data",
+      "status": "method-stress-test-candidate",
+      "primaryUse": ["large-scale-item-response-method-testing"],
+      "population": "school-age students",
+      "source": "https://www.oecd.org/en/data/datasets/pisa-2022-database.html",
+      "autoDownload": false,
+      "productNormEligible": false,
+      "limitations": [
+        "Population does not match the Cognitive IQ Lab adult 18-65 scope.",
+        "Use only for method stress-testing, never adult norming."
+      ]
+    }
+  ]
+}

@@ -5,6 +5,8 @@ const DEFAULT_POLICY = require('./item-review-policy.json');
 const ACTION_RANK = Object.freeze({ KEEP: 0, WATCH: 1, REVIEW: 2, REWRITE: 3, RETIRE: 4 });
 
 function finite(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }

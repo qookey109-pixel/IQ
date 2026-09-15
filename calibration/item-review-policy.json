@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "purpose": "Engineering review thresholds only; not clinical or psychometric validity standards.",
+  "minimumN": {
+    "watch": 30,
+    "review": 100,
+    "rewrite": 200
+  },
+  "difficulty": {
+    "veryEasyP": 0.95,
+    "easyReviewP": 0.90,
+    "hardReviewP": 0.25,
+    "veryHardP": 0.15
+  },
+  "discrimination": {
+    "reviewBelow": 0.20,
+    "rewriteBelow": 0.10,
+    "negativeAlwaysReview": true
+  },
+  "timing": {
+    "skipRateReview": 0.20,
+    "timeoutRateReview": 0.20,
+    "medianLimitShareReview": 0.90
+  },
+  "distractors": {
+    "minimumWrongResponses": 30,
+    "weakDistractorShare": 0.05
+  },
+  "dif": {
+    "materialDeltaR2": 0.02,
+    "materialFlagAlwaysReview": true,
+    "unresolvedRepeatedFlagAction": "RETIRE"
+  },
+  "actions": ["KEEP", "WATCH", "REVIEW", "REWRITE", "RETIRE"],
+  "safety": {
+    "autoRewrite": false,
+    "autoChangeAnswerKey": false,
+    "requireGeneratorLevelFix": true,
+    "requireExistingRegressionGates": true
+  }
+}

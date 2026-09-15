@@ -92,6 +92,52 @@ for (domain in domains) {
 item_parameters <- if (length(item_parameter_rows)) do.call(rbind, item_parameter_rows) else data.frame()
 write.csv(item_parameters, file.path(out_dir, 'icar-item-parameters.csv'), row.names = FALSE, na = '')
 
+# Logistic-regression age-DIF screen. This is an external method screen, not a CIL fairness verdict.
+# For each item, compare response ~ rest-score against response ~ rest-score + age-band.
+age_lookup <- setNames(participants$ageBand, participants$sourceKey)
+dif_rows <- list()
+for (item in items) {
+  item_domain <- unique(long$externalDomain[long$externalItemId == item])[[1]]
+  domain_items <- sort(unique(long$externalItemId[long$externalDomain == item_domain]))
+  other_items <- setdiff(domain_items, item)
+  if (length(other_items) < 2) next
+
+  y <- wide[, item]
+  rest_score <- rowMeans(wide[, other_items, drop = FALSE], na.rm = TRUE)
+  rest_score[!is.finite(rest_score)] <- NA_real_
+  age_band <- factor(age_lookup[rownames(wide)], levels = c('18–24','25–34','35–44','45–54','55–65'))
+  frame <- data.frame(y = y, restScore = rest_score, ageBand = age_band)
+  frame <- frame[complete.cases(frame), ]
+  if (nrow(frame) < 500 || length(unique(frame$y)) < 2 || length(unique(frame$ageBand)) < 3) next
+
+  result <- tryCatch({
+    null_model <- glm(y ~ restScore, data = frame, family = binomial())
+    age_model <- glm(y ~ restScore + ageBand, data = frame, family = binomial())
+    ll0 <- as.numeric(logLik(null_model))
+    ll1 <- as.numeric(logLik(age_model))
+    df_diff <- attr(logLik(age_model), 'df') - attr(logLik(null_model), 'df')
+    lr <- max(0, 2 * (ll1 - ll0))
+    p <- pchisq(lr, df = df_diff, lower.tail = FALSE)
+    data.frame(
+      externalItemId = item,
+      externalDomain = item_domain,
+      n = nrow(frame),
+      likelihoodRatio = lr,
+      df = df_diff,
+      p = p,
+      stringsAsFactors = FALSE
+    )
+  }, warning = function(w) NULL, error = function(e) NULL)
+  if (!is.null(result)) dif_rows[[length(dif_rows) + 1]] <- result
+}
+
+age_dif <- if (length(dif_rows)) do.call(rbind, dif_rows) else data.frame()
+if (nrow(age_dif)) {
+  age_dif$pAdjustedBH <- p.adjust(age_dif$p, method = 'BH')
+  age_dif$flag <- age_dif$pAdjustedBH < 0.01
+}
+write.csv(age_dif, file.path(out_dir, 'icar-age-dif-screen.csv'), row.names = FALSE, na = '')
+
 participant_scores <- aggregate(correct ~ sourceKey + externalDomain, data = long, FUN = mean)
 participant_scores <- merge(participant_scores, participants, by = 'sourceKey', all.x = TRUE)
 age_summary <- aggregate(correct ~ ageBand + externalDomain, data = participant_scores, FUN = function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
@@ -124,7 +170,7 @@ if (nrow(wide) >= 1000 && ncol(wide) == 60) {
 }
 
 manifest <- list(
-  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.1',
+  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.2',
   generatedAt = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   datasetId = 'icar-sapa-2010-2013',
   participants = length(participant_ids),
@@ -132,6 +178,12 @@ manifest <- list(
   items = length(items),
   ageRange = range(participants$ageYears, na.rm = TRUE),
   reliability = reliability,
+  ageDifScreen = list(
+    method = 'logistic-regression-rest-score-plus-age-band',
+    testedItems = nrow(age_dif),
+    flaggedItemsBH001 = if (nrow(age_dif)) sum(age_dif$flag, na.rm = TRUE) else 0,
+    interpretation = 'External method/fairness screen only; not a Cognitive IQ Lab item DIF result.'
+  ),
   factorStructure = factor_fit,
   safety = list(
     sourceIsolated = TRUE,
@@ -144,6 +196,7 @@ manifest <- list(
     'Convenience sample; not representative population norms.',
     'English-language administration.',
     'Sparse missing-by-design SAPA administration.',
+    'Age-DIF output is a logistic regression screen, not a CIL product fairness verdict.',
     'External results validate methods and structure only.'
   )
 )

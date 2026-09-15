@@ -53,6 +53,7 @@ assert.ok(!/IQ_QUESTIONS\s*=/.test(source),'anchor study must not replace or enl
 assert.ok(!/performanceIndex\s*=/.test(source),'anchor study must not mutate CPI');
 assert.ok(!/iqEstimate\s*:\s*(?!null)/.test(source),'anchor study must not fabricate an IQ estimate');
 assert.ok(source.includes("formId:`anchor:${core.VERSION}`"),'anchor rows must be distinguishable in calibration exports');
+assert.ok(source.includes('formalItemOverlap'),'anchor persistence must audit accidental overlap');
 
 const html=fs.readFileSync('index.html','utf8');
 const studyPos=html.indexOf('calibration-study.js');
@@ -60,6 +61,18 @@ const corePos=html.indexOf('calibration/anchor-core.js');
 const anchorPos=html.indexOf('calibration-anchor-study.js');
 assert.ok(studyPos>=0&&corePos>studyPos&&anchorPos>corePos,'anchor modules must load after calibration-study and core before UI');
 assert.ok(html.includes('42 題正式測驗完成後再做 6 題不計分 Anchor'),'public explanation must disclose optional anchor block');
+
+const externalSchema=JSON.parse(fs.readFileSync('calibration/external-validation-schema.json','utf8'));
+assert.strictEqual(externalSchema.safety.allowProtectedItemsInRepository,false,'protected external items must stay out of the public repo');
+assert.strictEqual(externalSchema.safety.allowProtectedScoringKeysInRepository,false,'protected external scoring keys must stay out of the public repo');
+assert.strictEqual(externalSchema.safety.autoConvertExternalScoreToIQ,false,'external scores must not unlock a fake IQ conversion');
+assert.strictEqual(externalSchema.safety.requiresCommonPersonLinking,true,'external validity must use common-person linking');
+
+const externalR=fs.readFileSync('calibration/analysis/external_linking.R','utf8');
+assert.ok(externalR.includes('itemContentStored'),'external linker must enforce no protected item content');
+assert.ok(externalR.includes('scoringKeyStored'),'external linker must enforce no protected scoring keys');
+assert.ok(externalR.includes('autoConvertsCpiToIq = FALSE'),'external linker must keep IQ conversion locked');
+assert.ok(externalR.includes('inner_join(cil_sessions, ext_clean'),'external validity must link the same pseudonymous session/person');
 
 console.log('Calibration anchor study validation PASS');
 console.log(`formal=${form.length}; anchors=${anchors.length}; version=${anchorCore.VERSION}; domains=${anchors.map(x=>x.domain).join('/')}`);

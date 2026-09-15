@@ -32,7 +32,10 @@ jobs:
 
       - name: Install bounded real-run R dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libuv1-dev
           Rscript -e 'install.packages(c("psych","mirt","jsonlite"), repos="https://cloud.r-project.org", Ncpus=2)'
+          Rscript -e 'required <- c("psych","mirt","jsonlite"); missing <- required[!vapply(required, requireNamespace, quietly=TRUE, FUN.VALUE=logical(1))]; if (length(missing)) stop(sprintf("Missing required R packages after install: %s", paste(missing, collapse=", "))); cat("R dependency gate PASS\n")'
 
       - name: Validate adapters and parse R scripts
         run: |
@@ -48,6 +51,24 @@ jobs:
           Rscript scripts/acquire-icar-sapa.R "$RUNNER_TEMP/icar/icar-sapa-source.csv"
           test -s "$RUNNER_TEMP/icar/icar-sapa-source.csv"
           test ! -f calibration/input/external/icar-sapa.csv
+
+      - name: Inspect staged ICAR aggregate encoding
+        run: |
+          Rscript - "$RUNNER_TEMP/icar/icar-sapa-source.csv" <<'RS'
+          args <- commandArgs(trailingOnly = TRUE)
+          frame <- read.csv(args[[1]], check.names = FALSE, stringsAsFactors = FALSE)
+          item_pattern <- '^(LN|MR|VR|R3D)[._-]?[0-9]+$'
+          item_cols <- names(frame)[grepl(item_pattern, names(frame), ignore.case = TRUE)]
+          age_cols <- names(frame)[tolower(trimws(names(frame))) == 'age']
+          if (length(item_cols) != 60) stop(sprintf('Expected 60 staged ICAR columns; got %d.', length(item_cols)))
+          if (!length(age_cols)) stop('Staged ICAR source is missing age.')
+          age <- suppressWarnings(as.numeric(frame[[age_cols[[1]]]]))
+          valid_age <- is.finite(age) & age >= 18 & age <= 65
+          tokens <- sort(unique(unlist(lapply(frame[item_cols], function(x) as.character(x[!is.na(x) & nzchar(as.character(x))])))))
+          if (length(tokens) > 20) tokens <- c(head(tokens, 20), '...')
+          cat(sprintf('ICAR_ENCODING sourceRows=%d adultAgeRows=%d itemColumns=%d\n', nrow(frame), sum(valid_age), length(item_cols)))
+          cat(sprintf('ICAR_ENCODING scoredTokens=%s\n', paste(tokens, collapse='|')))
+          RS
 
       - name: Preflight real ICAR normalization
         run: |

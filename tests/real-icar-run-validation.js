@@ -55,7 +55,10 @@ const normalizer = fs.readFileSync(path.join(root, 'scripts', 'normalize-icar-sa
   assert(workflow.includes('test ! -f "$RUNNER_TEMP/icar/public-results/external-scored-responses.csv"'));
   assert(workflow.includes("grep -R -E 'icar-[0-9a-f]{20}'"), 'Artifact gate must reject participant-level pseudonymous keys');
   assert(workflow.includes('calibration-v8-real-icar-aggregate-results'));
-  assert(!workflow.includes('path: ${{ runner.temp }}/icar/analysis'), 'Artifact upload must not include the participant-level analysis directory');
+  const uploadsParticipantAnalysisDirectory = workflow
+    .split('\n')
+    .some((line) => /^\s*path:\s*\$\{\{ runner\.temp \}\}\/icar\/analysis(?:\/|\s*$)/.test(line));
+  assert(!uploadsParticipantAnalysisDirectory, 'Artifact upload must not include the participant-level analysis directory');
 })();
 
 (function validateGitIgnoreBoundary() {

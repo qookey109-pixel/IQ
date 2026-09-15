@@ -4,19 +4,30 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { parseCsv, rowsToCsv: genericRowsToCsv } = require('./normalize-public-dataset.js');
+const { parseCsv } = require('./normalize-public-dataset.js');
 
 const DATASET_ID = 'icar-sapa-2010-2013';
-const ITEM_RE = /^(LN\d+|MR\d+|VR\d+|R3D\d+)$/i;
-const AGE_CANDIDATES = ['age', 'Age', 'AGE'];
+// The published R object uses labels such as VR.04 / LN.58. Some CSV mirrors
+// remove punctuation, so accept both forms and canonicalize before analysis.
+const ITEM_RE = /^(LN|MR|VR|R3D)[._-]?(\d+)$/i;
 const DOMAIN_COUNTS = Object.freeze({ LN: 9, MR: 11, VR: 16, R3D: 24 });
 
+function canonicalItemId(itemId) {
+  const match = String(itemId ?? '').trim().match(ITEM_RE);
+  if (!match) return null;
+  const domain = match[1].toUpperCase();
+  const number = Number(match[2]);
+  if (!Number.isInteger(number) || number < 0) return null;
+  return `${domain}${String(number).padStart(2, '0')}`;
+}
+
 function normalizeDomain(itemId) {
-  const upper = String(itemId).toUpperCase();
-  if (upper.startsWith('R3D')) return 'R3D';
-  if (upper.startsWith('LN')) return 'LN';
-  if (upper.startsWith('MR')) return 'MR';
-  if (upper.startsWith('VR')) return 'VR';
+  const canonical = canonicalItemId(itemId);
+  if (!canonical) return null;
+  if (canonical.startsWith('R3D')) return 'R3D';
+  if (canonical.startsWith('LN')) return 'LN';
+  if (canonical.startsWith('MR')) return 'MR';
+  if (canonical.startsWith('VR')) return 'VR';
   return null;
 }
 
@@ -30,11 +41,13 @@ function ageBand(age) {
 }
 
 function detectAgeColumn(headers) {
-  return AGE_CANDIDATES.find(name => headers.includes(name)) || null;
+  const exact = headers.find(name => /^age$/i.test(String(name).trim()));
+  if (exact) return exact;
+  return headers.find(name => /^(age[_ .-]?years?)$/i.test(String(name).trim())) || null;
 }
 
 function detectItemColumns(headers) {
-  return headers.filter(header => ITEM_RE.test(header));
+  return headers.filter(header => ITEM_RE.test(String(header).trim()));
 }
 
 function parseBinary(value) {
@@ -58,6 +71,11 @@ function normalizeIcarCsv(csvText) {
   const itemColumns = detectItemColumns(headers);
   if (itemColumns.length !== 60) {
     throw new Error(`Expected 60 scored ICAR item columns; found ${itemColumns.length}.`);
+  }
+
+  const canonicalItems = itemColumns.map(canonicalItemId);
+  if (new Set(canonicalItems).size !== canonicalItems.length) {
+    throw new Error('ICAR item columns collapse to duplicate canonical item IDs.');
   }
 
   const observedDomainCounts = itemColumns.reduce((acc, column) => {
@@ -88,6 +106,7 @@ function normalizeIcarCsv(csvText) {
       const correct = parseBinary(record[column]);
       if (correct == null) continue;
       participantHasResponse = true;
+      const canonical = canonicalItemId(column);
       rows.push({
         schemaVersion: 1,
         datasetId: DATASET_ID,
@@ -95,7 +114,7 @@ function normalizeIcarCsv(csvText) {
         sourceKey,
         ageYears: age,
         ageBand: band,
-        externalItemId: `${DATASET_ID}:${column.toUpperCase()}`,
+        externalItemId: `${DATASET_ID}:${canonical}`,
         externalDomain: normalizeDomain(column),
         correct,
         productNormEligible: false,
@@ -114,7 +133,7 @@ function normalizeIcarCsv(csvText) {
     rows,
     manifest: {
       schemaVersion: 1,
-      adapter: 'icar-sapa-scored-response-v1',
+      adapter: 'icar-sapa-scored-response-v2',
       datasetId: DATASET_ID,
       license: 'CC0 Public Domain Dedication',
       source: 'https://doi.org/10.7910/DVN/AD9RVY',
@@ -124,9 +143,11 @@ function normalizeIcarCsv(csvText) {
       participantsWithScoredResponses: participants.size,
       scoredRows: rows.length,
       itemColumns: itemColumns.length,
+      canonicalItemColumns: canonicalItems,
       domainCounts: observedDomainCounts,
       ageBands,
       sparseMissingByDesignExpected: true,
+      acceptsPublishedDotItemLabels: true,
       containsItemText: false,
       containsScoringKey: false,
       containsDirectIdentifiers: false,
@@ -175,6 +196,7 @@ module.exports = {
   DATASET_ID,
   ITEM_RE,
   DOMAIN_COUNTS,
+  canonicalItemId,
   normalizeDomain,
   detectAgeColumn,
   detectItemColumns,

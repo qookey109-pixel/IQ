@@ -38,6 +38,8 @@ jobs:
           node --check calibration-study.js
           node --check calibration/anchor-core.js
           node --check calibration-anchor-study.js
+          node --check calibration/matrix-form-core.js
+          node --check calibration-matrix-form.js
           node --check calibration/item-review-engine.js
           node --check scripts/build-item-review-queue.js
           node --check answer-quality.js
@@ -65,6 +67,7 @@ jobs:
           node --check tests/calibration-readiness-validation.js
           node --check tests/calibration-toolchain-validation.js
           node --check tests/calibration-anchor-study-validation.js
+          node --check tests/calibration-matrix-form-validation.js
           node --check tests/natural-language-validation.js
           node --check tests/full-bank-sweep-validation.js
           node --check tests/memory-integrity-validation.js
@@ -103,6 +106,9 @@ jobs:
 
       - name: Validate optional six-domain calibration anchor study
         run: node tests/calibration-anchor-study-validation.js
+
+      - name: Validate stable anchor reserve and 56-slot matrix calibration forms
+        run: node tests/calibration-matrix-form-validation.js
 
       - name: Validate Natural Language v3 and Safari-safe spatial visuals
         run: node tests/natural-language-validation.js

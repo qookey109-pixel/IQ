@@ -15,8 +15,18 @@ if (length(missing_packages) > 0) {
   stop(sprintf('Missing R packages: %s', paste(missing_packages, collapse = ', ')))
 }
 
+read_cap <- function(name, default) {
+  value <- suppressWarnings(as.integer(Sys.getenv(name, as.character(default))))
+  if (!is.finite(value) || value < 1000) default else value
+}
+
+irt_max_n <- read_cap('CIL_ICAR_IRT_MAX_N', 20000)
+factor_max_n <- read_cap('CIL_ICAR_FACTOR_MAX_N', 30000)
+parallel_max_n <- read_cap('CIL_ICAR_PARALLEL_MAX_N', 6000)
+parallel_iterations <- 20L
+
 long <- read.csv(input_path, stringsAsFactors = FALSE, check.names = FALSE)
-required_columns <- c('sourceKey','ageYears','ageBand','externalItemId','externalDomain','correct','productNormEligible','cilItem')
+required_columns <- c('sourceKey','sourceAgeBand','ageBand','externalItemId','externalDomain','correct','productNormEligible','cilItem','productIqUnlocked','autoCpiToIq')
 missing_columns <- setdiff(required_columns, names(long))
 if (length(missing_columns) > 0) {
   stop(sprintf('Missing columns: %s', paste(missing_columns, collapse = ', ')))
@@ -24,6 +34,12 @@ if (length(missing_columns) > 0) {
 
 if (any(long$productNormEligible %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
   stop('External data must remain productNormEligible=false.')
+}
+if (any(long$productIqUnlocked %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
+  stop('External data must remain productIqUnlocked=false.')
+}
+if (any(long$autoCpiToIq %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
+  stop('External data must remain autoCpiToIq=false.')
 }
 if (any(long$cilItem %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
   stop('External ICAR rows must remain cilItem=false.')
@@ -33,14 +49,31 @@ long$correct <- as.numeric(long$correct)
 long <- long[long$correct %in% c(0, 1), ]
 long$externalDomain <- toupper(long$externalDomain)
 domains <- c('LN','MR','VR','R3D')
+age_band_levels <- c('19–24','25–29','30–34','35–39','40–49','50–59')
+if (any(!long$ageBand %in% age_band_levels)) {
+  stop(sprintf('Unexpected normalized age bands: %s', paste(sort(unique(long$ageBand[!long$ageBand %in% age_band_levels])), collapse = ', ')))
+}
 
-participants <- unique(long[, c('sourceKey','ageYears','ageBand')])
+participants <- unique(long[, c('sourceKey','sourceAgeBand','ageBand')])
 items <- sort(unique(long$externalItemId))
 participant_ids <- sort(unique(long$sourceKey))
 wide <- matrix(NA_real_, nrow = length(participant_ids), ncol = length(items),
                dimnames = list(participant_ids, items))
-for (i in seq_len(nrow(long))) {
-  wide[long$sourceKey[[i]], long$externalItemId[[i]]] <- long$correct[[i]]
+row_index <- match(long$sourceKey, participant_ids)
+col_index <- match(long$externalItemId, items)
+wide[cbind(row_index, col_index)] <- long$correct
+
+# sourceKey is a deterministic SHA-based pseudonym; lexical ordering therefore gives
+# a deterministic pseudo-random cross-section without introducing a second identifier.
+take_bounded <- function(matrix_data, max_n) {
+  if (nrow(matrix_data) <= max_n) return(matrix_data)
+  matrix_data[seq_len(max_n), , drop = FALSE]
+}
+
+safe_num <- function(x) {
+  if (is.null(x) || length(x) == 0) return(NA_real_)
+  value <- suppressWarnings(as.numeric(x[[1]]))
+  if (!is.finite(value)) NA_real_ else value
 }
 
 reliability <- list()
@@ -48,31 +81,39 @@ item_parameter_rows <- list()
 for (domain in domains) {
   domain_items <- sort(unique(long$externalItemId[long$externalDomain == domain]))
   domain_matrix <- wide[, domain_items, drop = FALSE]
-  keep_rows <- rowSums(!is.na(domain_matrix)) >= 2
-  domain_matrix_fit <- domain_matrix[keep_rows, , drop = FALSE]
+  response_counts <- rowSums(!is.na(domain_matrix))
+  reliability_rows <- response_counts >= 2
+  domain_matrix_rel <- domain_matrix[reliability_rows, , drop = FALSE]
 
   alpha_value <- NA_real_
   omega_total <- NA_real_
-  if (nrow(domain_matrix_fit) >= 50 && ncol(domain_matrix_fit) >= 3) {
-    alpha_result <- suppressWarnings(psych::alpha(domain_matrix_fit, check.keys = FALSE, warnings = FALSE, na.rm = TRUE))
-    alpha_value <- unname(alpha_result$total$raw_alpha)
-    omega_result <- tryCatch(
-      suppressWarnings(psych::omega(domain_matrix_fit, nfactors = 1, plot = FALSE, warnings = FALSE)),
+  if (nrow(domain_matrix_rel) >= 50 && ncol(domain_matrix_rel) >= 3) {
+    alpha_result <- tryCatch(
+      suppressWarnings(psych::alpha(domain_matrix_rel, check.keys = FALSE, warnings = FALSE, na.rm = TRUE)),
       error = function(e) NULL
     )
-    if (!is.null(omega_result) && !is.null(omega_result$omega.tot)) omega_total <- unname(omega_result$omega.tot)
+    if (!is.null(alpha_result)) alpha_value <- safe_num(alpha_result$total$raw_alpha)
+    omega_result <- tryCatch(
+      suppressWarnings(psych::omega(domain_matrix_rel, nfactors = 1, plot = FALSE, warnings = FALSE)),
+      error = function(e) NULL
+    )
+    if (!is.null(omega_result) && !is.null(omega_result$omega.tot)) omega_total <- safe_num(omega_result$omega.tot)
   }
 
+  irt_rows <- response_counts >= 3
+  domain_matrix_irt <- take_bounded(domain_matrix[irt_rows, , drop = FALSE], irt_max_n)
   reliability[[domain]] <- list(
     items = length(domain_items),
-    participantsWithAtLeastTwoResponses = sum(keep_rows),
+    participantsWithAtLeastTwoResponses = sum(reliability_rows),
     alpha = alpha_value,
-    omegaTotal = omega_total
+    omegaTotal = omega_total,
+    irtEligibleParticipants = sum(irt_rows),
+    irtFitParticipants = nrow(domain_matrix_irt)
   )
 
-  if (nrow(domain_matrix_fit) >= 500 && ncol(domain_matrix_fit) >= 3) {
+  if (nrow(domain_matrix_irt) >= 500 && ncol(domain_matrix_irt) >= 3) {
     fit <- tryCatch(
-      mirt::mirt(domain_matrix_fit, 1, itemtype = '2PL', verbose = FALSE, technical = list(NCYCLES = 500)),
+      mirt::mirt(domain_matrix_irt, 1, itemtype = '2PL', verbose = FALSE, technical = list(NCYCLES = 500)),
       error = function(e) NULL
     )
     if (!is.null(fit)) {
@@ -82,6 +123,7 @@ for (domain in domains) {
         externalDomain = domain,
         discriminationA = coefs[, 'a'],
         difficultyB = coefs[, 'b'],
+        irtFitParticipants = nrow(domain_matrix_irt),
         stringsAsFactors = FALSE
       )
       item_parameter_rows[[domain]] <- frame
@@ -93,7 +135,8 @@ item_parameters <- if (length(item_parameter_rows)) do.call(rbind, item_paramete
 write.csv(item_parameters, file.path(out_dir, 'icar-item-parameters.csv'), row.names = FALSE, na = '')
 
 # Logistic-regression age-DIF screen. This is an external method screen, not a CIL fairness verdict.
-# For each item, compare response ~ rest-score against response ~ rest-score + age-band.
+# The public dataset exposes categorical age bands rather than exact ages; use those published
+# categories directly instead of inventing midpoint ages.
 age_lookup <- setNames(participants$ageBand, participants$sourceKey)
 dif_rows <- list()
 for (item in items) {
@@ -103,9 +146,11 @@ for (item in items) {
   if (length(other_items) < 2) next
 
   y <- wide[, item]
-  rest_score <- rowMeans(wide[, other_items, drop = FALSE], na.rm = TRUE)
-  rest_score[!is.finite(rest_score)] <- NA_real_
-  age_band <- factor(age_lookup[rownames(wide)], levels = c('18–24','25–34','35–44','45–54','55–65'))
+  other_matrix <- wide[, other_items, drop = FALSE]
+  rest_count <- rowSums(!is.na(other_matrix))
+  rest_score <- rowMeans(other_matrix, na.rm = TRUE)
+  rest_score[!is.finite(rest_score) | rest_count < 2] <- NA_real_
+  age_band <- factor(age_lookup[rownames(wide)], levels = age_band_levels)
   frame <- data.frame(y = y, restScore = rest_score, ageBand = age_band)
   frame <- frame[complete.cases(frame), ]
   if (nrow(frame) < 500 || length(unique(frame$y)) < 2 || length(unique(frame$ageBand)) < 3) next
@@ -113,11 +158,14 @@ for (item in items) {
   result <- tryCatch({
     null_model <- glm(y ~ restScore, data = frame, family = binomial())
     age_model <- glm(y ~ restScore + ageBand, data = frame, family = binomial())
-    ll0 <- as.numeric(logLik(null_model))
-    ll1 <- as.numeric(logLik(age_model))
-    df_diff <- attr(logLik(age_model), 'df') - attr(logLik(null_model), 'df')
+    ll0_obj <- logLik(null_model)
+    ll1_obj <- logLik(age_model)
+    ll0 <- as.numeric(ll0_obj)
+    ll1 <- as.numeric(ll1_obj)
+    df_diff <- attr(ll1_obj, 'df') - attr(ll0_obj, 'df')
     lr <- max(0, 2 * (ll1 - ll0))
     p <- pchisq(lr, df = df_diff, lower.tail = FALSE)
+    delta_pseudo_r2 <- if (is.finite(ll0) && ll0 != 0) max(0, (ll1 - ll0) / abs(ll0)) else NA_real_
     data.frame(
       externalItemId = item,
       externalDomain = item_domain,
@@ -125,6 +173,7 @@ for (item in items) {
       likelihoodRatio = lr,
       df = df_diff,
       p = p,
+      deltaMcFaddenPseudoR2 = delta_pseudo_r2,
       stringsAsFactors = FALSE
     )
   }, warning = function(w) NULL, error = function(e) NULL)
@@ -134,57 +183,210 @@ for (item in items) {
 age_dif <- if (length(dif_rows)) do.call(rbind, dif_rows) else data.frame()
 if (nrow(age_dif)) {
   age_dif$pAdjustedBH <- p.adjust(age_dif$p, method = 'BH')
-  age_dif$flag <- age_dif$pAdjustedBH < 0.01
+  age_dif$statisticalFlagBH001 <- age_dif$pAdjustedBH < 0.01
 }
 write.csv(age_dif, file.path(out_dir, 'icar-age-dif-screen.csv'), row.names = FALSE, na = '')
 
 participant_scores <- aggregate(correct ~ sourceKey + externalDomain, data = long, FUN = mean)
 participant_scores <- merge(participant_scores, participants, by = 'sourceKey', all.x = TRUE)
 age_summary <- aggregate(correct ~ ageBand + externalDomain, data = participant_scores, FUN = function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
+age_stats <- age_summary$correct
+required_age_stats <- c('n', 'mean', 'sd')
+if (!is.matrix(age_stats) || !all(required_age_stats %in% colnames(age_stats))) {
+  stop('Unexpected aggregate age-summary shape; expected matrix columns n, mean, sd.')
+}
 age_rows <- data.frame(
   ageBand = age_summary$ageBand,
   externalDomain = age_summary$externalDomain,
-  n = vapply(age_summary$correct, function(x) x[['n']], numeric(1)),
-  meanProportionCorrect = vapply(age_summary$correct, function(x) x[['mean']], numeric(1)),
-  sdProportionCorrect = vapply(age_summary$correct, function(x) x[['sd']], numeric(1)),
+  n = as.numeric(age_stats[, 'n']),
+  meanProportionCorrect = as.numeric(age_stats[, 'mean']),
+  sdProportionCorrect = as.numeric(age_stats[, 'sd']),
   stringsAsFactors = FALSE
 )
 write.csv(age_rows, file.path(out_dir, 'icar-age-band-summary.csv'), row.names = FALSE, na = '')
 
+# Factor-structure screen on binary-item correlations. The historical four-factor
+# solution remains the primary loading output, while a 1-8 factor sensitivity curve
+# and a bounded tetrachoric parallel analysis avoid assuming dimensionality from
+# the domain labels alone.
+response_count_all <- rowSums(!is.na(wide))
+factor_eligible <- response_count_all >= 8
+factor_matrix <- take_bounded(wide[factor_eligible, , drop = FALSE], factor_max_n)
 factor_fit <- NULL
-if (nrow(wide) >= 1000 && ncol(wide) == 60) {
+factor_sensitivity <- list()
+parallel_analysis <- NULL
+factor_loadings <- data.frame()
+if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
   factor_fit <- tryCatch({
-    fit4 <- mirt::mirt(wide, 4, itemtype = '2PL', method = 'MHRM', verbose = FALSE, technical = list(NCYCLES = 800))
-    stats <- mirt::M2(fit4, calcNull = TRUE)
-    list(
-      model = 'exploratory-4-factor-2PL',
-      M2 = unname(stats$M2),
-      df = unname(stats$df),
-      p = unname(stats$p),
-      RMSEA = unname(stats$RMSEA),
-      SRMSR = unname(stats$SRMSR),
-      TLI = unname(stats$TLI),
-      CFI = unname(stats$CFI)
+    correlation_method <- 'tetrachoric'
+    rho <- tryCatch(
+      suppressWarnings(psych::tetrachoric(factor_matrix, correct = 0.5)$rho),
+      error = function(e) NULL
     )
-  }, error = function(e) list(model = 'exploratory-4-factor-2PL', error = conditionMessage(e)))
+    if (is.null(rho) || any(!is.finite(rho))) {
+      correlation_method <- 'pairwise-pearson-phi-fallback'
+      rho <- suppressWarnings(cor(factor_matrix, use = 'pairwise.complete.obs'))
+    }
+    rho <- psych::cor.smooth(rho)
+
+    factor_sensitivity <<- lapply(seq_len(8), function(factor_count) {
+      sensitivity_fit <- tryCatch(
+        suppressWarnings(psych::fa(
+          rho,
+          nfactors = factor_count,
+          n.obs = nrow(factor_matrix),
+          fm = 'minres',
+          rotate = if (factor_count == 1) 'none' else 'oblimin'
+        )),
+        error = function(e) NULL
+      )
+      if (is.null(sensitivity_fit)) {
+        return(list(
+          factors = factor_count,
+          RMSEA = NA_real_,
+          TLI = NA_real_,
+          RMSR = NA_real_,
+          BIC = NA_real_,
+          converged = FALSE
+        ))
+      }
+      list(
+        factors = factor_count,
+        RMSEA = safe_num(sensitivity_fit$RMSEA),
+        TLI = safe_num(sensitivity_fit$TLI),
+        RMSR = safe_num(sensitivity_fit$rms),
+        BIC = safe_num(sensitivity_fit$BIC),
+        converged = TRUE
+      )
+    })
+
+    parallel_matrix <- take_bounded(factor_matrix, parallel_max_n)
+    parallel_analysis <<- tryCatch({
+      options(mc.cores = 1)
+      set.seed(20260916)
+      pa <- suppressWarnings(psych::fa.parallel(
+        parallel_matrix,
+        fm = 'minres',
+        fa = 'fa',
+        nfactors = 1,
+        n.iter = parallel_iterations,
+        SMC = FALSE,
+        sim = FALSE,
+        quant = .95,
+        cor = 'tet',
+        use = 'pairwise',
+        plot = FALSE,
+        correct = .5
+      ))
+      pa_values <- as.matrix(pa$values)
+      variable_count <- ncol(parallel_matrix)
+      expected_columns <- variable_count * 2
+      if (ncol(pa_values) < expected_columns) {
+        stop(sprintf('Unexpected fa.parallel values shape: expected at least %d columns, got %d.', expected_columns, ncol(pa_values)))
+      }
+      null_factor_values <- pa_values[, (variable_count + 1):(2 * variable_count), drop = FALSE]
+      null95 <- apply(null_factor_values, 2, quantile, probs = .95, na.rm = TRUE, names = FALSE)
+      observed <- as.numeric(pa$fa.values)
+      report_n <- min(20L, length(observed), length(null95))
+      list(
+        method = 'psych::fa.parallel randomized-resample null with tetrachoric correlations',
+        sampleParticipants = nrow(parallel_matrix),
+        items = ncol(parallel_matrix),
+        iterations = parallel_iterations,
+        quantile = .95,
+        seed = 20260916,
+        singleCore = TRUE,
+        suggestedFactors = if (length(pa$nfact)) as.integer(pa$nfact[[1]]) else NA_integer_,
+        firstTwenty = lapply(seq_len(report_n), function(index) list(
+          factor = index,
+          observedFactorEigenvalue = safe_num(observed[index]),
+          null95 = safe_num(null95[index]),
+          retained = is.finite(observed[index]) && is.finite(null95[index]) && observed[index] > null95[index]
+        ))
+      )
+    }, error = function(e) list(
+      method = 'psych::fa.parallel randomized-resample null with tetrachoric correlations',
+      sampleParticipants = nrow(parallel_matrix),
+      items = ncol(parallel_matrix),
+      iterations = parallel_iterations,
+      quantile = .95,
+      seed = 20260916,
+      singleCore = TRUE,
+      error = conditionMessage(e)
+    ))
+
+    efa <- suppressWarnings(psych::fa(rho, nfactors = 4, n.obs = nrow(factor_matrix), fm = 'minres', rotate = 'oblimin'))
+    loadings_matrix <- as.matrix(unclass(efa$loadings))
+    factor_loadings <<- data.frame(
+      externalItemId = rownames(loadings_matrix),
+      loadings_matrix,
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    eigenvalues <- eigen(rho, symmetric = TRUE, only.values = TRUE)$values
+    list(
+      model = 'exploratory-4-factor-binary-correlation-minres-oblimin',
+      correlationMethod = correlation_method,
+      eligibleParticipants = sum(factor_eligible),
+      fitParticipants = nrow(factor_matrix),
+      RMSEA = safe_num(efa$RMSEA),
+      TLI = safe_num(efa$TLI),
+      RMSR = safe_num(efa$rms),
+      BIC = safe_num(efa$BIC),
+      firstEightEigenvalues = as.numeric(head(eigenvalues, 8)),
+      firstTwentyEigenvalues = as.numeric(head(eigenvalues, 20))
+    )
+  }, error = function(e) list(
+    model = 'exploratory-4-factor-binary-correlation-minres-oblimin',
+    eligibleParticipants = sum(factor_eligible),
+    fitParticipants = nrow(factor_matrix),
+    error = conditionMessage(e)
+  ))
 }
+write.csv(factor_loadings, file.path(out_dir, 'icar-factor-loadings.csv'), row.names = FALSE, na = '')
 
 manifest <- list(
-  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.2',
+  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.6',
   generatedAt = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   datasetId = 'icar-sapa-2010-2013',
   participants = length(participant_ids),
   scoredRows = nrow(long),
   items = length(items),
-  ageRange = range(participants$ageYears, na.rm = TRUE),
+  ageCoverage = list(
+    sourceEncoding = 'published-categorical-age-bands',
+    includedBands = age_band_levels,
+    includedSourceBands = c('19to24','25to29','30to34','35to39','40to49','50to59'),
+    excludedAmbiguousSourceBands = c('18andUnder','60andOver'),
+    requestedAdultBoundary = c(18, 65),
+    minimumKnownAge = 19,
+    maximumKnownAge = 59,
+    exactAgeImputed = FALSE
+  ),
+  analysisCaps = list(
+    domain2plMaxParticipants = irt_max_n,
+    factorMaxParticipants = factor_max_n,
+    parallelAnalysisMaxParticipants = parallel_max_n,
+    parallelAnalysisIterations = parallel_iterations,
+    fullDataUsedForReliability = TRUE,
+    fullDataUsedForAgeDif = TRUE,
+    deterministicBoundedSubsamples = TRUE
+  ),
   reliability = reliability,
   ageDifScreen = list(
-    method = 'logistic-regression-rest-score-plus-age-band',
+    method = 'logistic-regression-rest-score-plus-published-age-band',
+    minimumOtherDomainResponsesForRestScore = 2,
     testedItems = nrow(age_dif),
-    flaggedItemsBH001 = if (nrow(age_dif)) sum(age_dif$flag, na.rm = TRUE) else 0,
+    statisticalFlagsBH001 = if (nrow(age_dif)) sum(age_dif$statisticalFlagBH001, na.rm = TRUE) else 0,
     interpretation = 'External method/fairness screen only; not a Cognitive IQ Lab item DIF result.'
   ),
   factorStructure = factor_fit,
+  factorSensitivity = list(
+    factorsTested = c(1,2,3,4,5,6,7,8),
+    method = 'same-smoothed-binary-item-correlation-minres; oblimin for multi-factor solutions',
+    interpretation = 'Sensitivity analysis only; does not unlock product IQ norms or establish a definitive factor count.',
+    fitCurve = factor_sensitivity
+  ),
+  parallelAnalysis = parallel_analysis,
   safety = list(
     sourceIsolated = TRUE,
     productNormEligible = FALSE,
@@ -196,10 +398,16 @@ manifest <- list(
     'Convenience sample; not representative population norms.',
     'English-language administration.',
     'Sparse missing-by-design SAPA administration.',
+    'Published age is categorical rather than exact; 18andUnder and 60andOver are excluded because membership inside the requested 18–65 boundary cannot be resolved.',
+    'No midpoint or exact-age imputation is used.',
+    'Domain 2PL and factor-structure models use deterministic bounded subsamples for reproducible CI runtime.',
+    'The 1-8 factor sensitivity curve reuses the same bounded smoothed correlation matrix and is exploratory rather than a product norming gate.',
+    'Parallel analysis uses a smaller deterministic bounded sample, randomized-resample null data, tetrachoric correlations, a fixed seed, and a 95th-percentile threshold for reproducible CI runtime.',
     'Age-DIF output is a logistic regression screen, not a CIL product fairness verdict.',
     'External results validate methods and structure only.'
   )
 )
 jsonlite::write_json(manifest, file.path(out_dir, 'icar-external-validation.json'), pretty = TRUE, auto_unbox = TRUE, na = 'null')
 cat(sprintf('ICAR external validation complete: %d participants, %d scored rows, %d items.\n', length(participant_ids), nrow(long), length(items)))
+cat(sprintf('2PL cap/domain: %d; factor cap: %d; parallel-analysis cap: %d.\n', irt_max_n, factor_max_n, parallel_max_n))
 cat('External data remain isolated from Cognitive IQ Lab product norms.\n')

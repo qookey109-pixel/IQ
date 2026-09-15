@@ -1,4 +1,4 @@
-# Cognitive IQ Lab — Calibration v1
+# Cognitive IQ Lab — Calibration Pipeline
 
 This directory defines the research pipeline required before Cognitive IQ Lab may report an IQ estimate.
 
@@ -10,13 +10,29 @@ CPI is the current product score. It must not be relabeled or algebraically conv
 
 1. **Collect** — export pseudonymous item-level response data from the browser. Whole-year age only; no birthday, name, account, IP, or location.
 2. **Pool** — combine voluntary exports while deduplicating the same browser/source key. Repeated sessions are not treated as independent people.
-3. **Classical QA** — inspect p-values, item-rest correlations, distractors, skip/timeout rates, and timing anomalies.
-4. **Reliability** — use `psych` for omega/alpha/split-half analyses by total score and domain.
-5. **IRT** — use `mirt` for item difficulty/discrimination, multidimensional models, test information, and group comparisons.
-6. **Fairness / DIF** — use `lordif` and/or multiple-group `mirt` to test whether age groups with comparable latent ability receive systematically different item difficulty.
-7. **Construct validity** — use `lavaan` to compare six-domain, g-factor, and bifactor CFA structures and age-group measurement invariance.
-8. **External linking** — when an approved public-domain anchor set is administered to the same participants, estimate linking/equating rather than copying another test's norms.
-9. **Norming** — estimate age-band distributions, percentiles, standard errors, and confidence intervals. Only then may the product expose an IQ estimate.
+3. **Anchor linking** — optional participants complete six unscored CIL anchor items after the unchanged 42 scored questions. One medium-difficulty anchor is selected per domain, avoiding an item already used in the same formal form. Stable anchor fingerprints detect content drift.
+4. **Classical QA** — inspect p-values, item-rest correlations, distractors, skip/timeout rates, and timing anomalies.
+5. **Reliability** — use `psych` for omega/alpha/split-half analyses by total score and domain.
+6. **IRT** — use `mirt` for item difficulty/discrimination, multidimensional models, test information, and group comparisons. Missing-by-design data are expected; the common anchor block helps place forms on a shared scale.
+7. **Fairness / DIF** — use `lordif` and/or multiple-group `mirt` to test whether age groups with comparable latent ability receive systematically different item difficulty.
+8. **Construct validity** — use `lavaan` to compare six-domain, g-factor, and bifactor CFA structures and age-group measurement invariance.
+9. **External linking** — link CIL sessions to scores/theta from a separately administered, properly licensed external measure using common-person IDs. Do not copy another test's norms or publish protected item content.
+10. **Norming** — estimate age-band distributions, percentiles, standard errors, and confidence intervals. Only then may the product expose an IQ estimate.
+
+## Internal anchor study
+
+`anchor-core.js` deterministically selects a six-item anchor block from the final 2,058-item QB5 bank:
+
+- one anchor per cognitive domain
+- medium difficulty
+- four valid answer options
+- no duplication with the participant's 42-item formal form
+- a stable item/content fingerprint on every anchor response
+- fallback bridge items when a primary anchor happened to appear in the formal form
+
+`calibration-anchor-study.js` is opt-in. The formal assessment remains exactly 42 scored items; the six anchor items are presented afterwards and never modify CPI. Memory anchors retain one-shot exposure rules and timed anchors retain their deadline behavior. No correct-answer feedback is shown during the anchor block.
+
+Anchor responses are appended to the same local calibration session using `formId = anchor:<anchor-version>`, so `mirt` and other missing-data psychometric workflows can recognize the common-item links.
 
 ## Tooling
 
@@ -44,7 +60,7 @@ Any rewrite must occur in the source generator or integrity layer, then pass the
 
 ## Data files
 
-`schema.json` documents the pooled long-format response schema. The browser-facing study exporter is designed to include:
+`schema.json` documents the pooled long-format response schema. The browser-facing study exporter includes:
 
 - pseudonymous source key / session id
 - whole-year age and age band
@@ -53,12 +69,17 @@ Any rewrite must occur in the source generator or integrity layer, then pass the
 - binary correctness / skipped / timeout
 - response seconds
 - current bank, scoring, and form versions
+- optional anchor form IDs and anchor metadata in the JSON study record
 
 No automatic upload is enabled.
 
-## External anchors
+## External validation adapter
 
-Only items with compatible licensing may be added as research anchors. Public-domain/open research instruments such as ICAR are candidates, but every imported item must have its license/source recorded. Commercial instruments (for example WAIS or proprietary Raven forms) must not be copied into the repository.
+`external-validation-schema.json` and `analysis/external_linking.R` define a common-person adapter for separately administered validation measures. The repository stores only external score/theta metadata and permission references; it must not store protected item text or protected scoring keys.
+
+ICAR is a useful research candidate, but its current distribution workflow requires registration and asks users not to publish its items or scoring key. Therefore Cognitive IQ Lab does **not** embed ICAR item content in the public repository. If approved ICAR access is obtained, administer it in a controlled research environment and import only the permitted score/theta result for common-person linking.
+
+Commercial instruments (for example WAIS or proprietary Raven forms) must not be copied into the repository.
 
 ## Unlock criteria for IQ reporting
 
@@ -66,6 +87,7 @@ The exact study protocol still requires preregistration/research review, but pro
 
 - sufficiently large independent sample across the supported 18–65 age range
 - adequate item exposure across calibration forms
+- stable common-item/common-person linking through the anchor network
 - acceptable total/domain reliability
 - stable IRT parameters and useful information across the target ability range
 - no unresolved material age DIF

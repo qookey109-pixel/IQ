@@ -188,12 +188,17 @@ write.csv(age_dif, file.path(out_dir, 'icar-age-dif-screen.csv'), row.names = FA
 participant_scores <- aggregate(correct ~ sourceKey + externalDomain, data = long, FUN = mean)
 participant_scores <- merge(participant_scores, participants, by = 'sourceKey', all.x = TRUE)
 age_summary <- aggregate(correct ~ ageBand + externalDomain, data = participant_scores, FUN = function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
+age_stats <- age_summary$correct
+required_age_stats <- c('n', 'mean', 'sd')
+if (!is.matrix(age_stats) || !all(required_age_stats %in% colnames(age_stats))) {
+  stop('Unexpected aggregate age-summary shape; expected matrix columns n, mean, sd.')
+}
 age_rows <- data.frame(
   ageBand = age_summary$ageBand,
   externalDomain = age_summary$externalDomain,
-  n = vapply(age_summary$correct, function(x) x[['n']], numeric(1)),
-  meanProportionCorrect = vapply(age_summary$correct, function(x) x[['mean']], numeric(1)),
-  sdProportionCorrect = vapply(age_summary$correct, function(x) x[['sd']], numeric(1)),
+  n = as.numeric(age_stats[, 'n']),
+  meanProportionCorrect = as.numeric(age_stats[, 'mean']),
+  sdProportionCorrect = as.numeric(age_stats[, 'sd']),
   stringsAsFactors = FALSE
 )
 write.csv(age_rows, file.path(out_dir, 'icar-age-band-summary.csv'), row.names = FALSE, na = '')

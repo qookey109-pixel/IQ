@@ -42,7 +42,8 @@
   function rebuildMatrixClarity(q){
     const n=itemIndex(q);
     const v=Math.max(0,Number(q.constructVariant||1)-1);
-    const x=4+mod(n,7),y=1+mod(n+v,4);
+    const surface=mod(n,18);
+    const x=6+surface*2+v,y=2+mod(surface+v,5);
     const {fn,desc}=matrixRule(v);
     const rows=[];
     for(let r=0;r<4;r++){

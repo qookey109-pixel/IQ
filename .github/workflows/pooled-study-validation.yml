@@ -1,0 +1,24 @@
+name: Pooled Calibration Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/cognitive-iq-lab-v6
+      - feature/calibration-v4-pooled-study
+
+jobs:
+  validate-pooled-calibration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check pooled-study JavaScript syntax
+        run: |
+          node --check scripts/pool-calibration-exports.js
+          node --check tests/pooled-study-validation.js
+
+      - name: Validate privacy, consent, independence, completeness, anchors and readiness locks
+        run: node tests/pooled-study-validation.js

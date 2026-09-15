@@ -21,9 +21,10 @@ assert.ok(anchorCore,'anchor core must load before the formal selector');
 
 const anchors=anchorCore.selectAnchorSet(bank);
 const reservedIds=anchors.map(x=>x.id);
+const reservedSet=new Set(reservedIds);
 assert.strictEqual(anchors.length,6,'six stable anchors must be reserved');
 assert.ok(anchors.every(x=>x.role==='core'),'reserved anchors must use their stable primary IDs');
-assert.ok(formal.every(q=>!reservedIds.includes(q.id)),'default formal form must exclude stable research anchors');
+assert.ok(formal.every(q=>!reservedSet.has(q.id)),'default formal form must exclude stable research anchors');
 assert.strictEqual(window.IQ_42_FORM.anchorReserve.count,6,'production metadata must expose six reserved anchors');
 assert.deepStrictEqual(new Set(window.IQ_42_FORM.anchorReserve.ids),new Set(reservedIds),'production reserve IDs must match anchor core');
 
@@ -31,7 +32,28 @@ const cycle=matrixCore.buildCycle(bank,{reservedIds,epoch:0});
 assert.strictEqual(cycle.forms.length,56,'matrix cycle must contain 56 planned forms');
 assert.strictEqual(cycle.coverage.totalResponses,56*42,'56-slot cycle must contain 2,352 formal responses');
 assert.ok(cycle.coverage.uniqueItems>=1500,`matrix cycle should spread exposure broadly; got ${cycle.coverage.uniqueItems} unique items`);
-assert.ok(cycle.coverage.maxExposure<=8,`no item should dominate the matrix cycle; max exposure=${cycle.coverage.maxExposure}`);
+
+// Capacity-aware concentration bound: once the fixed 2/3/2 blueprint determines how
+// often a family×difficulty cell is used, its concrete-item pool sets a mathematical
+// lower bound on the maximum item exposure (ceil(cell uses / eligible items)).
+// The scheduler is allowed at most one exposure above that lower bound.
+let theoreticalMinMaxExposure=0;
+for(const domainRow of cycle.byDomain){
+  for(const family of domainRow.families){
+    for(const tier of matrixCore.TIERS){
+      const uses=Number(domainRow.usage?.[family]?.[tier]||0);
+      if(!uses)continue;
+      const candidates=bank.filter(q=>q.d===domainRow.domain&&q.taskFamily===family&&q.difficulty===tier&&!reservedSet.has(q.id)).length;
+      assert.ok(candidates>0,`${domainRow.domain}/${family}/${tier}: matrix cell must have eligible candidates`);
+      theoreticalMinMaxExposure=Math.max(theoreticalMinMaxExposure,Math.ceil(uses/candidates));
+    }
+  }
+}
+assert.ok(theoreticalMinMaxExposure>0,'matrix exposure lower bound must be computable');
+assert.ok(
+  cycle.coverage.maxExposure<=theoreticalMinMaxExposure+1,
+  `matrix scheduler concentration exceeds capacity-aware guardrail: max=${cycle.coverage.maxExposure}, theoretical floor=${theoreticalMinMaxExposure}`
+);
 
 for(let slot=0;slot<cycle.forms.length;slot++){
   const form=cycle.forms[slot];
@@ -39,7 +61,7 @@ for(let slot=0;slot<cycle.forms.length;slot++){
   assert.strictEqual(validation.ok,true,`slot ${slot}: ${validation.errors.join('; ')}`);
   assert.strictEqual(form.length,42,`slot ${slot}: must remain 42 items`);
   assert.strictEqual(new Set(form.map(q=>q.id)).size,42,`slot ${slot}: IDs must be unique`);
-  assert.ok(form.every(q=>!reservedIds.includes(q.id)),`slot ${slot}: must not contain reserved anchor`);
+  assert.ok(form.every(q=>!reservedSet.has(q.id)),`slot ${slot}: must not contain reserved anchor`);
   for(const domain of matrixCore.DOMAINS){
     const group=form.filter(q=>q.d===domain);
     assert.strictEqual(group.length,7,`${domain}: seven items per slot`);
@@ -75,4 +97,4 @@ assert.ok(html.includes('56 槽位 matrix sampling'),'public explanation must di
 assert.ok(html.includes('6 個中等難度題目保留為固定研究 Anchor'),'public explanation must disclose reserved anchors');
 
 console.log('Calibration matrix form validation PASS');
-console.log(`cycle=${cycle.forms.length}; uniqueItems=${cycle.coverage.uniqueItems}; maxExposure=${cycle.coverage.maxExposure}; reservedAnchors=${reservedIds.length}`);
+console.log(`cycle=${cycle.forms.length}; uniqueItems=${cycle.coverage.uniqueItems}; maxExposure=${cycle.coverage.maxExposure}; theoreticalFloor=${theoreticalMinMaxExposure}; reservedAnchors=${reservedIds.length}`);

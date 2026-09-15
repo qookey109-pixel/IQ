@@ -49,6 +49,33 @@ jobs:
           test -s "$RUNNER_TEMP/icar/icar-sapa-source.csv"
           test ! -f calibration/input/external/icar-sapa.csv
 
+      - name: Preflight real ICAR normalization
+        run: |
+          PREFLIGHT_DIR="$RUNNER_TEMP/icar/preflight-normalize"
+          rm -rf "$PREFLIGHT_DIR"
+          node scripts/normalize-icar-sapa.js \
+            "$RUNNER_TEMP/icar/icar-sapa-source.csv" \
+            "$PREFLIGHT_DIR"
+          test -s "$PREFLIGHT_DIR/external-scored-responses.csv"
+          node - "$PREFLIGHT_DIR/external-dataset-manifest.json" <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (manifest.itemColumns !== 60) throw new Error(`Expected 60 ICAR items; got ${manifest.itemColumns}`);
+          if (manifest.participantsWithScoredResponses < 500) throw new Error('Too few scored ICAR participants for real validation.');
+          if (manifest.scoredRows < 500) throw new Error('Too few scored ICAR rows for real validation.');
+          if (manifest.productNormEligible !== false || manifest.productIqUnlocked !== false) {
+            throw new Error('External-data governance lock changed during normalization.');
+          }
+          console.log(JSON.stringify({
+            itemColumns: manifest.itemColumns,
+            participantsWithScoredResponses: manifest.participantsWithScoredResponses,
+            scoredRows: manifest.scoredRows,
+            productNormEligible: manifest.productNormEligible,
+            productIqUnlocked: manifest.productIqUnlocked
+          }));
+          NODE
+          rm -rf "$PREFLIGHT_DIR"
+
       - name: Run real external research pack
         run: |
           node scripts/run-external-dataset-research-pack.js \

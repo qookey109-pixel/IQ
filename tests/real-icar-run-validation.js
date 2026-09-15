@@ -7,6 +7,8 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const acquire = fs.readFileSync(path.join(root, 'scripts', 'acquire-icar-sapa.R'), 'utf8');
 const analysis = fs.readFileSync(path.join(root, 'calibration', 'analysis', 'external_icar_validation.R'), 'utf8');
+const twoFactor = fs.readFileSync(path.join(root, 'calibration', 'analysis', 'external_icar_two_factor.R'), 'utf8');
+const runner = fs.readFileSync(path.join(root, 'scripts', 'run-external-dataset-research-pack.js'), 'utf8');
 const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'calibration-v8-real-icar-run.yml'), 'utf8');
 const normalizer = fs.readFileSync(path.join(root, 'scripts', 'normalize-icar-sapa.js'), 'utf8');
 
@@ -39,9 +41,22 @@ const normalizer = fs.readFileSync(path.join(root, 'scripts', 'normalize-icar-sa
   assert(analysis.includes("mirt::mirt(domain_matrix_irt, 1, itemtype = '2PL'"), 'Real run must execute domain 2PL models');
   assert(analysis.includes('psych::tetrachoric'), 'Factor structure should attempt binary-item tetrachoric correlations');
   assert(analysis.includes('psych::fa(rho, nfactors = 4'), 'Real run must execute the four-factor structure screen');
+  assert(analysis.includes('psych::fa.parallel'), 'Real run must execute bounded tetrachoric parallel analysis');
+  assert(analysis.includes('firstTwentyEigenvalues'), 'Parallel-analysis evidence must preserve the first 20 observed eigenvalues');
   assert(analysis.includes('deltaMcFaddenPseudoR2'), 'Age-DIF output must include an effect-size diagnostic');
   assert(analysis.includes('productIqUnlocked = FALSE'));
   assert(analysis.includes('autoCpiToIq = FALSE'));
+})();
+
+(function validateTwoFactorInterpretation() {
+  assert(runner.includes('external-icar-two-factor-interpretation'), 'Research pack must execute the two-factor interpretation after the main R validation');
+  assert(runner.includes('calibration/analysis/external_icar_two_factor.R'));
+  assert(twoFactor.includes("psych::fa(rho, nfactors = 2"), 'Two-factor interpretation must execute an explicit two-factor model');
+  assert(twoFactor.includes("rotate = 'oblimin'"), 'Two-factor interpretation must allow correlated factors');
+  assert(twoFactor.includes('manifest$twoFactorStructure'), 'Two-factor evidence must be merged into the aggregate validation manifest');
+  assert(twoFactor.includes("namingPolicy = 'Do not assign semantic factor names"), 'Semantic factor names must not be guessed from domain labels');
+  assert(twoFactor.includes("productNormEligible=false"), 'Two-factor interpretation must preserve the product-norm lock');
+  assert(twoFactor.includes("Product IQ norming and CPI-to-IQ conversion remain locked"), 'Two-factor interpretation must document the locked governance state');
 })();
 
 (function validateWorkflowIsolation() {

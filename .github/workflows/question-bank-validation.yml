@@ -50,6 +50,7 @@ jobs:
           node --check single-screen.js
           node --check navigation-layout-fix.js
           node --check app.js
+          node --check pretest-flow.js
           node --check timeout-lock.js
           node --check memory-exposure.js
           node --check scripts/export-qb5.js
@@ -69,6 +70,7 @@ jobs:
           node --check tests/compact-final-production-validation.js
           node --check tests/timing-runtime-validation.js
           node --check tests/visual-readability-validation.js
+          node --check tests/pretest-flow-validation.js
 
       - name: Validate QB5 2,058-item bank and 42-item forms
         run: node tests/question-bank-validation.js
@@ -144,6 +146,9 @@ jobs:
 
       - name: Validate final 2,058-item / 42-question production runtime
         run: node tests/compact-final-production-validation.js
+
+      - name: Validate age selection and unscored practice entry flow
+        run: node tests/pretest-flow-validation.js
 
       - name: Validate visual readability against reviewed content baseline
         run: node tests/visual-readability-validation.js

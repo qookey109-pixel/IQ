@@ -34,9 +34,14 @@ function buildPlan(options = {}) {
       command: 'Rscript',
       args: ['calibration/analysis/external_icar_validation.R', normalizedCsv, outDir]
     });
+    steps.push({
+      name: 'external-icar-two-factor-interpretation',
+      command: 'Rscript',
+      args: ['calibration/analysis/external_icar_two_factor.R', normalizedCsv, outDir]
+    });
   }
   return {
-    version: 'CIL-EXTERNAL-RESEARCH-PACK-2026.09.1',
+    version: 'CIL-EXTERNAL-RESEARCH-PACK-2026.09.2',
     input,
     outDir,
     normalizedCsv,

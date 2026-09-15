@@ -203,14 +203,15 @@ age_rows <- data.frame(
 )
 write.csv(age_rows, file.path(out_dir, 'icar-age-band-summary.csv'), row.names = FALSE, na = '')
 
-# Four-factor structure screen on binary-item correlations. This is deliberately
-# bounded for CI reproducibility; full row-level summaries and DIF still use all
-# available included records. Tetrachoric correlations are attempted first, with a
-# pairwise Pearson/phi fallback if sparse cells make tetrachorics fail.
+# Factor-structure screen on binary-item correlations. The historical four-factor
+# solution remains the primary loading output, while a 1-8 factor sensitivity curve
+# is recorded in the aggregate manifest so that dimensionality is not assumed from
+# the domain labels alone. The same bounded correlation matrix is reused throughout.
 response_count_all <- rowSums(!is.na(wide))
 factor_eligible <- response_count_all >= 8
 factor_matrix <- take_bounded(wide[factor_eligible, , drop = FALSE], factor_max_n)
 factor_fit <- NULL
+factor_sensitivity <- list()
 factor_loadings <- data.frame()
 if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
   factor_fit <- tryCatch({
@@ -224,6 +225,38 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
       rho <- suppressWarnings(cor(factor_matrix, use = 'pairwise.complete.obs'))
     }
     rho <- psych::cor.smooth(rho)
+
+    factor_sensitivity <<- lapply(seq_len(8), function(factor_count) {
+      sensitivity_fit <- tryCatch(
+        suppressWarnings(psych::fa(
+          rho,
+          nfactors = factor_count,
+          n.obs = nrow(factor_matrix),
+          fm = 'minres',
+          rotate = if (factor_count == 1) 'none' else 'oblimin'
+        )),
+        error = function(e) NULL
+      )
+      if (is.null(sensitivity_fit)) {
+        return(list(
+          factors = factor_count,
+          RMSEA = NA_real_,
+          TLI = NA_real_,
+          RMSR = NA_real_,
+          BIC = NA_real_,
+          converged = FALSE
+        ))
+      }
+      list(
+        factors = factor_count,
+        RMSEA = safe_num(sensitivity_fit$RMSEA),
+        TLI = safe_num(sensitivity_fit$TLI),
+        RMSR = safe_num(sensitivity_fit$rms),
+        BIC = safe_num(sensitivity_fit$BIC),
+        converged = TRUE
+      )
+    })
+
     efa <- suppressWarnings(psych::fa(rho, nfactors = 4, n.obs = nrow(factor_matrix), fm = 'minres', rotate = 'oblimin'))
     loadings_matrix <- as.matrix(unclass(efa$loadings))
     factor_loadings <<- data.frame(
@@ -254,7 +287,7 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
 write.csv(factor_loadings, file.path(out_dir, 'icar-factor-loadings.csv'), row.names = FALSE, na = '')
 
 manifest <- list(
-  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.4',
+  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.5',
   generatedAt = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   datasetId = 'icar-sapa-2010-2013',
   participants = length(participant_ids),
@@ -286,6 +319,12 @@ manifest <- list(
     interpretation = 'External method/fairness screen only; not a Cognitive IQ Lab item DIF result.'
   ),
   factorStructure = factor_fit,
+  factorSensitivity = list(
+    factorsTested = c(1,2,3,4,5,6,7,8),
+    method = 'same-smoothed-binary-item-correlation-minres; oblimin for multi-factor solutions',
+    interpretation = 'Sensitivity analysis only; does not unlock product IQ norms or establish a definitive factor count.',
+    fitCurve = factor_sensitivity
+  ),
   safety = list(
     sourceIsolated = TRUE,
     productNormEligible = FALSE,
@@ -300,6 +339,7 @@ manifest <- list(
     'Published age is categorical rather than exact; 18andUnder and 60andOver are excluded because membership inside the requested 18–65 boundary cannot be resolved.',
     'No midpoint or exact-age imputation is used.',
     'Domain 2PL and factor-structure models use deterministic bounded subsamples for reproducible CI runtime.',
+    'The 1-8 factor sensitivity curve reuses the same bounded smoothed correlation matrix and is exploratory rather than a product norming gate.',
     'Age-DIF output is a logistic regression screen, not a CIL product fairness verdict.',
     'External results validate methods and structure only.'
   )

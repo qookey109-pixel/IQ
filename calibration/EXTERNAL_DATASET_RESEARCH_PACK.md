@@ -66,7 +66,10 @@ Outputs remain under `calibration/output/`, which is gitignored.
 - domain reliability (alpha / omega where estimable),
 - domain 2PL IRT item parameters,
 - age-band score summaries,
+- logistic-regression age-DIF screening that controls for within-domain rest score,
 - exploratory four-factor IRT fit diagnostics.
+
+The age-DIF output is deliberately labelled a **screen**. It is useful for validating the fairness-analysis workflow on a large external dataset, but it is not evidence that a Cognitive IQ Lab item has or does not have DIF.
 
 These results are useful for validating software behavior, model assumptions, missing-data handling, and age-group analysis design. They do **not** create a CIL IQ scale.
 

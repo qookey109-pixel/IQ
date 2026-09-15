@@ -43,6 +43,8 @@ jobs:
             any::lordif
             any::readr
             any::dplyr
+            any::tidyr
+            any::jsonlite
           cache-version: 1
 
       - name: Run bounded two-seed recovery study

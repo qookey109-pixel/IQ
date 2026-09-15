@@ -26,15 +26,17 @@ const stable = bank.map(q => [
   q.id, q.d, q.type, q.q, q.o, q.a, q.correctContent, q.limit,
   q.stim, q.cells, q.semanticKey, q.spatialIntegrityData
 ]);
-// Reviewed baseline refreshed after the intentional 2026-09-14 assessment-content
-// changes: the reported-vs-fact family was rewritten to test evidence strength by
-// paraphrase rather than literal copying, and STR-2026.09.1 refined 56 grid-path
-// plus 56 mirror-coordinate items. Independent oracle, option-quality, full-bank,
-// spatial-reliability and coordinate-refinement gates all pass before this baseline
-// is accepted. Future presentation-only changes must preserve this reviewed content,
-// answer keys, timing, stimuli and spatial models.
+// Reviewed baseline refreshed after intentional 2026-09-15 Safari screenshot QA.
+// Changes reviewed before accepting this digest: all matrix-difference items now
+// provide three complete example rows; scale-drawing items explicitly distinguish
+// scaling-only from scale-then-translate and expose every translation vector;
+// speed-boundary and full-box packing wording is explicit. Before this baseline
+// is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
+// screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
+// Future presentation-only changes must preserve this reviewed content, answer keys,
+// timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, '2673f8e2c567f37f1df58207d61a45b43a977dfc40b1abaa8b21b6bc65b940c0',
+assert.strictEqual(digest, '7d36c3eb813058271a7474c40166e7daebbbc38b8595118846d1b49bf0bb43fe',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

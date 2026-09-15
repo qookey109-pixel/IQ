@@ -1,0 +1,18 @@
+/* Pre-test flow viewport safety. The core visual styling lives with the feature runtime. */
+.pretestPanel {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.pretestPanel > :last-child {
+  margin-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+@media (max-height: 680px), (max-width: 760px) {
+  .pretestPanel {
+    align-content: start;
+  }
+}

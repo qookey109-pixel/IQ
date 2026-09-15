@@ -55,12 +55,14 @@ assert.ok(Math.max(...positions)-Math.min(...positions)<=1,`2,058-item bank answ
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,392);
 assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')&&q.spatialReliability==='SRI-2026.09.1'));
-assert.strictEqual(meta.spatialTaskRefinement,'STR-2026.09.1');
-assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.total,112);
+assert.strictEqual(meta.spatialTaskRefinement,'STR-2026.09.2');
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.total,168);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.gridDisplacement,56);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.mirrorCoordinate,56);
-assert.ok(bank.filter(q=>q.taskFamily==='grid-displacement').every(q=>q.spatialTaskRefinement==='STR-2026.09.1'&&q.spatialIntegrityData?.endpointCoordinatesShown===false));
-assert.ok(bank.filter(q=>q.taskFamily==='mirror-coordinate').every(q=>q.spatialTaskRefinement==='STR-2026.09.1'&&q.spatialIntegrityData?.axesLabeled===true));
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.scaleDrawing,56);
+assert.ok(bank.filter(q=>q.taskFamily==='grid-displacement').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.endpointCoordinatesShown===false));
+assert.ok(bank.filter(q=>q.taskFamily==='mirror-coordinate').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.axesLabeled===true));
+assert.ok(bank.filter(q=>q.taskFamily==='scale-drawing').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.translationExplicit===true));
 const memory=bank.filter(q=>q.d==='工作記憶');
 assert.strictEqual(memory.length,392);
 assert.ok(memory.every(q=>q.type==='memory'&&String(q.stim||'').trim().length>0&&q.limit==null));
@@ -75,9 +77,13 @@ assert.strictEqual(meta.processingSpeedIntegrity,'PSI-2026.09.1');
 assert.strictEqual(meta.memoryUsability,'MUI-2026.09.2');
 assert.strictEqual(meta.spatialReliability,'SRI-2026.09.1');
 assert.strictEqual(meta.fullBankSweep,'FBQ-2026.09.1');
-assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.1');
+assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.2');
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.totalItems,2058);
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.cueRiskItems,0);
+
+const matrices=bank.filter(q=>q.taskFamily==='matrix-difference');
+assert.strictEqual(matrices.length,56);
+assert.ok(matrices.every(q=>q.matrixClarityVersion==='MC-2026.09.1'&&q.cells?.length===12&&q.cells[11]==='?'));
 
 assert.strictEqual(form.length,42);
 assert.strictEqual(new Set(form.map(q=>q.id)).size,42);
@@ -95,4 +101,4 @@ assert.strictEqual(window.IQ_DIVERSITY.validateForm(form).ok,true);
 assert.ok(window.IQ_FORM_EQUIVALENCE_LAST&&window.IQ_FORM_EQUIVALENCE_LAST.maxAbsPct<=20);
 
 console.log('QB5 42-item final-production validation PASS');
-console.log(`2,058 = 294 constructs × 7 surfaces; 42 families; answer positions=${positions.join('/')}; spatial=392; coordinate refinement=112; memory=392; speed=392; production form=42 with all seven families/domain.`);
+console.log(`2,058 = 294 constructs × 7 surfaces; 42 families; answer positions=${positions.join('/')}; spatial=392; coordinate/transform refinement=168; matrix clarity=56; memory=392; speed=392; production form=42 with all seven families/domain.`);

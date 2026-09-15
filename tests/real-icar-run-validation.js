@@ -19,19 +19,19 @@ const normalizer = fs.readFileSync(path.join(root, 'scripts', 'normalize-icar-sa
 })();
 
 (function validatePublishedHeaderCompatibility() {
-  assert(normalizer.includes('[._-]?(\\d+)'), 'Normalizer must accept the published dot-style item labels');
+  assert(normalizer.includes('const ITEM_RE = /^(LN|MR|VR|R3D)[._-]?'), 'Normalizer must accept punctuation between family and item number');
   assert(normalizer.includes("adapter: 'icar-sapa-scored-response-v2'"));
   assert(normalizer.includes('acceptsPublishedDotItemLabels: true'));
 })();
 
 (function validateBoundedRealAnalysis() {
-  assert(analysis.includes("CIL_ICAR_IRT_MAX_N"), '2PL run must have an explicit reproducible cap');
-  assert(analysis.includes("CIL_ICAR_FACTOR_MAX_N"), 'Factor run must have an explicit reproducible cap');
-  assert(analysis.includes("fullDataUsedForReliability = TRUE"), 'Reliability must still use the full adult data');
-  assert(analysis.includes("fullDataUsedForAgeDif = TRUE"), 'Age-DIF screen must still use the full adult data');
+  assert(analysis.includes('CIL_ICAR_IRT_MAX_N'), '2PL run must have an explicit reproducible cap');
+  assert(analysis.includes('CIL_ICAR_FACTOR_MAX_N'), 'Factor run must have an explicit reproducible cap');
+  assert(analysis.includes('fullDataUsedForReliability = TRUE'), 'Reliability must still use the full adult data');
+  assert(analysis.includes('fullDataUsedForAgeDif = TRUE'), 'Age-DIF screen must still use the full adult data');
   assert(analysis.includes("mirt::mirt(domain_matrix_irt, 1, itemtype = '2PL'"), 'Real run must execute domain 2PL models');
   assert(analysis.includes('psych::tetrachoric'), 'Factor structure should attempt binary-item tetrachoric correlations');
-  assert(analysis.includes("psych::fa(rho, nfactors = 4"), 'Real run must execute the four-factor structure screen');
+  assert(analysis.includes('psych::fa(rho, nfactors = 4'), 'Real run must execute the four-factor structure screen');
   assert(analysis.includes('deltaMcFaddenPseudoR2'), 'Age-DIF output must include an effect-size diagnostic');
   assert(analysis.includes('productIqUnlocked = FALSE'));
 })();

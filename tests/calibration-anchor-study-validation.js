@@ -9,7 +9,7 @@ const store={};
 const window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;},removeItem(k){delete store[k];}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
-const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','qb5-compact-bank.js','qb5-verbal-surface-expansion.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js','processing-speed-integrity.js','full-bank-polish.js','memory-usability.js','spatial-reliability.js','spatial-task-refinement.js','presentation-clarity.js','qb5-42-form.js'];
+const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','qb5-compact-bank.js','qb5-verbal-surface-expansion.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js','processing-speed-integrity.js','full-bank-polish.js','memory-usability.js','spatial-reliability.js','spatial-task-refinement.js','presentation-clarity.js','calibration/anchor-core.js','qb5-42-form.js'];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 
 const bank=window.IQ_QUESTION_BANK;
@@ -27,6 +27,9 @@ assert.strictEqual(new Set(anchors.map(x=>x.id)).size,6,'anchor IDs must be uniq
 assert.ok(anchors.every(x=>x.question.difficulty==='medium'),'anchors should use medium-difficulty linking items');
 assert.ok(anchors.every(x=>Array.isArray(x.question.o)&&x.question.o.length===4),'anchors must remain normal four-option QB5 items');
 assert.ok(anchors.every(x=>!formalIds.includes(x.id)),'anchor block must not repeat an item from the same formal form');
+assert.ok(anchors.every(x=>x.role==='core'),'production reserve must keep the same primary anchor IDs instead of runtime fallbacks');
+assert.strictEqual(window.IQ_42_FORM.anchorReserve.count,6,'formal selector must reserve exactly six anchors');
+assert.deepStrictEqual(new Set(window.IQ_42_FORM.anchorReserve.ids),new Set(anchors.map(x=>x.id)),'reserved IDs must equal primary anchor IDs');
 
 const anchorsAgain=anchorCore.selectAnchorSet(bank,{excludeIds:formalIds});
 assert.deepStrictEqual(anchorsAgain.map(x=>[x.id,x.role,x.fingerprint]),anchors.map(x=>[x.id,x.role,x.fingerprint]),'anchor selection must be deterministic for the same bank/form');
@@ -37,7 +40,7 @@ for(const domain of anchorCore.DOMAINS){
   const fallback=anchorCore.selectAnchorSet(bank,{excludeIds:[ordered[0].id]});
   const row=fallback.find(x=>x.domain===domain);
   assert.notStrictEqual(row.id,ordered[0].id,`${domain}: excluded primary must not repeat`);
-  assert.strictEqual(row.role,'bridge-fallback',`${domain}: fallback must be explicitly marked`);
+  assert.strictEqual(row.role,'bridge-fallback',`${domain}: fallback mechanism must remain explicit for forensic/recovery use`);
 }
 
 const sample=anchors[0].question;
@@ -56,11 +59,13 @@ assert.ok(source.includes("formId:`anchor:${core.VERSION}`"),'anchor rows must b
 assert.ok(source.includes('formalItemOverlap'),'anchor persistence must audit accidental overlap');
 
 const html=fs.readFileSync('index.html','utf8');
-const studyPos=html.indexOf('calibration-study.js');
 const corePos=html.indexOf('calibration/anchor-core.js');
+const formPos=html.indexOf('qb5-42-form.js');
+const studyPos=html.indexOf('calibration-study.js');
 const anchorPos=html.indexOf('calibration-anchor-study.js');
-assert.ok(studyPos>=0&&corePos>studyPos&&anchorPos>corePos,'anchor modules must load after calibration-study and core before UI');
-assert.ok(html.includes('42 題正式測驗完成後再做 6 題不計分 Anchor'),'public explanation must disclose optional anchor block');
+assert.ok(corePos>=0&&corePos<formPos,'anchor core must load before formal form selection so anchor IDs can be reserved');
+assert.ok(studyPos>formPos&&anchorPos>studyPos,'anchor study UI must still load after calibration-study persistence is available');
+assert.ok(html.includes('42 題正式測驗完成後再做這 6 題不計分 Anchor'),'public explanation must disclose stable optional anchor block');
 
 const externalSchema=JSON.parse(fs.readFileSync('calibration/external-validation-schema.json','utf8'));
 assert.strictEqual(externalSchema.safety.allowProtectedItemsInRepository,false,'protected external items must stay out of the public repo');

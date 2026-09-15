@@ -54,7 +54,7 @@ jobs:
 
       - name: Inspect staged ICAR aggregate encoding
         run: |
-          Rscript - "$RUNNER_TEMP/icar/icar-sapa-source.csv" <<'RS'
+          Rscript - "$RUNNER_TEMP/icar/icar-sapa-source.csv" "$RUNNER_TEMP/icar/icar-encoding-diagnostics.txt" <<'RS'
           args <- commandArgs(trailingOnly = TRUE)
           frame <- read.csv(args[[1]], check.names = FALSE, stringsAsFactors = FALSE)
           item_pattern <- '^(LN|MR|VR|R3D)[._-]?[0-9]+$'
@@ -66,9 +66,25 @@ jobs:
           valid_age <- is.finite(age) & age >= 18 & age <= 65
           tokens <- sort(unique(unlist(lapply(frame[item_cols], function(x) as.character(x[!is.na(x) & nzchar(as.character(x))])))))
           if (length(tokens) > 20) tokens <- c(head(tokens, 20), '...')
-          cat(sprintf('ICAR_ENCODING sourceRows=%d adultAgeRows=%d itemColumns=%d\n', nrow(frame), sum(valid_age), length(item_cols)))
-          cat(sprintf('ICAR_ENCODING scoredTokens=%s\n', paste(tokens, collapse='|')))
+          diagnostics <- c(
+            sprintf('sourceRows=%d', nrow(frame)),
+            sprintf('adultAgeRows=%d', sum(valid_age)),
+            sprintf('itemColumns=%d', length(item_cols)),
+            sprintf('scoredTokens=%s', paste(tokens, collapse='|'))
+          )
+          cat(sprintf('ICAR_ENCODING %s\n', diagnostics[[1]]))
+          cat(sprintf('ICAR_ENCODING %s %s\n', diagnostics[[2]], diagnostics[[3]]))
+          cat(sprintf('ICAR_ENCODING %s\n', diagnostics[[4]]))
+          writeLines(diagnostics, args[[2]], useBytes = TRUE)
           RS
+
+      - name: Upload aggregate-only encoding diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v8-icar-encoding-diagnostics
+          path: ${{ runner.temp }}/icar/icar-encoding-diagnostics.txt
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Preflight real ICAR normalization
         run: |

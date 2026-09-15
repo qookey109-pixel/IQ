@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "mode": "offline-validation-lab",
+  "purpose": "Validate psychometric tooling and item-health workflows without a participant-data backend.",
+  "allowedSources": [
+    "synthetic",
+    "manual-local-export",
+    "public-external-dataset"
+  ],
+  "network": {
+    "automaticUpload": false,
+    "participantBackend": false,
+    "databaseRequired": false,
+    "backgroundCollection": false
+  },
+  "privacy": {
+    "rejectDirectIdentifiers": true,
+    "forbiddenFields": [
+      "name",
+      "email",
+      "phone",
+      "address",
+      "location",
+      "ip",
+      "ipAddress",
+      "accountId",
+      "dateOfBirth",
+      "birthday"
+    ]
+  },
+  "sourceIsolation": {
+    "syntheticCanCreateProductNorms": false,
+    "publicExternalCanCreateProductNorms": false,
+    "externalResponsesCanBeMixedIntoCilNorms": false,
+    "manualLocalExportsRequireExplicitUserAction": true
+  },
+  "productSafety": {
+    "productIqUnlocked": false,
+    "populationNormed": false,
+    "autoPublishNorms": false,
+    "autoConvertCpiToIq": false,
+    "autoRewriteItems": false,
+    "autoChangeAnswerKeys": false
+  }
+}

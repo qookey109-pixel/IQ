@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cognitive-iq-lab.local/calibration/pooled-study-export-v1.json",
+  "title": "Cognitive IQ Lab manual calibration export accepted by the pooled-study tool",
+  "type": "object",
+  "required": ["schemaVersion", "sourceKey", "sessions"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": ["string", "null"] },
+    "sourceKey": { "type": "string", "minLength": 8 },
+    "privacy": {
+      "type": ["object", "null"],
+      "properties": {
+        "automaticUpload": { "const": false },
+        "containsName": { "const": false },
+        "containsAccount": { "const": false },
+        "containsDateOfBirth": { "const": false },
+        "containsIp": { "const": false },
+        "containsLocation": { "const": false }
+      }
+    },
+    "productStatus": {
+      "type": ["object", "null"],
+      "properties": {
+        "cpiAvailable": { "type": "boolean" },
+        "iqEstimateAvailable": { "const": false },
+        "populationNormed": { "const": false }
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sessionId", "sourceKey", "ageYears", "ageBand", "rows"],
+        "properties": {
+          "sessionId": { "type": "string", "minLength": 8 },
+          "sourceKey": { "type": "string", "minLength": 8 },
+          "createdAt": { "type": ["string", "null"] },
+          "ageYears": { "type": "integer", "minimum": 18, "maximum": 65 },
+          "ageBand": { "enum": ["18–24", "25–34", "35–44", "45–54", "55–65"] },
+          "cpi": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "iqEstimate": { "type": "null" },
+          "iqStatus": { "type": ["string", "null"] },
+          "anchorStudy": {
+            "type": ["object", "null"],
+            "properties": {
+              "optIn": { "const": true },
+              "completed": { "type": "boolean" },
+              "status": { "type": "string" }
+            },
+            "required": ["optIn"]
+          },
+          "rows": {
+            "type": "array",
+            "items": { "$ref": "schema-v1.json" }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Pooling is manual/offline. A session is eligible only when anchorStudy.optIn is true. Forbidden identifying keys are additionally rejected recursively by scripts/pool-calibration-exports.js."
+}

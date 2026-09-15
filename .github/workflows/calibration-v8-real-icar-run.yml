@@ -55,19 +55,27 @@ jobs:
           age_cols <- names(frame)[tolower(trimws(names(frame))) == 'age']
           if (length(item_cols) != 60) stop(sprintf('Expected 60 staged ICAR columns; got %d.', length(item_cols)))
           if (!length(age_cols)) stop('Staged ICAR source is missing age.')
-          age <- suppressWarnings(as.numeric(frame[[age_cols[[1]]]]))
+          age_raw <- as.character(frame[[age_cols[[1]]]])
+          age <- suppressWarnings(as.numeric(age_raw))
           valid_age <- is.finite(age) & age >= 18 & age <= 65
+          age_tokens <- sort(unique(age_raw[!is.na(age_raw) & nzchar(age_raw)]))
+          age_token_count <- length(age_tokens)
+          if (length(age_tokens) > 40) age_tokens <- c(head(age_tokens, 20), '...', tail(age_tokens, 20))
+          finite_age <- age[is.finite(age)]
+          age_numeric_range <- if (length(finite_age)) sprintf('%s..%s', min(finite_age), max(finite_age)) else 'none'
           tokens <- sort(unique(unlist(lapply(frame[item_cols], function(x) as.character(x[!is.na(x) & nzchar(as.character(x))])))))
           if (length(tokens) > 20) tokens <- c(head(tokens, 20), '...')
           diagnostics <- c(
             sprintf('sourceRows=%d', nrow(frame)),
             sprintf('adultAgeRows=%d', sum(valid_age)),
             sprintf('itemColumns=%d', length(item_cols)),
-            sprintf('scoredTokens=%s', paste(tokens, collapse='|'))
+            sprintf('scoredTokens=%s', paste(tokens, collapse='|')),
+            sprintf('ageTokenCount=%d', age_token_count),
+            sprintf('ageTokens=%s', paste(age_tokens, collapse='|')),
+            sprintf('numericAgeFinite=%d', length(finite_age)),
+            sprintf('numericAgeRange=%s', age_numeric_range)
           )
-          cat(sprintf('ICAR_ENCODING %s\n', diagnostics[[1]]))
-          cat(sprintf('ICAR_ENCODING %s %s\n', diagnostics[[2]], diagnostics[[3]]))
-          cat(sprintf('ICAR_ENCODING %s\n', diagnostics[[4]]))
+          cat(paste(sprintf('ICAR_ENCODING %s', diagnostics), collapse='\n'), '\n')
           writeLines(diagnostics, args[[2]], useBytes = TRUE)
           RS
 

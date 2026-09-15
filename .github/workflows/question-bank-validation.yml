@@ -71,6 +71,7 @@ jobs:
           node --check tests/timing-runtime-validation.js
           node --check tests/visual-readability-validation.js
           node --check tests/pretest-flow-validation.js
+          node --check tests/screenshot-qa-validation.js
 
       - name: Validate QB5 2,058-item bank and 42-item forms
         run: node tests/question-bank-validation.js
@@ -119,6 +120,9 @@ jobs:
 
       - name: Validate coordinate spatial task refinement and Safari scrollability
         run: node tests/spatial-task-refinement-validation.js
+
+      - name: Validate screenshot-reported question clarity and IQ result status
+        run: node tests/screenshot-qa-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js

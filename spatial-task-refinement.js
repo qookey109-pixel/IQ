@@ -1,7 +1,7 @@
-// Cognitive IQ Lab — Spatial Task Refinement v1
-// Focused follow-up to SRI v1 for the two coordinate families reported in real Safari use.
-// Grid displacement now measures path integration from a known start instead of direct
-// endpoint-coordinate reading. Mirror diagrams gain explicit axes, grid and tick labels.
+// Cognitive IQ Lab — Spatial Task Refinement v2
+// Follow-up to SRI v1 for coordinate and transform families reported in real Safari use.
+// Grid displacement measures path integration from a known start instead of direct endpoint reading.
+// Mirror diagrams expose explicit axes/ticks. Scale/translation wording now states every operation.
 (() => {
   'use strict';
 
@@ -9,7 +9,7 @@
   const selected=Array.isArray(window.IQ_QUESTIONS)?window.IQ_QUESTIONS:[];
   if(!bank.length)return;
 
-  const VERSION='STR-2026.09.1';
+  const VERSION='STR-2026.09.2';
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const svg=(inner,label,viewBox='0 0 360 270')=>{
     const [, , width, height]=viewBox.split(' ').map(Number);
@@ -100,7 +100,21 @@
     return svg(z,'含座標刻度與鏡射基準線的座標圖','0 0 360 280');
   }
 
-  const report={version:VERSION,total:0,gridDisplacement:0,mirrorCoordinate:0};
+  function clarifyScaleTransform(q,data){
+    const {w,h,sx,sy,tx,ty}=data;
+    const translated=Boolean(Number(tx)||Number(ty));
+    if(translated){
+      q.q=`原矩形左下角位於原點，寬 ${w}、高 ${h}。先以原點為基準做水平 ×${sx}、垂直 ×${sy} 的縮放，再將整個圖形平移 (${tx}, ${ty})。變換後右上角座標是多少？`;
+      q.e=`原右上角為 (${w}, ${h})；縮放後為 (${w*sx}, ${h*sy})；再平移 (${tx}, ${ty})，得到 (${w*sx+tx}, ${h*sy+ty})。`;
+    }else{
+      q.q=`原矩形左下角位於原點，寬 ${w}、高 ${h}。只做水平 ×${sx}、垂直 ×${sy} 的縮放（不做平移）。縮放後右上角座標是多少？`;
+      q.e=`原右上角為 (${w}, ${h})；水平與垂直分別乘上 ${sx}、${sy}，得到 (${w*sx}, ${h*sy})。`;
+    }
+    q.spatialIntegrityData={...data,transformationSequence:translated?['scale','translate']:['scale'],translationExplicit:true};
+    q.spatialTaskRefinement=VERSION;
+  }
+
+  const report={version:VERSION,total:0,gridDisplacement:0,mirrorCoordinate:0,scaleDrawing:0};
   const seen=new Set();
   for(const collection of [bank,selected]){
     for(const q of collection){
@@ -121,6 +135,9 @@
         q.spatialIntegrityData={...data,axesLabeled:true,tickRange:[-8,8],tickStep:2};
         q.spatialTaskRefinement=VERSION;
         report.total++;report.mirrorCoordinate++;
+      }else if(q.taskFamily==='scale-drawing'&&data?.kind==='scale-drawing'){
+        clarifyScaleTransform(q,data);
+        report.total++;report.scaleDrawing++;
       }
     }
   }

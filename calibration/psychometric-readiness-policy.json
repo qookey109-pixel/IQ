@@ -1,0 +1,45 @@
+{
+  "version": "CIL-PSYCH-2026.09.1",
+  "purpose": "Engineering screening thresholds for pooled psychometric analysis. These screens organize review work; they do not by themselves establish validity, population norms, or an IQ scale.",
+  "expectedDomains": 6,
+  "screens": {
+    "reliability": {
+      "minimumDomainsOk": 6,
+      "minimumOmegaTotal": 0.70
+    },
+    "irt": {
+      "minimumDomainsOk": 6
+    },
+    "dif": {
+      "minimumDomainsAnalyzed": 6,
+      "maximumMaterialFlagRate": 0.10,
+      "finalCandidateRequiresZeroUnresolvedMaterialFlags": true
+    },
+    "cfa": {
+      "minimumCFI": 0.90,
+      "maximumRMSEA": 0.08,
+      "maximumAbsoluteDeltaCFI": 0.01
+    },
+    "norming": {
+      "minimumAgeBands": 5,
+      "representativeSamplingRequired": true,
+      "uncertaintyRequired": true
+    },
+    "external": {
+      "minimumLinkedParticipantsForPrimaryEvidence": 100
+    }
+  },
+  "safety": {
+    "screeningOnly": true,
+    "autoRewrite": false,
+    "autoChangeAnswerKey": false,
+    "autoRetire": false,
+    "autoPublishNorms": false,
+    "autoConvertToIq": false,
+    "productIqUnlocked": false,
+    "requiresHumanPsychometricReview": true,
+    "requiresRepresentativeAgeNormStudy": true,
+    "requiresExternalValidityOrLinking": true,
+    "requiresVersionedUncertaintyEvidence": true
+  }
+}

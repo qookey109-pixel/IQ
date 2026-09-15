@@ -11,6 +11,22 @@ const DATASET_ID = 'icar-sapa-2010-2013';
 // remove punctuation, so accept both forms and canonicalize before analysis.
 const ITEM_RE = /^(LN|MR|VR|R3D)[._-]?(\d+)$/i;
 const DOMAIN_COUNTS = Object.freeze({ LN: 9, MR: 11, VR: 16, R3D: 24 });
+const INCLUDED_SOURCE_AGE_BANDS = Object.freeze({
+  '19to24': '19–24',
+  '25to29': '25–29',
+  '30to34': '30–34',
+  '35to39': '35–39',
+  '40to49': '40–49',
+  '50to59': '50–59'
+});
+const EXCLUDED_AMBIGUOUS_SOURCE_AGE_BANDS = Object.freeze(['18andUnder', '60andOver']);
+const KNOWN_SOURCE_AGE_BANDS = Object.freeze([
+  '18andUnder',
+  ...Object.keys(INCLUDED_SOURCE_AGE_BANDS),
+  '60andOver'
+]);
+const REAL_RUN_MIN_PARTICIPANTS = 500;
+const REAL_RUN_MIN_SCORED_ROWS = 500;
 
 function canonicalItemId(itemId) {
   const match = String(itemId ?? '').trim().match(ITEM_RE);
@@ -31,15 +47,6 @@ function normalizeDomain(itemId) {
   return null;
 }
 
-function ageBand(age) {
-  if (age >= 18 && age <= 24) return '18–24';
-  if (age <= 34) return '25–34';
-  if (age <= 44) return '35–44';
-  if (age <= 54) return '45–54';
-  if (age <= 65) return '55–65';
-  return null;
-}
-
 function detectAgeColumn(headers) {
   const exact = headers.find(name => /^age$/i.test(String(name).trim()));
   if (exact) return exact;
@@ -57,8 +64,37 @@ function parseBinary(value) {
   return null;
 }
 
+function canonicalSourceAgeBand(value) {
+  const token = String(value ?? '').trim();
+  if (!token) return null;
+  return KNOWN_SOURCE_AGE_BANDS.find(candidate => candidate.toLowerCase() === token.toLowerCase()) || null;
+}
+
+function parseSourceAgeBand(value) {
+  const sourceBand = canonicalSourceAgeBand(value);
+  if (!sourceBand) return null;
+  if (Object.prototype.hasOwnProperty.call(INCLUDED_SOURCE_AGE_BANDS, sourceBand)) {
+    return {
+      sourceBand,
+      ageBand: INCLUDED_SOURCE_AGE_BANDS[sourceBand],
+      included: true
+    };
+  }
+  return { sourceBand, ageBand: null, included: false };
+}
+
 function participantKey(rowIndex) {
   return `icar-${crypto.createHash('sha256').update(`${DATASET_ID}:${rowIndex}`).digest('hex').slice(0, 20)}`;
+}
+
+function assertRealRunMinimums(normalized, minParticipants = REAL_RUN_MIN_PARTICIPANTS, minScoredRows = REAL_RUN_MIN_SCORED_ROWS) {
+  const manifest = normalized?.manifest || {};
+  if (!Number.isInteger(manifest.participantsWithScoredResponses) || manifest.participantsWithScoredResponses < minParticipants) {
+    throw new Error(`Too few scored ICAR participants for real validation: ${manifest.participantsWithScoredResponses ?? 'missing'} < ${minParticipants}.`);
+  }
+  if (!Number.isInteger(manifest.scoredRows) || manifest.scoredRows < minScoredRows) {
+    throw new Error(`Too few scored ICAR rows for real validation: ${manifest.scoredRows ?? 'missing'} < ${minScoredRows}.`);
+  }
 }
 
 function normalizeIcarCsv(csvText) {
@@ -89,17 +125,29 @@ function normalizeIcarCsv(csvText) {
     }
   }
 
+  const observedAgeTokens = [...new Set(records
+    .map(record => String(record[ageColumn] ?? '').trim())
+    .filter(Boolean))];
+  const unknownAgeTokens = observedAgeTokens.filter(token => !canonicalSourceAgeBand(token));
+  if (unknownAgeTokens.length) {
+    throw new Error(`Unexpected ICAR source age categories: ${unknownAgeTokens.join(', ')}.`);
+  }
+
   const rows = [];
   const participants = new Set();
   const ageBands = {};
-  let sourceRecordsInAdultRange = 0;
+  let sourceRecordsInIncludedAgeBands = 0;
+  let sourceRecordsExcludedAmbiguousAgeBands = 0;
 
   records.forEach((record, index) => {
-    const age = Number(record[ageColumn]);
-    if (!Number.isInteger(age) || age < 18 || age > 65) return;
-    sourceRecordsInAdultRange += 1;
+    const age = parseSourceAgeBand(record[ageColumn]);
+    if (!age) return;
+    if (!age.included) {
+      sourceRecordsExcludedAmbiguousAgeBands += 1;
+      return;
+    }
+    sourceRecordsInIncludedAgeBands += 1;
     const sourceKey = participantKey(index + 1);
-    const band = ageBand(age);
     let participantHasResponse = false;
 
     for (const column of itemColumns) {
@@ -112,20 +160,21 @@ function normalizeIcarCsv(csvText) {
         datasetId: DATASET_ID,
         sourceKind: 'public-external-dataset',
         sourceKey,
-        ageYears: age,
-        ageBand: band,
+        sourceAgeBand: age.sourceBand,
+        ageBand: age.ageBand,
         externalItemId: `${DATASET_ID}:${canonical}`,
         externalDomain: normalizeDomain(column),
         correct,
         productNormEligible: false,
         cilItem: false,
-        productIqUnlocked: false
+        productIqUnlocked: false,
+        autoCpiToIq: false
       });
     }
 
     if (participantHasResponse) {
       participants.add(sourceKey);
-      ageBands[band] = (ageBands[band] || 0) + 1;
+      ageBands[age.ageBand] = (ageBands[age.ageBand] || 0) + 1;
     }
   });
 
@@ -133,13 +182,24 @@ function normalizeIcarCsv(csvText) {
     rows,
     manifest: {
       schemaVersion: 1,
-      adapter: 'icar-sapa-scored-response-v2',
+      adapter: 'icar-sapa-scored-response-v3',
       datasetId: DATASET_ID,
       license: 'CC0 Public Domain Dedication',
       source: 'https://doi.org/10.7910/DVN/AD9RVY',
       article: 'https://doi.org/10.5334/jopd.25',
-      adultAgeFilter: [18, 65],
-      sourceRecordsInAdultRange,
+      requestedAdultAgeBoundary: [18, 65],
+      publishedAgeEncoding: 'categorical-bands',
+      includedSourceAgeBands: Object.keys(INCLUDED_SOURCE_AGE_BANDS),
+      normalizedAgeBands: Object.values(INCLUDED_SOURCE_AGE_BANDS),
+      excludedAmbiguousSourceAgeBands: [...EXCLUDED_AMBIGUOUS_SOURCE_AGE_BANDS],
+      ageCoverage: {
+        minimumKnownAge: 19,
+        maximumKnownAge: 59,
+        exactAgeImputed: false,
+        rationale: 'Only published age bands fully contained within the requested 18–65 boundary are included.'
+      },
+      sourceRecordsInIncludedAgeBands,
+      sourceRecordsExcludedAmbiguousAgeBands,
       participantsWithScoredResponses: participants.size,
       scoredRows: rows.length,
       itemColumns: itemColumns.length,
@@ -151,16 +211,18 @@ function normalizeIcarCsv(csvText) {
       containsItemText: false,
       containsScoringKey: false,
       containsDirectIdentifiers: false,
+      exactAgeImputed: false,
       productNormEligible: false,
       productIqUnlocked: false,
+      autoCpiToIq: false,
       warning: 'ICAR/SAPA validates psychometric methods and external structure only. It is not a Cognitive IQ Lab population norm.'
     }
   };
 }
 
 const OUT_COLUMNS = [
-  'schemaVersion','datasetId','sourceKind','sourceKey','ageYears','ageBand',
-  'externalItemId','externalDomain','correct','productNormEligible','cilItem','productIqUnlocked'
+  'schemaVersion','datasetId','sourceKind','sourceKey','sourceAgeBand','ageBand',
+  'externalItemId','externalDomain','correct','productNormEligible','cilItem','productIqUnlocked','autoCpiToIq'
 ];
 
 function rowsToCsv(rows) {
@@ -183,6 +245,7 @@ function main(argv = process.argv.slice(2)) {
     return;
   }
   const normalized = normalizeIcarCsv(fs.readFileSync(input, 'utf8'));
+  assertRealRunMinimums(normalized);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'external-scored-responses.csv'), rowsToCsv(normalized.rows));
   fs.writeFileSync(path.join(outDir, 'external-dataset-manifest.json'), JSON.stringify(normalized.manifest, null, 2) + '\n');
@@ -196,12 +259,20 @@ module.exports = {
   DATASET_ID,
   ITEM_RE,
   DOMAIN_COUNTS,
+  INCLUDED_SOURCE_AGE_BANDS,
+  EXCLUDED_AMBIGUOUS_SOURCE_AGE_BANDS,
+  KNOWN_SOURCE_AGE_BANDS,
+  REAL_RUN_MIN_PARTICIPANTS,
+  REAL_RUN_MIN_SCORED_ROWS,
   canonicalItemId,
   normalizeDomain,
   detectAgeColumn,
   detectItemColumns,
   parseBinary,
+  canonicalSourceAgeBand,
+  parseSourceAgeBand,
   participantKey,
+  assertRealRunMinimums,
   normalizeIcarCsv,
   rowsToCsv,
   main

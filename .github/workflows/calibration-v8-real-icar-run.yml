@@ -56,24 +56,18 @@ jobs:
           if (length(item_cols) != 60) stop(sprintf('Expected 60 staged ICAR columns; got %d.', length(item_cols)))
           if (!length(age_cols)) stop('Staged ICAR source is missing age.')
           age_raw <- as.character(frame[[age_cols[[1]]]])
-          age <- suppressWarnings(as.numeric(age_raw))
-          valid_age <- is.finite(age) & age >= 18 & age <= 65
+          included_age_tokens <- c('19to24','25to29','30to34','35to39','40to49','50to59')
+          included_age <- age_raw %in% included_age_tokens
           age_tokens <- sort(unique(age_raw[!is.na(age_raw) & nzchar(age_raw)]))
-          age_token_count <- length(age_tokens)
-          if (length(age_tokens) > 40) age_tokens <- c(head(age_tokens, 20), '...', tail(age_tokens, 20))
-          finite_age <- age[is.finite(age)]
-          age_numeric_range <- if (length(finite_age)) sprintf('%s..%s', min(finite_age), max(finite_age)) else 'none'
           tokens <- sort(unique(unlist(lapply(frame[item_cols], function(x) as.character(x[!is.na(x) & nzchar(as.character(x))])))))
           if (length(tokens) > 20) tokens <- c(head(tokens, 20), '...')
           diagnostics <- c(
             sprintf('sourceRows=%d', nrow(frame)),
-            sprintf('adultAgeRows=%d', sum(valid_age)),
+            sprintf('includedAgeBandRows=%d', sum(included_age)),
             sprintf('itemColumns=%d', length(item_cols)),
             sprintf('scoredTokens=%s', paste(tokens, collapse='|')),
-            sprintf('ageTokenCount=%d', age_token_count),
-            sprintf('ageTokens=%s', paste(age_tokens, collapse='|')),
-            sprintf('numericAgeFinite=%d', length(finite_age)),
-            sprintf('numericAgeRange=%s', age_numeric_range)
+            sprintf('ageTokenCount=%d', length(age_tokens)),
+            sprintf('ageTokens=%s', paste(age_tokens, collapse='|'))
           )
           cat(paste(sprintf('ICAR_ENCODING %s', diagnostics), collapse='\n'), '\n')
           writeLines(diagnostics, args[[2]], useBytes = TRUE)
@@ -101,15 +95,21 @@ jobs:
           if (manifest.itemColumns !== 60) throw new Error(`Expected 60 ICAR items; got ${manifest.itemColumns}`);
           if (manifest.participantsWithScoredResponses < 500) throw new Error('Too few scored ICAR participants for real validation.');
           if (manifest.scoredRows < 500) throw new Error('Too few scored ICAR rows for real validation.');
-          if (manifest.productNormEligible !== false || manifest.productIqUnlocked !== false) {
+          if (manifest.publishedAgeEncoding !== 'categorical-bands' || manifest.exactAgeImputed !== false) {
+            throw new Error('Published categorical age semantics were not preserved.');
+          }
+          if (manifest.productNormEligible !== false || manifest.productIqUnlocked !== false || manifest.autoCpiToIq !== false) {
             throw new Error('External-data governance lock changed during normalization.');
           }
           console.log(JSON.stringify({
             itemColumns: manifest.itemColumns,
             participantsWithScoredResponses: manifest.participantsWithScoredResponses,
             scoredRows: manifest.scoredRows,
+            includedSourceAgeBands: manifest.includedSourceAgeBands,
+            exactAgeImputed: manifest.exactAgeImputed,
             productNormEligible: manifest.productNormEligible,
-            productIqUnlocked: manifest.productIqUnlocked
+            productIqUnlocked: manifest.productIqUnlocked,
+            autoCpiToIq: manifest.autoCpiToIq
           }));
           NODE
           rm -rf "$PREFLIGHT_DIR"
@@ -160,7 +160,7 @@ jobs:
             participants: manifest.participants,
             scoredRows: manifest.scoredRows,
             items: manifest.items,
-            ageRange: manifest.ageRange,
+            ageCoverage: manifest.ageCoverage,
             analysisCaps: manifest.analysisCaps,
             reliability: manifest.reliability,
             ageDifScreen: manifest.ageDifScreen,

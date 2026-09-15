@@ -24,7 +24,7 @@ irt_max_n <- read_cap('CIL_ICAR_IRT_MAX_N', 20000)
 factor_max_n <- read_cap('CIL_ICAR_FACTOR_MAX_N', 30000)
 
 long <- read.csv(input_path, stringsAsFactors = FALSE, check.names = FALSE)
-required_columns <- c('sourceKey','ageYears','ageBand','externalItemId','externalDomain','correct','productNormEligible','cilItem')
+required_columns <- c('sourceKey','sourceAgeBand','ageBand','externalItemId','externalDomain','correct','productNormEligible','cilItem','productIqUnlocked','autoCpiToIq')
 missing_columns <- setdiff(required_columns, names(long))
 if (length(missing_columns) > 0) {
   stop(sprintf('Missing columns: %s', paste(missing_columns, collapse = ', ')))
@@ -33,17 +33,26 @@ if (length(missing_columns) > 0) {
 if (any(long$productNormEligible %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
   stop('External data must remain productNormEligible=false.')
 }
+if (any(long$productIqUnlocked %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
+  stop('External data must remain productIqUnlocked=false.')
+}
+if (any(long$autoCpiToIq %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
+  stop('External data must remain autoCpiToIq=false.')
+}
 if (any(long$cilItem %in% c(TRUE, 'true', 'TRUE', 1), na.rm = TRUE)) {
   stop('External ICAR rows must remain cilItem=false.')
 }
 
 long$correct <- as.numeric(long$correct)
 long <- long[long$correct %in% c(0, 1), ]
-long$ageYears <- as.integer(long$ageYears)
 long$externalDomain <- toupper(long$externalDomain)
 domains <- c('LN','MR','VR','R3D')
+age_band_levels <- c('19–24','25–29','30–34','35–39','40–49','50–59')
+if (any(!long$ageBand %in% age_band_levels)) {
+  stop(sprintf('Unexpected normalized age bands: %s', paste(sort(unique(long$ageBand[!long$ageBand %in% age_band_levels])), collapse = ', ')))
+}
 
-participants <- unique(long[, c('sourceKey','ageYears','ageBand')])
+participants <- unique(long[, c('sourceKey','sourceAgeBand','ageBand')])
 items <- sort(unique(long$externalItemId))
 participant_ids <- sort(unique(long$sourceKey))
 wide <- matrix(NA_real_, nrow = length(participant_ids), ncol = length(items),
@@ -124,7 +133,8 @@ item_parameters <- if (length(item_parameter_rows)) do.call(rbind, item_paramete
 write.csv(item_parameters, file.path(out_dir, 'icar-item-parameters.csv'), row.names = FALSE, na = '')
 
 # Logistic-regression age-DIF screen. This is an external method screen, not a CIL fairness verdict.
-# For each item, compare response ~ rest-score against response ~ rest-score + age-band.
+# The public dataset exposes categorical age bands rather than exact ages; use those published
+# categories directly instead of inventing midpoint ages.
 age_lookup <- setNames(participants$ageBand, participants$sourceKey)
 dif_rows <- list()
 for (item in items) {
@@ -138,7 +148,7 @@ for (item in items) {
   rest_count <- rowSums(!is.na(other_matrix))
   rest_score <- rowMeans(other_matrix, na.rm = TRUE)
   rest_score[!is.finite(rest_score) | rest_count < 2] <- NA_real_
-  age_band <- factor(age_lookup[rownames(wide)], levels = c('18–24','25–34','35–44','45–54','55–65'))
+  age_band <- factor(age_lookup[rownames(wide)], levels = age_band_levels)
   frame <- data.frame(y = y, restScore = rest_score, ageBand = age_band)
   frame <- frame[complete.cases(frame), ]
   if (nrow(frame) < 500 || length(unique(frame$y)) < 2 || length(unique(frame$ageBand)) < 3) next
@@ -190,7 +200,7 @@ write.csv(age_rows, file.path(out_dir, 'icar-age-band-summary.csv'), row.names =
 
 # Four-factor structure screen on binary-item correlations. This is deliberately
 # bounded for CI reproducibility; full row-level summaries and DIF still use all
-# available adult records. Tetrachoric correlations are attempted first, with a
+# available included records. Tetrachoric correlations are attempted first, with a
 # pairwise Pearson/phi fallback if sparse cells make tetrachorics fail.
 response_count_all <- rowSums(!is.na(wide))
 factor_eligible <- response_count_all >= 8
@@ -239,13 +249,22 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
 write.csv(factor_loadings, file.path(out_dir, 'icar-factor-loadings.csv'), row.names = FALSE, na = '')
 
 manifest <- list(
-  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.3',
+  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.4',
   generatedAt = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   datasetId = 'icar-sapa-2010-2013',
   participants = length(participant_ids),
   scoredRows = nrow(long),
   items = length(items),
-  ageRange = range(participants$ageYears, na.rm = TRUE),
+  ageCoverage = list(
+    sourceEncoding = 'published-categorical-age-bands',
+    includedBands = age_band_levels,
+    includedSourceBands = c('19to24','25to29','30to34','35to39','40to49','50to59'),
+    excludedAmbiguousSourceBands = c('18andUnder','60andOver'),
+    requestedAdultBoundary = c(18, 65),
+    minimumKnownAge = 19,
+    maximumKnownAge = 59,
+    exactAgeImputed = FALSE
+  ),
   analysisCaps = list(
     domain2plMaxParticipants = irt_max_n,
     factorMaxParticipants = factor_max_n,
@@ -255,7 +274,7 @@ manifest <- list(
   ),
   reliability = reliability,
   ageDifScreen = list(
-    method = 'logistic-regression-rest-score-plus-age-band',
+    method = 'logistic-regression-rest-score-plus-published-age-band',
     minimumOtherDomainResponsesForRestScore = 2,
     testedItems = nrow(age_dif),
     statisticalFlagsBH001 = if (nrow(age_dif)) sum(age_dif$statisticalFlagBH001, na.rm = TRUE) else 0,
@@ -273,6 +292,8 @@ manifest <- list(
     'Convenience sample; not representative population norms.',
     'English-language administration.',
     'Sparse missing-by-design SAPA administration.',
+    'Published age is categorical rather than exact; 18andUnder and 60andOver are excluded because membership inside the requested 18–65 boundary cannot be resolved.',
+    'No midpoint or exact-age imputation is used.',
     'Domain 2PL and factor-structure models use deterministic bounded subsamples for reproducible CI runtime.',
     'Age-DIF output is a logistic regression screen, not a CIL product fairness verdict.',
     'External results validate methods and structure only.'

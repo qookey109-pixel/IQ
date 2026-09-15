@@ -3,64 +3,167 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const {
+  DATASET_ID,
+  DOMAIN_COUNTS,
+  INCLUDED_SOURCE_AGE_BANDS,
+  canonicalItemId,
+  detectItemColumns,
+  parseSourceAgeBand,
+  assertRealRunMinimums,
+  normalizeIcarCsv
+} = require('../scripts/normalize-icar-sapa.js');
+const { buildPlan } = require('../scripts/run-external-dataset-research-pack.js');
 
-const root = path.join(__dirname, '..');
-const acquire = fs.readFileSync(path.join(root, 'scripts', 'acquire-icar-sapa.R'), 'utf8');
-const analysis = fs.readFileSync(path.join(root, 'calibration', 'analysis', 'external_icar_validation.R'), 'utf8');
-const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'calibration-v8-real-icar-run.yml'), 'utf8');
-const normalizer = fs.readFileSync(path.join(root, 'scripts', 'normalize-icar-sapa.js'), 'utf8');
+function itemNames(style = 'compact') {
+  const make = (prefix, count) => Array.from({ length: count }, (_, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    return style === 'published-dot' ? `${prefix}.${n}` : `${prefix}${i + 1}`;
+  });
+  return [
+    ...make('LN', 9),
+    ...make('MR', 11),
+    ...make('VR', 16),
+    ...make('R3D', 24)
+  ];
+}
 
-(function validateSourceAndLicenseBoundary() {
-  assert(acquire.includes('doi:10.7910/DVN/AD9RVY'), 'Real run must pin the published ICAR/SAPA DOI');
-  assert(acquire.includes('dataverse.harvard.edu/api/access/dataset/:persistentId/'), 'Real run must use the Dataverse dataset API');
-  assert(acquire.includes("item_pattern <- '^(LN|MR|VR|R3D)"), 'Acquisition must require ICAR item families');
-  assert(acquire.includes("length(item_cols) == 60"), 'Acquisition must locate exactly 60 scored items');
-  assert(acquire.includes('Raw third-party data remain in runner-local temporary storage'), 'Acquisition must document raw-data isolation');
+function makeFixture(style = 'compact') {
+  const items = itemNames(style);
+  const headers = ['age', 'gender', ...items];
+  const ages = ['18andUnder', '19to24', '25to29', '35to39', '50to59', '60andOver'];
+  const lines = [headers.join(',')];
+  ages.forEach((age, rowIndex) => {
+    const responses = items.map((_, itemIndex) => {
+      if (rowIndex === 2 && itemIndex % 7 === 0) return '';
+      return (rowIndex + itemIndex) % 2 ? '1' : '0';
+    });
+    lines.push([age, rowIndex % 2 ? 'F' : 'M', ...responses].join(','));
+  });
+  return lines.join('\n') + '\n';
+}
+
+(function validateCatalog() {
+  const catalog = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'calibration', 'external-datasets', 'catalog.json'), 'utf8'));
+  assert.strictEqual(catalog.productNormEligible, false);
+  assert.strictEqual(catalog.productIqUnlocked, false);
+  const icar = catalog.datasets.find(dataset => dataset.id === DATASET_ID);
+  assert(icar, 'ICAR/SAPA must be catalogued');
+  assert.strictEqual(icar.status, 'enabled-offline');
+  assert.strictEqual(icar.license, 'CC0 Public Domain Dedication');
+  assert.deepStrictEqual(icar.cilAgeFilter, [18, 65]);
+  assert.strictEqual(icar.itemCount, 60);
+  assert.deepStrictEqual(icar.domains, DOMAIN_COUNTS);
+
+  const piaac = catalog.datasets.find(dataset => dataset.id === 'oecd-piaac');
+  assert(piaac && piaac.autoDownload === false, 'PIAAC must remain manual-access only');
+  assert.strictEqual(piaac.productNormEligible, false);
+
+  const pisa = catalog.datasets.find(dataset => dataset.id === 'oecd-pisa');
+  assert(pisa && pisa.status === 'method-stress-test-candidate');
+  assert.strictEqual(pisa.productNormEligible, false);
 })();
 
-(function validatePublishedHeaderAndAgeCompatibility() {
-  assert(normalizer.includes('const ITEM_RE = /^(LN|MR|VR|R3D)[._-]?'), 'Normalizer must accept punctuation between family and item number');
-  assert(normalizer.includes("adapter: 'icar-sapa-scored-response-v3'"));
-  assert(normalizer.includes('acceptsPublishedDotItemLabels: true'));
-  assert(normalizer.includes("publishedAgeEncoding: 'categorical-bands'"), 'Normalizer must preserve published categorical age encoding');
-  assert(normalizer.includes("EXCLUDED_AMBIGUOUS_SOURCE_AGE_BANDS = Object.freeze(['18andUnder', '60andOver'])"));
-  assert(normalizer.includes('exactAgeImputed: false'), 'Normalizer must not invent exact ages from published bands');
-  assert(!normalizer.includes('const age = Number(record[ageColumn])'), 'Normalizer must not coerce published categorical age bands into fake exact ages');
-  assert(normalizer.includes('assertRealRunMinimums(normalized)'), 'Real normalizer must fail closed on implausibly small data');
+(function validatePublishedCategoricalAgeEncoding() {
+  assert.deepStrictEqual(Object.keys(INCLUDED_SOURCE_AGE_BANDS), ['19to24','25to29','30to34','35to39','40to49','50to59']);
+  assert.deepStrictEqual(parseSourceAgeBand('19to24'), { sourceBand: '19to24', ageBand: '19–24', included: true });
+  assert.deepStrictEqual(parseSourceAgeBand('50to59'), { sourceBand: '50to59', ageBand: '50–59', included: true });
+  assert.deepStrictEqual(parseSourceAgeBand('18andUnder'), { sourceBand: '18andUnder', ageBand: null, included: false });
+  assert.deepStrictEqual(parseSourceAgeBand('60andOver'), { sourceBand: '60andOver', ageBand: null, included: false });
+  assert.strictEqual(parseSourceAgeBand(''), null);
 })();
 
-(function validateBoundedRealAnalysis() {
-  assert(analysis.includes('CIL_ICAR_IRT_MAX_N'), '2PL run must have an explicit reproducible cap');
-  assert(analysis.includes('CIL_ICAR_FACTOR_MAX_N'), 'Factor run must have an explicit reproducible cap');
-  assert(analysis.includes('fullDataUsedForReliability = TRUE'), 'Reliability must still use the full included data');
-  assert(analysis.includes('fullDataUsedForAgeDif = TRUE'), 'Age-DIF screen must still use the full included data');
-  assert(analysis.includes("age_band_levels <- c('19–24','25–29','30–34','35–39','40–49','50–59')"), 'Age-DIF must use published-compatible source bands');
-  assert(!analysis.includes('long$ageYears <-'), 'R analysis must not depend on imputed exact ages');
-  assert(analysis.includes("mirt::mirt(domain_matrix_irt, 1, itemtype = '2PL'"), 'Real run must execute domain 2PL models');
-  assert(analysis.includes('psych::tetrachoric'), 'Factor structure should attempt binary-item tetrachoric correlations');
-  assert(analysis.includes('psych::fa(rho, nfactors = 4'), 'Real run must execute the four-factor structure screen');
-  assert(analysis.includes('deltaMcFaddenPseudoR2'), 'Age-DIF output must include an effect-size diagnostic');
-  assert(analysis.includes('productIqUnlocked = FALSE'));
-  assert(analysis.includes('autoCpiToIq = FALSE'));
+(function validateIcarNormalization() {
+  for (const style of ['compact', 'published-dot']) {
+    const fixture = makeFixture(style);
+    const headers = fixture.split(/\r?\n/)[0].split(',');
+    assert.strictEqual(detectItemColumns(headers).length, 60);
+
+    const first = normalizeIcarCsv(fixture);
+    const second = normalizeIcarCsv(fixture);
+    assert.deepStrictEqual(first, second, `ICAR normalization must be deterministic for ${style}`);
+    assert.strictEqual(first.manifest.itemColumns, 60);
+    assert.deepStrictEqual(first.manifest.domainCounts, DOMAIN_COUNTS);
+    assert.strictEqual(first.manifest.publishedAgeEncoding, 'categorical-bands');
+    assert.deepStrictEqual(first.manifest.requestedAdultAgeBoundary, [18, 65]);
+    assert.deepStrictEqual(first.manifest.includedSourceAgeBands, ['19to24','25to29','30to34','35to39','40to49','50to59']);
+    assert.deepStrictEqual(first.manifest.excludedAmbiguousSourceAgeBands, ['18andUnder','60andOver']);
+    assert.strictEqual(first.manifest.sourceRecordsInIncludedAgeBands, 4);
+    assert.strictEqual(first.manifest.sourceRecordsExcludedAmbiguousAgeBands, 2);
+    assert.strictEqual(first.manifest.participantsWithScoredResponses, 4);
+    assert.strictEqual(first.manifest.exactAgeImputed, false);
+    assert.strictEqual(first.manifest.productNormEligible, false);
+    assert.strictEqual(first.manifest.productIqUnlocked, false);
+    assert.strictEqual(first.manifest.autoCpiToIq, false);
+    assert.strictEqual(first.manifest.containsItemText, false);
+    assert.strictEqual(first.manifest.containsScoringKey, false);
+    assert(first.rows.length > 0);
+    assert.deepStrictEqual([...new Set(first.rows.map(row => row.ageBand))].sort(), ['19–24','25–29','35–39','50–59'].sort());
+    assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'ageYears')), 'Normalizer must not invent exact ages');
+    assert(first.rows.every(row => row.productNormEligible === false));
+    assert(first.rows.every(row => row.cilItem === false));
+    assert(first.rows.every(row => row.productIqUnlocked === false));
+    assert(first.rows.every(row => row.autoCpiToIq === false));
+    assert(first.rows.every(row => ['LN','MR','VR','R3D'].includes(row.externalDomain)));
+    assert(first.rows.every(row => /:(LN|MR|VR|R3D)\d{2}$/.test(row.externalItemId)));
+    assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'itemText')));
+    assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'scoringKey')));
+    assert.throws(() => assertRealRunMinimums(first), /Too few scored ICAR participants/);
+  }
+  assert.strictEqual(canonicalItemId('VR.04'), 'VR04');
+  assert.strictEqual(canonicalItemId('LN.58'), 'LN58');
+  assert.strictEqual(canonicalItemId('R3D_4'), 'R3D04');
 })();
 
-(function validateWorkflowIsolation() {
-  assert(workflow.includes('feature/calibration-v8-first-real-icar-run'));
-  assert(workflow.includes('workflow_dispatch:'));
-  assert(workflow.includes('Rscript scripts/acquire-icar-sapa.R "$RUNNER_TEMP/icar/icar-sapa-source.csv"'));
-  assert(workflow.includes('includedAgeBandRows='), 'Workflow diagnostics should report aggregate included categorical-age rows');
-  assert(workflow.includes('ageCoverage: manifest.ageCoverage'), 'Compact summary should preserve categorical age coverage');
-  assert(workflow.includes('--run-r'));
-  assert(workflow.includes('Build aggregate-only research artifact'));
-  assert(workflow.includes('test ! -f "$RUNNER_TEMP/icar/public-results/external-scored-responses.csv"'));
-  assert(workflow.includes("grep -R -E 'icar-[0-9a-f]{20}'"), 'Artifact gate must reject participant-level pseudonymous keys');
-  assert(workflow.includes('calibration-v8-real-icar-aggregate-results'));
-  assert(!workflow.includes('path: ${{ runner.temp }}/icar/analysis'), 'Artifact upload must not include the participant-level analysis directory');
+(function validateRejectsUnknownAgeCategories() {
+  const fixture = makeFixture('published-dot').replace('19to24', '19-24-unknown');
+  assert.throws(() => normalizeIcarCsv(fixture), /Unexpected ICAR source age categories/);
 })();
 
-(function validateGitIgnoreBoundary() {
-  const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  assert(/^calibration\/output\/$/m.test(gitignore));
+(function validateRejectsIncompleteItemStructure() {
+  const fixture = makeFixture('published-dot');
+  const lines = fixture.trimEnd().split('\n');
+  const headers = lines[0].split(',');
+  const removeIndex = headers.indexOf('R3D.24');
+  const reduced = lines.map(line => {
+    const cells = line.split(',');
+    cells.splice(removeIndex, 1);
+    return cells.join(',');
+  }).join('\n') + '\n';
+  assert.throws(() => normalizeIcarCsv(reduced), /Expected 60 scored ICAR item columns/);
 })();
 
-console.log('Calibration v8 real ICAR run validation PASS');
+(function validateRejectsCanonicalCollisions() {
+  const fixture = makeFixture('published-dot');
+  const lines = fixture.trimEnd().split('\n');
+  const headers = lines[0].split(',');
+  headers[headers.indexOf('LN.02')] = 'LN_01';
+  lines[0] = headers.join(',');
+  assert.throws(() => normalizeIcarCsv(lines.join('\n') + '\n'), /duplicate canonical item IDs/);
+})();
+
+(function validateOfflinePlan() {
+  const plan = buildPlan({ input: '/tmp/icar.csv', out: '/tmp/out', runR: true });
+  assert.strictEqual(plan.safety.networkFetch, false);
+  assert.strictEqual(plan.safety.participantBackend, false);
+  assert.strictEqual(plan.safety.automaticUpload, false);
+  assert.strictEqual(plan.safety.rawThirdPartyDataCommitted, false);
+  assert.strictEqual(plan.safety.productNormEligible, false);
+  assert.strictEqual(plan.safety.productIqUnlocked, false);
+  assert.deepStrictEqual(plan.steps.map(step => step.name), ['normalize-icar-sapa', 'external-icar-validation']);
+})();
+
+(function validateNoNetworkOrBackendApis() {
+  const files = [
+    'scripts/normalize-icar-sapa.js',
+    'scripts/run-external-dataset-research-pack.js',
+    'calibration/analysis/external_icar_validation.R'
+  ];
+  for (const rel of files) {
+    const text = fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
+    assert(!/fetch\s*\(/.test(text), `${rel} must not fetch remote data`);
+    assert(!/axios|supabase|postgres|XMLHttpRequest|WebSocket/i.test(text), `${rel} must remain offline`);
+  }
+})();
+
+console.log('External Dataset Research Pack validation PASS');

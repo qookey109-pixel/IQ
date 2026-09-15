@@ -123,10 +123,43 @@ jobs:
 
       - name: Run real external research pack
         run: |
+          PRIVATE_LOG="$RUNNER_TEMP/icar/research-pack-private.log"
+          DIAG="$RUNNER_TEMP/icar/analysis-error.txt"
+          set +e
           node scripts/run-external-dataset-research-pack.js \
             --input "$RUNNER_TEMP/icar/icar-sapa-source.csv" \
             --out "$RUNNER_TEMP/icar/analysis" \
-            --run-r
+            --run-r \
+            >"$PRIVATE_LOG" 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            {
+              echo "exitStatus=$status"
+              tail -n 120 "$PRIVATE_LOG"
+            } \
+              | sed -E 's/icar-[0-9a-f]{20}/[REDACTED_PARTICIPANT_KEY]/g' \
+              | sed -E "s#${RUNNER_TEMP}#[RUNNER_TEMP]#g" \
+              > "$DIAG"
+            if grep -E 'icar-[0-9a-f]{20}' "$DIAG"; then
+              echo 'Participant-level pseudonymous key remained in analysis diagnostics.' >&2
+              exit 1
+            fi
+            cat "$DIAG"
+            rm -f "$PRIVATE_LOG"
+            exit "$status"
+          fi
+          cat "$PRIVATE_LOG"
+          rm -f "$PRIVATE_LOG" "$DIAG"
+
+      - name: Upload aggregate-only analysis error diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v8-analysis-error-diagnostics
+          path: ${{ runner.temp }}/icar/analysis-error.txt
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build aggregate-only research artifact
         run: |

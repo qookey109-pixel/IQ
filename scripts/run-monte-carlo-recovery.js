@@ -50,7 +50,13 @@ function buildPlan(options = {}) {
       {
         name: `generate-${id}`,
         command: process.execPath,
-        args: ['scripts/generate-synthetic-calibration.js', '--participants', String(cfg.participants), '--seed', seed, '--out', syntheticDir],
+        args: [
+          'scripts/generate-synthetic-calibration.js',
+          '--participants', String(cfg.participants),
+          '--seed', seed,
+          '--panel', 'recovery',
+          '--out', syntheticDir
+        ],
         replicate: i + 1,
         seed
       },
@@ -72,6 +78,7 @@ function buildPlan(options = {}) {
   }
   return {
     version: 'CIL-MONTE-CARLO-RECOVERY-2026.09.1',
+    design: 'fixed-42-item-synthetic-recovery-panel',
     replicates: cfg.replicates,
     participantsPerReplicate: cfg.participants,
     seedPrefix: cfg.seedPrefix,
@@ -258,6 +265,7 @@ function aggregateResults(plan) {
     status: structuralPass ? 'complete-diagnostic' : 'incomplete-diagnostic',
     interpretation: 'Synthetic parameter/DIF recovery diagnostics only. Empirical pass thresholds are intentionally not used to unlock product scoring.',
     configuration: {
+      design: plan.design,
       replicates: plan.replicates,
       participantsPerReplicate: plan.participantsPerReplicate,
       seedPrefix: plan.seedPrefix

@@ -150,14 +150,19 @@ function makeFixture(style = 'compact') {
   assert.strictEqual(plan.safety.rawThirdPartyDataCommitted, false);
   assert.strictEqual(plan.safety.productNormEligible, false);
   assert.strictEqual(plan.safety.productIqUnlocked, false);
-  assert.deepStrictEqual(plan.steps.map(step => step.name), ['normalize-icar-sapa', 'external-icar-validation']);
+  assert.deepStrictEqual(plan.steps.map(step => step.name), [
+    'normalize-icar-sapa',
+    'external-icar-validation',
+    'external-icar-two-factor-interpretation'
+  ]);
 })();
 
 (function validateNoNetworkOrBackendApis() {
   const files = [
     'scripts/normalize-icar-sapa.js',
     'scripts/run-external-dataset-research-pack.js',
-    'calibration/analysis/external_icar_validation.R'
+    'calibration/analysis/external_icar_validation.R',
+    'calibration/analysis/external_icar_two_factor.R'
   ];
   for (const rel of files) {
     const text = fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');

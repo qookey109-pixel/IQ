@@ -2,6 +2,7 @@
 // 1) Working-memory stimuli are presented only once per attempt.
 // 2) Scoring v2 keeps raw accuracy visible and uses transparent design-difficulty weights.
 // 3) Processing-speed efficiency contributes only after a correct timed response.
+// 4) IQ is never fabricated from CPI before age-normed calibration exists.
 
 let memoryStimulusSeen = Array(totalQuestions).fill(false);
 
@@ -41,6 +42,35 @@ renderQuestion = function (animationClass = "") {
   qualityBaseRenderQuestion(animationClass);
 };
 
+function renderIqCalibrationStatus(performanceIndex) {
+  const scoreCard = document.querySelector(".scoreCard");
+  if (!scoreCard) return;
+
+  let panel = document.getElementById("iqCalibrationStatus");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "iqCalibrationStatus";
+    panel.style.cssText = [
+      "margin:0 0 18px",
+      "padding:14px 16px",
+      "border:1px solid rgba(124,88,55,.24)",
+      "border-radius:16px",
+      "background:rgba(255,255,255,.42)"
+    ].join(";");
+    scoreCard.insertAdjacentElement("afterbegin", panel);
+  }
+
+  const profile = window.IQ_PARTICIPANT_PROFILE || null;
+  const ageText = profile?.ageBand ? `你目前選擇的年齡層為 ${profile.ageBand} 歲。` : "";
+  panel.innerHTML = `
+    <div style="font-size:12px;font-weight:900;letter-spacing:.08em;opacity:.68">IQ ESTIMATE</div>
+    <div style="font-size:clamp(28px,4vw,48px);font-weight:950;line-height:1.05;margin-top:4px">尚未校準</div>
+    <div style="margin-top:8px;font-size:13px;line-height:1.55;opacity:.78">
+      ${ageText}目前尚未建立足夠的同齡常模、信度與效度資料，因此不能把 CPI ${Math.round(performanceIndex)} 任意換算成 IQ。
+      常模完成後，這裡才會顯示 IQ 估計、百分位與信賴區間。
+    </div>`;
+}
+
 finishTest = function () {
   saveElapsedBeforeLeave();
   settleTimedQuestions();
@@ -76,15 +106,17 @@ finishTest = function () {
   const wrongCount = totalQuestions - correctCount - skippedCount;
   const performanceIndex = report.performanceIndex;
 
+  renderIqCalibrationStatus(performanceIndex);
+
   $("indexScore").textContent = Math.round(performanceIndex);
   $("resultSummary").textContent =
-    `答對 ${correctCount} / ${totalQuestions} 題（原始正確率 ${report.rawAccuracy}%）；設計難度加權後的綜合表現 ${performanceIndex} / 100 · 總測驗時間 ${formatDuration(finalTotalSeconds)}`;
+    `答對 ${correctCount} / ${totalQuestions} 題（原始正確率 ${report.rawAccuracy}%）；目前可回報的 Cognitive Performance Index 為 ${performanceIndex} / 100 · 總測驗時間 ${formatDuration(finalTotalSeconds)}`;
 
-  let desc = "這次是本站題庫下的一次實驗性認知表現快照。";
-  if (performanceIndex >= 85) desc = "這次在本站設計難度下呈現很強的整體表現。";
-  else if (performanceIndex >= 70) desc = "這次在多個構面呈現穩定、偏強的表現。";
-  else if (performanceIndex >= 55) desc = "這次各構面有強弱差異，可以從分項結果看出主要落差。";
-  else desc = "這次部分構面較吃力，也可能受到疲勞、注意力或時間壓力影響。";
+  let desc = "這次是本站題庫下的一次實驗性認知表現快照；IQ 仍需同齡常模後才能估計。";
+  if (performanceIndex >= 85) desc = "這次在本站設計難度下呈現很強的整體表現；目前仍不能直接換算成 IQ。";
+  else if (performanceIndex >= 70) desc = "這次在多個構面呈現穩定、偏強的表現；IQ 仍待常模校準。";
+  else if (performanceIndex >= 55) desc = "這次各構面有強弱差異，可以從分項結果看出主要落差；IQ 仍待常模校準。";
+  else desc = "這次部分構面較吃力，也可能受到疲勞、注意力或時間壓力影響；IQ 仍待常模校準。";
   $("resultDesc").textContent = desc;
 
   $("metrics").innerHTML = domains.map(d => {
@@ -121,12 +153,17 @@ finishTest = function () {
     `;
   }).join("");
 
+  const profile = window.IQ_PARTICIPANT_PROFILE || null;
   window.IQ_LAST_RESULT = {
     bankVersion: window.IQ_BANK_META?.version || null,
     bankRevision: window.IQ_BANK_META?.revision || null,
     scoringVersion: report.version,
     scale: report.scale,
     performanceIndex,
+    iqEstimate: null,
+    iqStatus: 'not-population-normed',
+    ageYears: profile?.ageYears ?? null,
+    ageBand: profile?.ageBand ?? null,
     rawAccuracy: report.rawAccuracy,
     correct: correctCount,
     total: totalQuestions,
@@ -143,5 +180,7 @@ window.IQ_QUALITY_META = {
   speedBonusRequiresCorrect: true,
   scoringVersion: '2.0',
   scoringScale: '0-100-experimental',
-  populationNormed: false
+  populationNormed: false,
+  iqEstimateAvailable: false,
+  iqRequiresAgeNorms: true
 };

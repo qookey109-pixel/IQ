@@ -22,6 +22,8 @@ read_cap <- function(name, default) {
 
 irt_max_n <- read_cap('CIL_ICAR_IRT_MAX_N', 20000)
 factor_max_n <- read_cap('CIL_ICAR_FACTOR_MAX_N', 30000)
+parallel_max_n <- read_cap('CIL_ICAR_PARALLEL_MAX_N', 6000)
+parallel_iterations <- 20L
 
 long <- read.csv(input_path, stringsAsFactors = FALSE, check.names = FALSE)
 required_columns <- c('sourceKey','sourceAgeBand','ageBand','externalItemId','externalDomain','correct','productNormEligible','cilItem','productIqUnlocked','autoCpiToIq')
@@ -205,13 +207,14 @@ write.csv(age_rows, file.path(out_dir, 'icar-age-band-summary.csv'), row.names =
 
 # Factor-structure screen on binary-item correlations. The historical four-factor
 # solution remains the primary loading output, while a 1-8 factor sensitivity curve
-# is recorded in the aggregate manifest so that dimensionality is not assumed from
-# the domain labels alone. The same bounded correlation matrix is reused throughout.
+# and a bounded tetrachoric parallel analysis avoid assuming dimensionality from
+# the domain labels alone.
 response_count_all <- rowSums(!is.na(wide))
 factor_eligible <- response_count_all >= 8
 factor_matrix <- take_bounded(wide[factor_eligible, , drop = FALSE], factor_max_n)
 factor_fit <- NULL
 factor_sensitivity <- list()
+parallel_analysis <- NULL
 factor_loadings <- data.frame()
 if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
   factor_fit <- tryCatch({
@@ -257,6 +260,61 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
       )
     })
 
+    parallel_matrix <- take_bounded(factor_matrix, parallel_max_n)
+    parallel_analysis <<- tryCatch({
+      options(mc.cores = 1)
+      set.seed(20260916)
+      pa <- suppressWarnings(psych::fa.parallel(
+        parallel_matrix,
+        fm = 'minres',
+        fa = 'fa',
+        nfactors = 1,
+        n.iter = parallel_iterations,
+        SMC = FALSE,
+        sim = FALSE,
+        quant = .95,
+        cor = 'tet',
+        use = 'pairwise',
+        plot = FALSE,
+        correct = .5
+      ))
+      pa_values <- as.matrix(pa$values)
+      variable_count <- ncol(parallel_matrix)
+      expected_columns <- variable_count * 2
+      if (ncol(pa_values) < expected_columns) {
+        stop(sprintf('Unexpected fa.parallel values shape: expected at least %d columns, got %d.', expected_columns, ncol(pa_values)))
+      }
+      null_factor_values <- pa_values[, (variable_count + 1):(2 * variable_count), drop = FALSE]
+      null95 <- apply(null_factor_values, 2, quantile, probs = .95, na.rm = TRUE, names = FALSE)
+      observed <- as.numeric(pa$fa.values)
+      report_n <- min(20L, length(observed), length(null95))
+      list(
+        method = 'psych::fa.parallel randomized-resample null with tetrachoric correlations',
+        sampleParticipants = nrow(parallel_matrix),
+        items = ncol(parallel_matrix),
+        iterations = parallel_iterations,
+        quantile = .95,
+        seed = 20260916,
+        singleCore = TRUE,
+        suggestedFactors = if (length(pa$nfact)) as.integer(pa$nfact[[1]]) else NA_integer_,
+        firstTwenty = lapply(seq_len(report_n), function(index) list(
+          factor = index,
+          observedFactorEigenvalue = safe_num(observed[index]),
+          null95 = safe_num(null95[index]),
+          retained = is.finite(observed[index]) && is.finite(null95[index]) && observed[index] > null95[index]
+        ))
+      )
+    }, error = function(e) list(
+      method = 'psych::fa.parallel randomized-resample null with tetrachoric correlations',
+      sampleParticipants = nrow(parallel_matrix),
+      items = ncol(parallel_matrix),
+      iterations = parallel_iterations,
+      quantile = .95,
+      seed = 20260916,
+      singleCore = TRUE,
+      error = conditionMessage(e)
+    ))
+
     efa <- suppressWarnings(psych::fa(rho, nfactors = 4, n.obs = nrow(factor_matrix), fm = 'minres', rotate = 'oblimin'))
     loadings_matrix <- as.matrix(unclass(efa$loadings))
     factor_loadings <<- data.frame(
@@ -275,7 +333,8 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
       TLI = safe_num(efa$TLI),
       RMSR = safe_num(efa$rms),
       BIC = safe_num(efa$BIC),
-      firstEightEigenvalues = as.numeric(head(eigenvalues, 8))
+      firstEightEigenvalues = as.numeric(head(eigenvalues, 8)),
+      firstTwentyEigenvalues = as.numeric(head(eigenvalues, 20))
     )
   }, error = function(e) list(
     model = 'exploratory-4-factor-binary-correlation-minres-oblimin',
@@ -287,7 +346,7 @@ if (nrow(factor_matrix) >= 1000 && ncol(factor_matrix) == 60) {
 write.csv(factor_loadings, file.path(out_dir, 'icar-factor-loadings.csv'), row.names = FALSE, na = '')
 
 manifest <- list(
-  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.5',
+  version = 'CIL-EXTERNAL-ICAR-VALIDATION-2026.09.6',
   generatedAt = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   datasetId = 'icar-sapa-2010-2013',
   participants = length(participant_ids),
@@ -306,6 +365,8 @@ manifest <- list(
   analysisCaps = list(
     domain2plMaxParticipants = irt_max_n,
     factorMaxParticipants = factor_max_n,
+    parallelAnalysisMaxParticipants = parallel_max_n,
+    parallelAnalysisIterations = parallel_iterations,
     fullDataUsedForReliability = TRUE,
     fullDataUsedForAgeDif = TRUE,
     deterministicBoundedSubsamples = TRUE
@@ -325,6 +386,7 @@ manifest <- list(
     interpretation = 'Sensitivity analysis only; does not unlock product IQ norms or establish a definitive factor count.',
     fitCurve = factor_sensitivity
   ),
+  parallelAnalysis = parallel_analysis,
   safety = list(
     sourceIsolated = TRUE,
     productNormEligible = FALSE,
@@ -340,11 +402,12 @@ manifest <- list(
     'No midpoint or exact-age imputation is used.',
     'Domain 2PL and factor-structure models use deterministic bounded subsamples for reproducible CI runtime.',
     'The 1-8 factor sensitivity curve reuses the same bounded smoothed correlation matrix and is exploratory rather than a product norming gate.',
+    'Parallel analysis uses a smaller deterministic bounded sample, randomized-resample null data, tetrachoric correlations, a fixed seed, and a 95th-percentile threshold for reproducible CI runtime.',
     'Age-DIF output is a logistic regression screen, not a CIL product fairness verdict.',
     'External results validate methods and structure only.'
   )
 )
 jsonlite::write_json(manifest, file.path(out_dir, 'icar-external-validation.json'), pretty = TRUE, auto_unbox = TRUE, na = 'null')
 cat(sprintf('ICAR external validation complete: %d participants, %d scored rows, %d items.\n', length(participant_ids), nrow(long), length(items)))
-cat(sprintf('2PL cap/domain: %d; factor cap: %d.\n', irt_max_n, factor_max_n))
+cat(sprintf('2PL cap/domain: %d; factor cap: %d; parallel-analysis cap: %d.\n', irt_max_n, factor_max_n, parallel_max_n))
 cat('External data remain isolated from Cognitive IQ Lab product norms.\n')

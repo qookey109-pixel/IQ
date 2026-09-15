@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Link Cognitive IQ Lab sessions to externally administered validation measures without storing protected item content or scoring keys.",
+  "required": [
+    "sourceKey",
+    "sessionId",
+    "instrumentId",
+    "administrationId",
+    "administeredAt",
+    "ageYears",
+    "externalScoreType",
+    "externalScore",
+    "itemContentStored",
+    "scoringKeyStored"
+  ],
+  "fields": {
+    "sourceKey": "Pseudonymous participant/source key matching the CIL calibration export.",
+    "sessionId": "CIL session identifier to link common-person evidence.",
+    "instrumentId": "Versioned identifier such as ICAR-controlled-v1 or another approved validation instrument.",
+    "administrationId": "External platform/research administration identifier with no direct identity information.",
+    "administeredAt": "ISO-8601 time of external administration.",
+    "ageYears": "Whole-year age only, matching the CIL supported range when applicable.",
+    "externalScoreType": "raw, theta, standardized, percentile, or instrument-defined score type.",
+    "externalScore": "Numeric score from the controlled external administration.",
+    "externalStandardError": "Optional uncertainty/SE supplied by the external instrument.",
+    "externalReliability": "Optional reliability estimate documented for the external score.",
+    "licenseRecord": "Reference to the permission/license/registration governing use of the external instrument.",
+    "itemContentStored": "Must be false for instruments whose terms prohibit publication/storage in this repository.",
+    "scoringKeyStored": "Must be false for protected scoring keys.",
+    "notes": "Optional research note without personal identifiers."
+  },
+  "safety": {
+    "allowProtectedItemsInRepository": false,
+    "allowProtectedScoringKeysInRepository": false,
+    "autoConvertExternalScoreToIQ": false,
+    "requiresCommonPersonLinking": true,
+    "requiresDocumentedPermission": true
+  }
+}

@@ -1,0 +1,98 @@
+name: Calibration v9 — Monte Carlo Recovery
+
+on:
+  push:
+    branches:
+      - feature/calibration-v9-monte-carlo-recovery
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Validate v9 harness
+        run: |
+          node --check scripts/generate-synthetic-calibration.js
+          node --check scripts/run-monte-carlo-recovery.js
+          node tests/monte-carlo-recovery-validation.js
+          Rscript -e 'parse(file="calibration/analysis/irt_mirt.R"); parse(file="calibration/analysis/age_dif.R"); cat("R parse PASS\n")'
+
+      - name: Install bounded recovery dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libuv1-dev
+          Rscript - <<'RS'
+          required <- c('mirt','lordif','readr','dplyr')
+          missing <- setdiff(required, rownames(installed.packages()))
+          if (length(missing)) install.packages(missing, repos='https://cloud.r-project.org')
+          missing_after <- setdiff(required, rownames(installed.packages()))
+          if (length(missing_after)) stop(sprintf('Missing required packages: %s', paste(missing_after, collapse=', ')))
+          cat('Recovery dependencies PASS\n')
+          RS
+
+      - name: Run bounded two-seed recovery study
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 2 \
+            --participants 900 \
+            --seed-prefix cil-mc-v9-ci \
+            --out "$RUNNER_TEMP/cil-mc-v9"
+
+      - name: Validate aggregate recovery report
+        run: |
+          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (report.status !== 'complete-diagnostic') throw new Error(`Unexpected report status: ${report.status}`);
+          if (report.configuration.replicates !== 2) throw new Error('Expected exactly two bounded CI replicates');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) throw new Error('Recovery metrics were not finite for every replicate');
+          if (report.gates.scientificThresholdsPreRegistered !== false) throw new Error('v9 must not invent post-hoc scientific pass thresholds');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) {
+            throw new Error('Monte Carlo artifact must remain synthetic-only');
+          }
+          if (!report.replicates.every(rep => rep.matchedParameterRows > 0 && rep.difRows > 0)) {
+            throw new Error('Each replicate must produce IRT and DIF diagnostics');
+          }
+          console.log(JSON.stringify({
+            status: report.status,
+            discriminationCorrelation: report.aggregate.discriminationCorrelation,
+            difficultyCorrelation: report.aggregate.difficultyCorrelation,
+            difSensitivity: report.aggregate.difSensitivity,
+            difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-mc-v9-public"
+          cp "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-public/"
+          test "$(find "$RUNNER_TEMP/cil-mc-v9-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/cil-mc-v9-public"
+
+      - name: Upload aggregate-only recovery result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-monte-carlo-recovery-summary
+          path: ${{ runner.temp }}/cil-mc-v9-public/monte-carlo-recovery-summary.json
+          retention-days: 30

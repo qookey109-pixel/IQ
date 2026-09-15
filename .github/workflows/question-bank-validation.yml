@@ -35,6 +35,9 @@ jobs:
           node --check question-language-finalize.js
           node --check scoring-v2.js
           node --check calibration-readiness.js
+          node --check calibration-study.js
+          node --check calibration/item-review-engine.js
+          node --check scripts/build-item-review-queue.js
           node --check answer-quality.js
           node --check answer-position-balance.js
           node --check memory-integrity.js
@@ -58,6 +61,7 @@ jobs:
           node --check tests/form-equivalence-validation.js
           node --check tests/scoring-v2-validation.js
           node --check tests/calibration-readiness-validation.js
+          node --check tests/calibration-toolchain-validation.js
           node --check tests/natural-language-validation.js
           node --check tests/full-bank-sweep-validation.js
           node --check tests/memory-integrity-validation.js
@@ -90,6 +94,9 @@ jobs:
 
       - name: Validate Calibration Readiness v1
         run: node tests/calibration-readiness-validation.js
+
+      - name: Validate psychometric calibration toolchain and item-review safety
+        run: node tests/calibration-toolchain-validation.js
 
       - name: Validate Natural Language v3 and Safari-safe spatial visuals
         run: node tests/natural-language-validation.js

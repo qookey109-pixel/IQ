@@ -6,6 +6,8 @@ const POLICY = require('../calibration/pooled-study-policy.json');
 
 const AGE_BANDS = [...POLICY.ageBands];
 const ACTIVE_FORM_ITEMS = 2052;
+const FORMAL_ITEMS_PER_SESSION = 42;
+const ANCHOR_ITEMS_PER_COMPLETED_SESSION = 6;
 const MATRIX_PREFIX = 'matrix:CIL-MATRIX-2026.09.1:';
 const FORBIDDEN_KEYS = new Set([
   'name','fullname','firstname','lastname','email','account','accountid','ip','ipaddress',
@@ -21,6 +23,15 @@ const ROW_COLUMNS = [
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function ageBandFor(age) {
+  if (!Number.isInteger(age) || age < 18 || age > 65) return null;
+  if (age <= 24) return '18–24';
+  if (age <= 34) return '25–34';
+  if (age <= 44) return '35–44';
+  if (age <= 54) return '45–54';
+  return '55–65';
 }
 
 function scanForbiddenKeys(value, trail = [], hits = []) {
@@ -41,14 +52,22 @@ function privacyErrors(doc) {
   const errors = [];
   const hits = scanForbiddenKeys(doc);
   if (hits.length) errors.push(`forbidden identifying key(s): ${hits.slice(0, 8).join(', ')}`);
+
   const privacy = isObject(doc?.privacy) ? doc.privacy : null;
-  if (privacy?.automaticUpload !== false) errors.push('privacy.automaticUpload must be false');
-  for (const key of ['containsName','containsAccount','containsDateOfBirth','containsIp','containsLocation']) {
-    if (privacy && privacy[key] !== false) errors.push(`privacy.${key} must be false`);
+  if (!privacy) errors.push('privacy declaration is required');
+  else {
+    if (privacy.automaticUpload !== false) errors.push('privacy.automaticUpload must be false');
+    for (const key of ['containsName','containsAccount','containsDateOfBirth','containsIp','containsLocation']) {
+      if (privacy[key] !== false) errors.push(`privacy.${key} must be false`);
+    }
   }
+
   const product = isObject(doc?.productStatus) ? doc.productStatus : null;
-  if (product?.iqEstimateAvailable === true) errors.push('export claims IQ estimate is available');
-  if (product?.populationNormed === true) errors.push('export claims population norming is complete');
+  if (!product) errors.push('productStatus declaration is required');
+  else {
+    if (product.iqEstimateAvailable !== false) errors.push('productStatus.iqEstimateAvailable must be false');
+    if (product.populationNormed !== false) errors.push('productStatus.populationNormed must be false');
+  }
   return errors;
 }
 
@@ -71,6 +90,10 @@ function formalRows(session) {
   return (Array.isArray(session?.rows) ? session.rows : []).filter(row => !isAnchorRow(row));
 }
 
+function anchorRows(session) {
+  return (Array.isArray(session?.rows) ? session.rows : []).filter(isAnchorRow);
+}
+
 function formalFormId(session) {
   if (typeof session?.formId === 'string' && session.formId) return session.formId;
   const ids = formalRows(session).map(row => row?.formId).filter(value => typeof value === 'string' && value);
@@ -84,7 +107,9 @@ function isMatrixSession(session) {
 function matrixSlot(session) {
   const formId = String(formalFormId(session) || '');
   const match = formId.match(/^matrix:CIL-MATRIX-2026\.09\.1:epoch-(\d+):slot-(\d{2})$/);
-  return match ? Number(match[2]) : null;
+  if (!match) return null;
+  const slot = Number(match[2]);
+  return Number.isInteger(slot) && slot >= 0 && slot < 56 ? slot : null;
 }
 
 function isConsented(session) {
@@ -96,6 +121,81 @@ function sessionTime(session) {
   return Number.isFinite(ms) ? ms : Number.MAX_SAFE_INTEGER;
 }
 
+function validateRow(row, session, exportSourceKey) {
+  const errors = [];
+  if (!isObject(row)) return ['row must be an object'];
+
+  const sourceKey = session.sourceKey || exportSourceKey;
+  if (row.sourceKey != null && row.sourceKey !== sourceKey) errors.push('row sourceKey does not match session sourceKey');
+  if (row.sessionId != null && row.sessionId !== session.sessionId) errors.push('row sessionId does not match sessionId');
+  if (typeof row.itemId !== 'string' || !row.itemId) errors.push('row itemId is required');
+  if (typeof row.domain !== 'string' || !row.domain) errors.push('row domain is required');
+
+  const selected = row.selectedOption;
+  if (!(selected == null || (Number.isInteger(selected) && selected >= 0 && selected <= 3))) errors.push('selectedOption must be null or 0–3');
+  const correctOption = row.correctOption;
+  if (!Number.isInteger(correctOption) || correctOption < 0 || correctOption > 3) errors.push('correctOption must be 0–3');
+
+  for (const key of ['correct','skipped','timeout']) {
+    if (![0, 1].includes(Number(row[key]))) errors.push(`${key} must be 0 or 1`);
+  }
+  const seconds = Number(row.seconds);
+  if (!Number.isFinite(seconds) || seconds < 0) errors.push('seconds must be a non-negative number');
+  if (row.iqEstimate != null) errors.push('row iqEstimate must remain null');
+  return errors;
+}
+
+function validateSession(session, exportSourceKey) {
+  const errors = [];
+  if (!isObject(session)) return ['session must be an object'];
+  if (typeof session.sessionId !== 'string' || session.sessionId.length < 8) errors.push('invalid sessionId');
+
+  const sourceKey = session.sourceKey || exportSourceKey;
+  if (typeof sourceKey !== 'string' || sourceKey.length < 8 || sourceKey === 'local-unavailable') errors.push('invalid session sourceKey');
+  if (session.sourceKey != null && exportSourceKey && session.sourceKey !== exportSourceKey) errors.push('session sourceKey must match export sourceKey');
+
+  const age = Number(session.ageYears);
+  const expectedBand = ageBandFor(age);
+  if (!expectedBand) errors.push('ageYears must be 18–65');
+  if (!AGE_BANDS.includes(session.ageBand)) errors.push('invalid ageBand');
+  else if (expectedBand && session.ageBand !== expectedBand) errors.push(`ageBand must match ageYears (${expectedBand})`);
+
+  if (!Array.isArray(session.rows) || !session.rows.length) {
+    errors.push('session rows must be a non-empty array');
+    return errors;
+  }
+  if (session.iqEstimate != null) errors.push('iqEstimate must remain null');
+
+  const formal = formalRows(session);
+  const anchors = anchorRows(session);
+  if (formal.length !== FORMAL_ITEMS_PER_SESSION) errors.push(`formal session must contain exactly ${FORMAL_ITEMS_PER_SESSION} scored rows`);
+  const formalIds = formal.map(row => row?.itemId).filter(Boolean);
+  if (new Set(formalIds).size !== FORMAL_ITEMS_PER_SESSION) errors.push('formal item IDs must be 42 unique values');
+
+  const formIds = [...new Set(formal.map(row => row?.formId).filter(value => typeof value === 'string' && value))];
+  if (formIds.length !== 1) errors.push('formal rows must share exactly one formId');
+  if (session.formId && formIds.length === 1 && session.formId !== formIds[0]) errors.push('session formId does not match formal row formId');
+
+  if (isMatrixSession(session) && matrixSlot(session) == null) errors.push('matrix formId must contain a slot from 00 through 55');
+
+  for (let i = 0; i < session.rows.length; i++) {
+    for (const error of validateRow(session.rows[i], { ...session, sourceKey }, exportSourceKey)) {
+      errors.push(`row ${i}: ${error}`);
+    }
+  }
+
+  const anchorStudy = isObject(session.anchorStudy) ? session.anchorStudy : null;
+  if (anchors.length && anchorStudy?.optIn !== true) errors.push('anchor rows require explicit anchorStudy.optIn consent');
+  if (anchorStudy?.completed === true) {
+    if (anchorStudy.optIn !== true) errors.push('completed anchorStudy requires optIn=true');
+    if (anchors.length !== ANCHOR_ITEMS_PER_COMPLETED_SESSION) errors.push(`completed anchorStudy requires exactly ${ANCHOR_ITEMS_PER_COMPLETED_SESSION} anchor rows`);
+    const anchorDomains = anchors.map(row => row?.domain).filter(Boolean);
+    if (new Set(anchorDomains).size !== ANCHOR_ITEMS_PER_COMPLETED_SESSION) errors.push('completed anchorStudy requires six unique anchor domains');
+  }
+
+  return errors;
+}
+
 function preferenceScore(session) {
   if (session?.anchorStudy?.completed === true) return 3;
   if (isMatrixSession(session)) return 2;
@@ -105,7 +205,11 @@ function preferenceScore(session) {
 function chooseIndependentSession(sessions) {
   const eligible = (Array.isArray(sessions) ? sessions : []).filter(isConsented);
   if (!eligible.length) return null;
-  const ordered = [...eligible].sort((a, b) => preferenceScore(b) - preferenceScore(a) || sessionTime(a) - sessionTime(b) || String(a.sessionId || '').localeCompare(String(b.sessionId || '')));
+  const ordered = [...eligible].sort((a, b) =>
+    preferenceScore(b) - preferenceScore(a) ||
+    sessionTime(a) - sessionTime(b) ||
+    String(a.sessionId || '').localeCompare(String(b.sessionId || ''))
+  );
   const session = ordered[0];
   const reason = session?.anchorStudy?.completed === true
     ? 'completed-anchor-session'
@@ -115,24 +219,9 @@ function chooseIndependentSession(sessions) {
   return { session, reason };
 }
 
-function validateSession(session, exportSourceKey) {
-  const errors = [];
-  if (!isObject(session)) return ['session must be an object'];
-  if (typeof session.sessionId !== 'string' || session.sessionId.length < 8) errors.push('invalid sessionId');
-  const sourceKey = session.sourceKey || exportSourceKey;
-  if (typeof sourceKey !== 'string' || sourceKey.length < 8 || sourceKey === 'local-unavailable') errors.push('invalid session sourceKey');
-  const age = Number(session.ageYears);
-  if (!Number.isInteger(age) || age < 18 || age > 65) errors.push('ageYears must be 18–65');
-  if (!AGE_BANDS.includes(session.ageBand)) errors.push('invalid ageBand');
-  if (!Array.isArray(session.rows) || !session.rows.length) errors.push('session rows must be a non-empty array');
-  if (session.iqEstimate != null) errors.push('iqEstimate must remain null');
-  return errors;
-}
-
 function projectRow(row, session, selectionReason = '') {
-  const sourceKey = session.sourceKey;
   return {
-    sourceKey,
+    sourceKey: session.sourceKey,
     sessionId: session.sessionId,
     selectionReason,
     ageYears: session.ageYears,
@@ -163,7 +252,7 @@ function projectRow(row, session, selectionReason = '') {
 }
 
 function projectSession(session, selectionReason = '') {
-  const rows = (Array.isArray(session.rows) ? session.rows : []).map(row => projectRow(row, session, selectionReason));
+  const rows = session.rows.map(row => projectRow(row, session, selectionReason));
   return {
     sourceKey: session.sourceKey,
     sessionId: session.sessionId,
@@ -190,29 +279,28 @@ function evaluateStage(metrics, stagePolicy) {
     minimumAnchorCompletionRate: metrics.anchorCompletionRate >= stagePolicy.minimumAnchorCompletionRate,
     minimumAverageFormalItemExposure: metrics.averageFormalItemExposure >= stagePolicy.minimumAverageFormalItemExposure
   };
-  return {
-    ready: Object.values(checks).every(Boolean),
-    checks,
-    thresholds: { ...stagePolicy }
-  };
+  return { ready: Object.values(checks).every(Boolean), checks, thresholds: { ...stagePolicy } };
 }
 
-function buildSummary({ exportsSeen, acceptedExports, rejectedExports, allSessions, consentedSessions, independent, unconsentedSessions, invalidSessions }) {
+function buildSummary({
+  exportsSeen, acceptedExports, rejectedExports, allSessions, consentedSessions,
+  independent, unconsentedSessions, invalidSessions
+}) {
   const ageBandCounts = Object.fromEntries(AGE_BANDS.map(band => [band, 0]));
   const matrixSlots = new Set();
-  let anchorsCompleted = 0;
   const itemExposure = new Map();
+  let anchorsCompleted = 0;
   let formalResponseCount = 0;
 
   for (const selected of independent) {
     const session = selected.session;
-    if (AGE_BANDS.includes(session.ageBand)) ageBandCounts[session.ageBand] += 1;
+    ageBandCounts[session.ageBand] += 1;
     const slot = matrixSlot(session);
     if (slot != null) matrixSlots.add(slot);
     if (session?.anchorStudy?.completed === true) anchorsCompleted += 1;
     for (const row of formalRows(session)) {
       formalResponseCount += 1;
-      if (row?.itemId) itemExposure.set(row.itemId, (itemExposure.get(row.itemId) || 0) + 1);
+      itemExposure.set(row.itemId, (itemExposure.get(row.itemId) || 0) + 1);
     }
   }
 
@@ -228,8 +316,9 @@ function buildSummary({ exportsSeen, acceptedExports, rejectedExports, allSessio
     anchorCompletionRate,
     averageFormalItemExposure
   };
-
-  const stages = Object.fromEntries(Object.entries(POLICY.stages).map(([name, thresholds]) => [name, evaluateStage(metrics, thresholds)]));
+  const readiness = Object.fromEntries(
+    Object.entries(POLICY.stages).map(([name, thresholds]) => [name, evaluateStage(metrics, thresholds)])
+  );
 
   return {
     version: POLICY.version,
@@ -251,7 +340,8 @@ function buildSummary({ exportsSeen, acceptedExports, rejectedExports, allSessio
     inputs: {
       exportsSeen,
       acceptedExports,
-      rejectedExports,
+      rejectedExports: rejectedExports.length,
+      rejectedExportDetails: rejectedExports,
       sessionsSeen: allSessions,
       consentedSessions,
       unconsentedSessions,
@@ -273,7 +363,7 @@ function buildSummary({ exportsSeen, acceptedExports, rejectedExports, allSessio
       minimumObservedItemExposure: exposures.length ? exposures[0] : 0,
       maximumObservedItemExposure: exposures.length ? exposures[exposures.length - 1] : 0
     },
-    readiness: stages,
+    readiness,
     blockers: [
       'Readiness thresholds are engineering planning thresholds, not evidence of validity.',
       'IQ remains locked until reliability, IRT, DIF/fairness, construct validity, external validity/linking, and age-norm uncertainty are independently supported.',
@@ -286,10 +376,10 @@ function buildSummary({ exportsSeen, acceptedExports, rejectedExports, allSessio
 function poolDocuments(entries) {
   const accepted = [];
   const rejected = [];
+  const consented = [];
   let allSessions = 0;
   let unconsentedSessions = 0;
   let invalidSessions = 0;
-  const consented = [];
 
   for (const entry of Array.isArray(entries) ? entries : []) {
     const name = String(entry?.name || 'unnamed');
@@ -299,6 +389,7 @@ function poolDocuments(entries) {
       rejected.push({ name, errors });
       continue;
     }
+
     accepted.push(name);
     for (const rawSession of doc.sessions) {
       allSessions += 1;
@@ -329,7 +420,9 @@ function poolDocuments(entries) {
   }
   independent.sort((a, b) => String(a.sourceKey).localeCompare(String(b.sourceKey), 'en'));
 
-  const independentRows = independent.flatMap(selected => selected.session.rows.map(row => projectRow(row, selected.session, selected.reason)));
+  const independentRows = independent.flatMap(selected =>
+    selected.session.rows.map(row => projectRow(row, selected.session, selected.reason))
+  );
   const allConsentedProjected = consented
     .slice()
     .sort((a, b) => String(a.sourceKey).localeCompare(String(b.sourceKey), 'en') || sessionTime(a) - sessionTime(b))
@@ -357,7 +450,9 @@ function csvCell(value) {
 
 function rowsToCsv(rows) {
   const header = ROW_COLUMNS.join(',');
-  const body = (Array.isArray(rows) ? rows : []).map(row => ROW_COLUMNS.map(key => csvCell(row[key])).join(',')).join('\n');
+  const body = (Array.isArray(rows) ? rows : [])
+    .map(row => ROW_COLUMNS.map(key => csvCell(row[key])).join(','))
+    .join('\n');
   return `${header}\n${body}${body ? '\n' : ''}`;
 }
 
@@ -372,11 +467,17 @@ function writeOutputs(result, outDir) {
   }, null, 2));
   fs.writeFileSync(path.join(outDir, 'pooled-study-summary.json'), JSON.stringify(result.summary, null, 2));
 
-  const ageRows = AGE_BANDS.map(ageBand => ({ ageBand, independentParticipants: result.summary.cohort.ageBandCounts[ageBand] }));
-  const ageCsv = ['ageBand,independentParticipants', ...ageRows.map(row => `${csvCell(row.ageBand)},${row.independentParticipants}`)].join('\n') + '\n';
+  const ageRows = AGE_BANDS.map(ageBand => ({
+    ageBand,
+    independentParticipants: result.summary.cohort.ageBandCounts[ageBand]
+  }));
+  const ageCsv = ['ageBand,independentParticipants', ...ageRows.map(row =>
+    `${csvCell(row.ageBand)},${row.independentParticipants}`
+  )].join('\n') + '\n';
   fs.writeFileSync(path.join(outDir, 'pooled-age-band-counts.csv'), ageCsv);
 
-  const itemRows = Object.entries(result.summary.itemExposure).map(([itemId, exposures]) => `${csvCell(itemId)},${exposures}`);
+  const itemRows = Object.entries(result.summary.itemExposure)
+    .map(([itemId, exposures]) => `${csvCell(itemId)},${exposures}`);
   fs.writeFileSync(path.join(outDir, 'pooled-item-exposure.csv'), ['itemId,exposures', ...itemRows].join('\n') + '\n');
 }
 
@@ -406,7 +507,7 @@ function main(argv = process.argv.slice(2)) {
   const result = poolDocuments(entries);
   writeOutputs(result, outDir);
   console.log(`Pooled study v1: ${result.summary.cohort.independentParticipants} independent participant(s) from ${result.summary.inputs.consentedSessions} consented session(s).`);
-  console.log(`Rejected exports: ${result.rejected.length}; unconsented sessions excluded: ${result.summary.inputs.unconsentedSessions}.`);
+  console.log(`Rejected exports: ${result.rejected.length}; invalid sessions: ${result.summary.inputs.invalidSessions}; unconsented sessions excluded: ${result.summary.inputs.unconsentedSessions}.`);
   console.log(`Output: ${outDir}`);
   return result;
 }
@@ -417,13 +518,18 @@ module.exports = {
   POLICY,
   AGE_BANDS,
   ACTIVE_FORM_ITEMS,
+  FORMAL_ITEMS_PER_SESSION,
+  ANCHOR_ITEMS_PER_COMPLETED_SESSION,
   ROW_COLUMNS,
+  ageBandFor,
   scanForbiddenKeys,
   privacyErrors,
   validateExport,
+  validateRow,
   validateSession,
   isAnchorRow,
   formalRows,
+  anchorRows,
   formalFormId,
   isMatrixSession,
   matrixSlot,

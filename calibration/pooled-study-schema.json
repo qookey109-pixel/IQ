@@ -3,13 +3,17 @@
   "$id": "https://cognitive-iq-lab.local/calibration/pooled-study-export-v1.json",
   "title": "Cognitive IQ Lab manual calibration export accepted by the pooled-study tool",
   "type": "object",
-  "required": ["schemaVersion", "sourceKey", "sessions"],
+  "required": ["schemaVersion", "sourceKey", "privacy", "productStatus", "sessions"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "generatedAt": { "type": ["string", "null"] },
-    "sourceKey": { "type": "string", "minLength": 8 },
+    "updatedAt": { "type": ["string", "null"] },
+    "bankVersion": { "type": ["string", "null"] },
+    "bankRevision": { "type": ["string", "number", "null"] },
+    "sourceKey": { "type": "string", "minLength": 8, "not": { "const": "local-unavailable" } },
     "privacy": {
-      "type": ["object", "null"],
+      "type": "object",
+      "required": ["automaticUpload", "containsName", "containsAccount", "containsDateOfBirth", "containsIp", "containsLocation"],
       "properties": {
         "automaticUpload": { "const": false },
         "containsName": { "const": false },
@@ -20,7 +24,8 @@
       }
     },
     "productStatus": {
-      "type": ["object", "null"],
+      "type": "object",
+      "required": ["iqEstimateAvailable", "populationNormed"],
       "properties": {
         "cpiAvailable": { "type": "boolean" },
         "iqEstimateAvailable": { "const": false },
@@ -34,7 +39,7 @@
         "required": ["sessionId", "sourceKey", "ageYears", "ageBand", "rows"],
         "properties": {
           "sessionId": { "type": "string", "minLength": 8 },
-          "sourceKey": { "type": "string", "minLength": 8 },
+          "sourceKey": { "type": "string", "minLength": 8, "not": { "const": "local-unavailable" } },
           "createdAt": { "type": ["string", "null"] },
           "ageYears": { "type": "integer", "minimum": 18, "maximum": 65 },
           "ageBand": { "enum": ["18–24", "25–34", "35–44", "45–54", "55–65"] },
@@ -44,19 +49,19 @@
           "anchorStudy": {
             "type": ["object", "null"],
             "properties": {
-              "optIn": { "const": true },
+              "optIn": { "type": "boolean" },
               "completed": { "type": "boolean" },
               "status": { "type": "string" }
-            },
-            "required": ["optIn"]
+            }
           },
           "rows": {
             "type": "array",
-            "items": { "$ref": "schema-v1.json" }
+            "minItems": 42,
+            "items": { "$ref": "schema.json" }
           }
         }
       }
     }
   },
-  "$comment": "Pooling is manual/offline. A session is eligible only when anchorStudy.optIn is true. Forbidden identifying keys are additionally rejected recursively by scripts/pool-calibration-exports.js."
+  "$comment": "Pooling is manual/offline. Only sessions with anchorStudy.optIn=true are included in the pooled cohort. The pooling script additionally requires exactly 42 unique formal items, validates matrix slots, verifies completed six-domain anchor blocks, and recursively rejects identifying keys."
 }

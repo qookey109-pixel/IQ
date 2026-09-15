@@ -1,0 +1,42 @@
+name: Offline Validation Lab
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/cognitive-iq-lab-v6
+      - feature/calibration-v6-offline-validation-lab
+
+jobs:
+  validate-offline-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check offline-lab JavaScript syntax
+        run: |
+          node --check scripts/generate-synthetic-calibration.js
+          node --check scripts/normalize-public-dataset.js
+          node --check scripts/run-offline-validation-lab.js
+          node --check tests/offline-validation-lab-validation.js
+
+      - name: Validate source isolation, synthetic determinism, privacy and IQ lock
+        run: node tests/offline-validation-lab-validation.js
+
+      - name: Smoke-test synthetic offline execution without network or R
+        run: |
+          OUT="$RUNNER_TEMP/cil-offline-v6"
+          node scripts/run-offline-validation-lab.js \
+            --mode synthetic \
+            --participants 40 \
+            --seed github-actions \
+            --out "$OUT"
+          test -f "$OUT/offline-lab-manifest.json"
+          test -f "$OUT/synthetic/calibration-responses.csv"
+          test -f "$OUT/synthetic/synthetic-manifest.json"
+          node -e 'const fs=require("fs"); const p=process.argv[1]; const m=JSON.parse(fs.readFileSync(p,"utf8")); if(m.safety.participantBackend!==false || m.safety.automaticUpload!==false || m.safety.productIqUnlocked!==false) process.exit(1);' "$OUT/offline-lab-manifest.json"
+
+      - name: Validate dry-run plan does not require participant data
+        run: node scripts/run-offline-validation-lab.js --mode synthetic --dry-run

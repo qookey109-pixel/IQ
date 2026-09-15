@@ -6,22 +6,27 @@ const path = require('path');
 const {
   DATASET_ID,
   DOMAIN_COUNTS,
+  canonicalItemId,
   detectItemColumns,
   normalizeIcarCsv
 } = require('../scripts/normalize-icar-sapa.js');
 const { buildPlan } = require('../scripts/run-external-dataset-research-pack.js');
 
-function itemNames() {
+function itemNames(style = 'compact') {
+  const make = (prefix, count) => Array.from({ length: count }, (_, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    return style === 'published-dot' ? `${prefix}.${n}` : `${prefix}${i + 1}`;
+  });
   return [
-    ...Array.from({ length: 9 }, (_, i) => `LN${i + 1}`),
-    ...Array.from({ length: 11 }, (_, i) => `MR${i + 1}`),
-    ...Array.from({ length: 16 }, (_, i) => `VR${i + 1}`),
-    ...Array.from({ length: 24 }, (_, i) => `R3D${i + 1}`)
+    ...make('LN', 9),
+    ...make('MR', 11),
+    ...make('VR', 16),
+    ...make('R3D', 24)
   ];
 }
 
-function makeFixture() {
-  const items = itemNames();
+function makeFixture(style = 'compact') {
+  const items = itemNames(style);
   const headers = ['age', 'gender', ...items];
   const ages = [17, 18, 25, 44, 65, 66];
   const lines = [headers.join(',')];
@@ -57,42 +62,57 @@ function makeFixture() {
 })();
 
 (function validateIcarNormalization() {
-  const fixture = makeFixture();
-  const headers = fixture.split(/\r?\n/)[0].split(',');
-  assert.strictEqual(detectItemColumns(headers).length, 60);
+  for (const style of ['compact', 'published-dot']) {
+    const fixture = makeFixture(style);
+    const headers = fixture.split(/\r?\n/)[0].split(',');
+    assert.strictEqual(detectItemColumns(headers).length, 60);
 
-  const first = normalizeIcarCsv(fixture);
-  const second = normalizeIcarCsv(fixture);
-  assert.deepStrictEqual(first, second, 'ICAR normalization must be deterministic');
-  assert.strictEqual(first.manifest.itemColumns, 60);
-  assert.deepStrictEqual(first.manifest.domainCounts, DOMAIN_COUNTS);
-  assert.strictEqual(first.manifest.sourceRecordsInAdultRange, 4);
-  assert.strictEqual(first.manifest.participantsWithScoredResponses, 4);
-  assert.strictEqual(first.manifest.productNormEligible, false);
-  assert.strictEqual(first.manifest.productIqUnlocked, false);
-  assert.strictEqual(first.manifest.containsItemText, false);
-  assert.strictEqual(first.manifest.containsScoringKey, false);
-  assert(first.rows.length > 0);
-  assert(first.rows.every(row => row.ageYears >= 18 && row.ageYears <= 65));
-  assert(first.rows.every(row => row.productNormEligible === false));
-  assert(first.rows.every(row => row.cilItem === false));
-  assert(first.rows.every(row => row.productIqUnlocked === false));
-  assert(first.rows.every(row => ['LN','MR','VR','R3D'].includes(row.externalDomain)));
-  assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'itemText')));
-  assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'scoringKey')));
+    const first = normalizeIcarCsv(fixture);
+    const second = normalizeIcarCsv(fixture);
+    assert.deepStrictEqual(first, second, `ICAR normalization must be deterministic for ${style}`);
+    assert.strictEqual(first.manifest.itemColumns, 60);
+    assert.deepStrictEqual(first.manifest.domainCounts, DOMAIN_COUNTS);
+    assert.strictEqual(first.manifest.sourceRecordsInAdultRange, 4);
+    assert.strictEqual(first.manifest.participantsWithScoredResponses, 4);
+    assert.strictEqual(first.manifest.productNormEligible, false);
+    assert.strictEqual(first.manifest.productIqUnlocked, false);
+    assert.strictEqual(first.manifest.containsItemText, false);
+    assert.strictEqual(first.manifest.containsScoringKey, false);
+    assert(first.rows.length > 0);
+    assert(first.rows.every(row => row.ageYears >= 18 && row.ageYears <= 65));
+    assert(first.rows.every(row => row.productNormEligible === false));
+    assert(first.rows.every(row => row.cilItem === false));
+    assert(first.rows.every(row => row.productIqUnlocked === false));
+    assert(first.rows.every(row => ['LN','MR','VR','R3D'].includes(row.externalDomain)));
+    assert(first.rows.every(row => /:(LN|MR|VR|R3D)\d{2}$/.test(row.externalItemId)));
+    assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'itemText')));
+    assert(!first.rows.some(row => Object.prototype.hasOwnProperty.call(row, 'scoringKey')));
+  }
+  assert.strictEqual(canonicalItemId('VR.04'), 'VR04');
+  assert.strictEqual(canonicalItemId('LN.58'), 'LN58');
+  assert.strictEqual(canonicalItemId('R3D_4'), 'R3D04');
 })();
 
 (function validateRejectsIncompleteItemStructure() {
-  const fixture = makeFixture();
+  const fixture = makeFixture('published-dot');
   const lines = fixture.trimEnd().split('\n');
   const headers = lines[0].split(',');
-  const removeIndex = headers.indexOf('R3D24');
+  const removeIndex = headers.indexOf('R3D.24');
   const reduced = lines.map(line => {
     const cells = line.split(',');
     cells.splice(removeIndex, 1);
     return cells.join(',');
   }).join('\n') + '\n';
   assert.throws(() => normalizeIcarCsv(reduced), /Expected 60 scored ICAR item columns/);
+})();
+
+(function validateRejectsCanonicalCollisions() {
+  const fixture = makeFixture('published-dot');
+  const lines = fixture.trimEnd().split('\n');
+  const headers = lines[0].split(',');
+  headers[headers.indexOf('LN.02')] = 'LN_01';
+  lines[0] = headers.join(',');
+  assert.throws(() => normalizeIcarCsv(lines.join('\n') + '\n'), /duplicate canonical item IDs/);
 })();
 
 (function validateOfflinePlan() {

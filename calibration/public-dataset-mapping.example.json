@@ -1,0 +1,12 @@
+{
+  "datasetId": "example-public-cognitive-dataset",
+  "participantIdColumn": "participant_id",
+  "ageColumn": "age",
+  "itemColumns": ["item_01", "item_02", "item_03", "item_04"],
+  "correctValues": [1, "1", true, "correct"],
+  "incorrectValues": [0, "0", false, "incorrect"],
+  "itemContentStored": false,
+  "scoringKeyStored": false,
+  "licenseReference": "Replace with the dataset license or terms reference.",
+  "sourceReference": "Replace with the public dataset citation/DOI/project reference."
+}

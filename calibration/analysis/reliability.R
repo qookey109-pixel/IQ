@@ -4,9 +4,9 @@ suppressPackageStartupMessages({
   library(psych)
   library(dplyr)
 })
-source(file.path(dirname(normalizePath(sys.frame(1)$ofile %||% "calibration/analysis/reliability.R")), "common.R"))
+source("calibration/analysis/common.R")
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
+`%||%` <- function(x, y) if (is.null(x) || is.na(x) || !nzchar(x)) y else x
 args <- commandArgs(trailingOnly = TRUE)
 input <- args[1] %||% "calibration/data/calibration-responses.csv"
 out <- args[2] %||% "calibration/output/reliability.json"

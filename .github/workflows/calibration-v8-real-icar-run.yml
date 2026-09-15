@@ -30,13 +30,6 @@ jobs:
         with:
           r-version: 'release'
 
-      - name: Install bounded real-run R dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libuv1-dev
-          Rscript -e 'install.packages(c("psych","mirt","jsonlite"), repos="https://cloud.r-project.org", Ncpus=2)'
-          Rscript -e 'required <- c("psych","mirt","jsonlite"); missing <- required[!vapply(required, requireNamespace, quietly=TRUE, FUN.VALUE=logical(1))]; if (length(missing)) stop(sprintf("Missing required R packages after install: %s", paste(missing, collapse=", "))); cat("R dependency gate PASS\n")'
-
       - name: Validate adapters and parse R scripts
         run: |
           node --check scripts/normalize-icar-sapa.js
@@ -112,6 +105,13 @@ jobs:
           }));
           NODE
           rm -rf "$PREFLIGHT_DIR"
+
+      - name: Install bounded real-run R dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libuv1-dev
+          Rscript -e 'install.packages(c("psych","mirt","jsonlite"), repos="https://cloud.r-project.org", Ncpus=2)'
+          Rscript -e 'required <- c("psych","mirt","jsonlite"); missing <- required[!vapply(required, requireNamespace, quietly=TRUE, FUN.VALUE=logical(1))]; if (length(missing)) stop(sprintf("Missing required R packages after install: %s", paste(missing, collapse=", "))); cat("R dependency gate PASS\n")'
 
       - name: Run real external research pack
         run: |

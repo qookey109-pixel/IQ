@@ -80,7 +80,12 @@
     window.QB5_FORM_META={formId:null,mode:'production-random',anchorReserveVersion:anchorCore.VERSION,reservedAnchorIds:[...reservedIds]};
   }
 
+  function hasBrowserDom(){
+    return typeof document!=='undefined'&&typeof document.querySelector==='function'&&typeof document.createElement==='function';
+  }
+
   function installUi(){
+    if(!hasBrowserDom())return;
     const actions=document.querySelector('#start .actions');
     if(!actions||document.getElementById('matrixCalibrationModeBtn'))return;
     const btn=document.createElement('button');
@@ -102,5 +107,8 @@
   }
 
   window.IQ_CALIBRATION_MATRIX={...meta,setMatrixMode,isMatrixMode,sourceKey,currentEpoch};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installUi,{once:true});else installUi();
+  if(hasBrowserDom()){
+    if(document.readyState==='loading'&&typeof document.addEventListener==='function')document.addEventListener('DOMContentLoaded',installUi,{once:true});
+    else installUi();
+  }
 })();

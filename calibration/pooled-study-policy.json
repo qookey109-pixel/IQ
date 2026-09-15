@@ -1,0 +1,49 @@
+{
+  "version": "CIL-POOL-2026.09.1",
+  "purpose": "Engineering study-readiness thresholds for pooled calibration planning. These thresholds do not prove validity and do not unlock IQ reporting.",
+  "independence": {
+    "unit": "sourceKey",
+    "rule": "At most one session per sourceKey is counted as an independent participant for norming-readiness summaries.",
+    "selection": "Prefer a completed six-domain anchor session, then a matrix-form session, then the earliest consented session."
+  },
+  "consent": {
+    "requiresAnchorStudyOptIn": true,
+    "automaticUpload": false,
+    "manualExportOnly": true
+  },
+  "ageBands": ["18–24", "25–34", "35–44", "45–54", "55–65"],
+  "stages": {
+    "pilot": {
+      "independentParticipants": 250,
+      "minimumPerAgeBand": 30,
+      "minimumMatrixSlotsObserved": 14,
+      "minimumAnchorCompletionRate": 0.5,
+      "minimumAverageFormalItemExposure": 4
+    },
+    "calibrationCandidate": {
+      "independentParticipants": 2500,
+      "minimumPerAgeBand": 250,
+      "minimumMatrixSlotsObserved": 48,
+      "minimumAnchorCompletionRate": 0.7,
+      "minimumAverageFormalItemExposure": 40
+    },
+    "normingCandidate": {
+      "independentParticipants": 5000,
+      "minimumPerAgeBand": 500,
+      "minimumMatrixSlotsObserved": 56,
+      "minimumAnchorCompletionRate": 0.8,
+      "minimumAverageFormalItemExposure": 80
+    }
+  },
+  "safety": {
+    "populationNormed": false,
+    "productIqUnlocked": false,
+    "thresholdsAreValidationEvidence": false,
+    "requiresReliabilityEvidence": true,
+    "requiresIrtEvidence": true,
+    "requiresDifFairnessEvidence": true,
+    "requiresConstructValidityEvidence": true,
+    "requiresExternalValidityOrLinking": true,
+    "requiresAgeNormUncertainty": true
+  }
+}

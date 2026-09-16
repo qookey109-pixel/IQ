@@ -35,6 +35,7 @@ Default research configuration:
 - 5 deterministic replicates;
 - 1,200 synthetic participants per replicate;
 - independent seed suffix per replicate;
+- deterministic R estimator seed derived from each replicate seed;
 - targeted IRT and Age-DIF analysis only.
 
 Example:
@@ -49,14 +50,32 @@ node scripts/run-monte-carlo-recovery.js \
 
 The CI smoke run is intentionally smaller: two replicates × 900 synthetic participants. It checks that the full recovery path executes and produces finite diagnostics without making a post-hoc scientific PASS claim.
 
+### Deterministic analysis seed
+
+The synthetic response generator is deterministic from the replicate seed. v9.2 also derives a positive R integer seed from that same replicate seed and passes it to both `irt_mirt.R` and `age_dif.R` through `CIL_ANALYSIS_SEED`. Both R scripts call `set.seed()` when the variable is present.
+
+This is a reproducibility control, not a scientific threshold. Re-running the same replicate seed should not change the estimator simply because the R process started with a different RNG state.
+
+### DIF-compatible control separation
+
+The full 42-item recovery panel remains the IRT input so the low- and negative-discrimination controls can be evaluated directly.
+
+`lordif` requires positive item slopes in its IRT probability path. Therefore the Age-DIF leg receives a synthetic-only temporary derivative of the same response data that excludes only the 6 low-discrimination controls and 6 negative-discrimination controls. It retains all 6 implanted age-DIF controls plus 24 regular items, for 5 DIF-compatible items per domain.
+
+This separation does not rewrite item truth, reverse-score negative controls, weaken a gate, or change the production/default question sampler. The temporary participant-level DIF input remains inside the local/GitHub runner temporary directory and is never uploaded.
+
 ## Metrics
 
-For regular non-defect items, v9 reports:
+For regular non-defect items, v9 reports both overall and per-domain recovery diagnostics:
 
 - correlation between known and estimated 2PL discrimination;
 - correlation between known and estimated 2PL difficulty;
 - discrimination RMSE;
-- difficulty RMSE.
+- difficulty RMSE;
+- discrimination bias (`estimated a - known a`);
+- difficulty bias (`estimated b - known b`).
+
+The aggregate report also summarizes the across-replicate range of each metric for every domain so seed/domain instability is visible instead of being hidden by one overall value.
 
 For injected controls, v9 reports:
 
@@ -68,6 +87,12 @@ For injected controls, v9 reports:
 - aggregate DIF false-positive rate.
 
 These are diagnostics. v9 deliberately does **not** define success thresholds after seeing the results. Any scientific thresholds intended to gate later work must be specified prospectively in a later versioned policy.
+
+## Structural completeness gate
+
+`complete-diagnostic` only means the bounded recovery workflow produced structurally usable diagnostics. It requires finite overall and per-domain correlation/RMSE/bias values for all six fixed domains, non-empty matched IRT output, and non-empty DIF output for every replicate.
+
+It does **not** mean the values are scientifically acceptable. Scientific review must still inspect effect sizes, bias, domain stability, control recovery, DIF sensitivity, false-positive rate, and repeated-run reproducibility.
 
 ## Output isolation
 

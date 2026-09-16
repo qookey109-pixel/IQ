@@ -4,7 +4,21 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { buildSyntheticBank, rowsToCsv } = require('./generate-synthetic-calibration.js');
+const {
+  DOMAINS,
+  buildSyntheticBank,
+  hashSeed,
+  rowsToCsv
+} = require('./generate-synthetic-calibration.js');
+
+const RECOVERY_METRIC_KEYS = Object.freeze([
+  'discriminationCorrelation',
+  'difficultyCorrelation',
+  'discriminationRmse',
+  'difficultyRmse',
+  'discriminationBias',
+  'difficultyBias'
+]);
 
 function parseArgs(argv) {
   const out = {
@@ -33,6 +47,10 @@ function parseArgs(argv) {
   return out;
 }
 
+function analysisSeed(seed) {
+  return (hashSeed(`analysis:${seed}`) % 2147483646) + 1;
+}
+
 function buildPlan(options = {}) {
   const cfg = { ...parseArgs([]), ...options };
   const steps = [];
@@ -47,6 +65,8 @@ function buildPlan(options = {}) {
     const input = path.join(syntheticDir, 'calibration-responses.csv');
     const difInput = path.join(syntheticDir, 'calibration-responses-dif-compatible.csv');
     const seed = `${cfg.seedPrefix}-r${id}`;
+    const estimatorSeed = analysisSeed(seed);
+    const analysisEnv = { CIL_ANALYSIS_SEED: String(estimatorSeed) };
     steps.push(
       {
         name: `generate-${id}`,
@@ -65,21 +85,25 @@ function buildPlan(options = {}) {
         name: `irt-${id}`,
         command: 'Rscript',
         args: ['calibration/analysis/irt_mirt.R', input, analysisDir],
+        env: analysisEnv,
         replicate: i + 1,
-        seed
+        seed,
+        estimatorSeed
       },
       {
         name: `age-dif-${id}`,
         command: 'Rscript',
         args: ['calibration/analysis/age_dif.R', difInput, analysisDir],
+        env: analysisEnv,
         sourceInput: input,
         replicate: i + 1,
-        seed
+        seed,
+        estimatorSeed
       }
     );
   }
   return {
-    version: 'CIL-MONTE-CARLO-RECOVERY-2026.09.1',
+    version: 'CIL-MONTE-CARLO-RECOVERY-2026.09.2',
     design: 'fixed-42-item-synthetic-recovery-panel',
     replicates: cfg.replicates,
     participantsPerReplicate: cfg.participants,
@@ -103,7 +127,11 @@ function runStep(step, cwd = process.cwd()) {
   const result = spawnSync(step.command, step.args, {
     cwd,
     stdio: 'inherit',
-    env: { ...process.env, ALLOW_RESEARCH_STANDARD_SCORE: '0' }
+    env: {
+      ...process.env,
+      ...(step.env || {}),
+      ALLOW_RESEARCH_STANDARD_SCORE: '0'
+    }
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${step.name} failed with exit code ${result.status}`);
@@ -192,6 +220,11 @@ function rmse(pairs, truthKey, estimateKey) {
   return Math.sqrt(mean(pairs.map(pair => (pair[estimateKey] - pair[truthKey]) ** 2)));
 }
 
+function bias(pairs, truthKey, estimateKey) {
+  if (!pairs.length) return null;
+  return mean(pairs.map(pair => pair[estimateKey] - pair[truthKey]));
+}
+
 function correlation(pairs, xKey, yKey) {
   if (pairs.length < 3) return null;
   const mx = mean(pairs.map(pair => pair[xKey]));
@@ -200,6 +233,22 @@ function correlation(pairs, xKey, yKey) {
   const dx = Math.sqrt(pairs.reduce((s, pair) => s + (pair[xKey] - mx) ** 2, 0));
   const dy = Math.sqrt(pairs.reduce((s, pair) => s + (pair[yKey] - my) ** 2, 0));
   return dx > 0 && dy > 0 ? num / (dx * dy) : null;
+}
+
+function recoveryMetrics(pairs) {
+  return {
+    regularParameterRows: pairs.length,
+    discriminationCorrelation: correlation(pairs, 'truthA', 'estimateA'),
+    difficultyCorrelation: correlation(pairs, 'truthB', 'estimateB'),
+    discriminationRmse: rmse(pairs, 'truthA', 'estimateA'),
+    difficultyRmse: rmse(pairs, 'truthB', 'estimateB'),
+    discriminationBias: bias(pairs, 'truthA', 'estimateA'),
+    difficultyBias: bias(pairs, 'truthB', 'estimateB')
+  };
+}
+
+function recoveryMetricsFinite(metrics) {
+  return Boolean(metrics) && RECOVERY_METRIC_KEYS.every(key => Number.isFinite(metrics[key]));
 }
 
 function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
@@ -216,6 +265,7 @@ function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
     if (estimateA == null || estimateB == null) continue;
     matched.push({
       itemId: row.itemId,
+      domain: t.domain,
       truthA: t.a,
       truthB: t.b,
       estimateA,
@@ -228,6 +278,13 @@ function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
   const regular = matched.filter(row => !row.defect && row.truthA > 0);
   const lowControls = matched.filter(row => row.defect === 'low-discrimination-control');
   const negativeControls = matched.filter(row => row.defect === 'negative-discrimination-control');
+  const overallRecovery = recoveryMetrics(regular);
+  const domainRecovery = Object.fromEntries(
+    DOMAINS.map(domain => [
+      domain,
+      recoveryMetrics(regular.filter(row => row.domain === domain))
+    ])
+  );
 
   const difRows = dif.filter(row => row.itemId && row.status === 'ok' && truth.has(row.itemId));
   const knownDif = difRows.filter(row => truth.get(row.itemId).ageDif > 0);
@@ -239,11 +296,8 @@ function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
   return {
     parameterRows: params.length,
     matchedParameterRows: matched.length,
-    regularParameterRows: regular.length,
-    discriminationCorrelation: correlation(regular, 'truthA', 'estimateA'),
-    difficultyCorrelation: correlation(regular, 'truthB', 'estimateB'),
-    discriminationRmse: rmse(regular, 'truthA', 'estimateA'),
-    difficultyRmse: rmse(regular, 'truthB', 'estimateB'),
+    ...overallRecovery,
+    domainRecovery,
     lowDiscriminationControlsObserved: lowControls.length,
     lowDiscriminationControlsBelow035: lowControls.filter(row => Math.abs(row.estimateA) < 0.35).length,
     negativeDiscriminationControlsObserved: negativeControls.length,
@@ -263,14 +317,33 @@ function rangeSummary(values) {
   return xs.length ? { mean: mean(xs), min: Math.min(...xs), max: Math.max(...xs) } : null;
 }
 
+function aggregateDomainRecovery(replicates) {
+  return Object.fromEntries(
+    DOMAINS.map(domain => {
+      const rows = replicates.map(rep => rep.domainRecovery?.[domain]).filter(Boolean);
+      return [domain, {
+        replicatesObserved: rows.length,
+        discriminationCorrelation: rangeSummary(rows.map(row => row.discriminationCorrelation)),
+        difficultyCorrelation: rangeSummary(rows.map(row => row.difficultyCorrelation)),
+        discriminationRmse: rangeSummary(rows.map(row => row.discriminationRmse)),
+        difficultyRmse: rangeSummary(rows.map(row => row.difficultyRmse)),
+        discriminationBias: rangeSummary(rows.map(row => row.discriminationBias)),
+        difficultyBias: rangeSummary(rows.map(row => row.difficultyBias))
+      }];
+    })
+  );
+}
+
 function aggregateResults(plan) {
   const replicates = [];
   for (let i = 0; i < plan.replicates; i++) {
     const id = String(i + 1).padStart(2, '0');
+    const seed = `${plan.seedPrefix}-r${id}`;
     const analysisDir = path.join(plan.outDir, `replicate-${id}`, 'analysis');
     replicates.push({
       replicate: i + 1,
-      seed: `${plan.seedPrefix}-r${id}`,
+      seed,
+      analysisSeed: analysisSeed(seed),
       ...summarizeReplicate(analysisDir)
     });
   }
@@ -284,8 +357,8 @@ function aggregateResults(plan) {
 
   const structuralPass = replicates.every(r =>
     r.matchedParameterRows > 0 &&
-    Number.isFinite(r.discriminationCorrelation) &&
-    Number.isFinite(r.difficultyCorrelation) &&
+    recoveryMetricsFinite(r) &&
+    DOMAINS.every(domain => recoveryMetricsFinite(r.domainRecovery?.[domain])) &&
     r.difRows > 0
   );
 
@@ -298,13 +371,18 @@ function aggregateResults(plan) {
       design: plan.design,
       replicates: plan.replicates,
       participantsPerReplicate: plan.participantsPerReplicate,
-      seedPrefix: plan.seedPrefix
+      seedPrefix: plan.seedPrefix,
+      deterministicAnalysisSeed: true,
+      analysisSeedMethod: 'fnv1a32-derived-positive-r-integer'
     },
     aggregate: {
       discriminationCorrelation: rangeSummary(replicates.map(r => r.discriminationCorrelation)),
       difficultyCorrelation: rangeSummary(replicates.map(r => r.difficultyCorrelation)),
       discriminationRmse: rangeSummary(replicates.map(r => r.discriminationRmse)),
       difficultyRmse: rangeSummary(replicates.map(r => r.difficultyRmse)),
+      discriminationBias: rangeSummary(replicates.map(r => r.discriminationBias)),
+      difficultyBias: rangeSummary(replicates.map(r => r.difficultyBias)),
+      domainRecovery: aggregateDomainRecovery(replicates),
       difSensitivity: totals.knownDifControlsObserved ? totals.knownDifControlsDetected / totals.knownDifControlsObserved : null,
       difFalsePositiveRate: totals.nullDifItemsObserved ? totals.nullDifItemsFlagged / totals.nullDifItemsObserved : null,
       ...totals
@@ -364,10 +442,13 @@ if (require.main === module) {
 
 module.exports = {
   parseArgs,
+  analysisSeed,
   buildPlan,
   runStep,
   parseCsv,
   prepareSyntheticDifInput,
+  bias,
+  recoveryMetrics,
   summarizeReplicate,
   aggregateResults,
   writeSummary,

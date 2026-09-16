@@ -125,11 +125,14 @@ jobs:
             console.error(`::error::${annotation}`);
             throw new Error(text);
           }
+
           const diagnostic = {
             status: report.status,
             configuration: {
               replicates: report.configuration?.replicates,
-              participantsPerReplicate: report.configuration?.participantsPerReplicate
+              participantsPerReplicate: report.configuration?.participantsPerReplicate,
+              deterministicAnalysisSeed: report.configuration?.deterministicAnalysisSeed,
+              analysisSeedMethod: report.configuration?.analysisSeedMethod
             },
             gates: {
               allReplicatesProducedFiniteRecoveryMetrics: report.gates?.allReplicatesProducedFiniteRecoveryMetrics,
@@ -145,6 +148,7 @@ jobs:
             replicates: report.replicates?.map(rep => ({
               replicate: rep.replicate,
               seed: rep.seed,
+              analysisSeed: rep.analysisSeed,
               parameterRows: rep.parameterRows,
               matchedParameterRows: rep.matchedParameterRows,
               regularParameterRows: rep.regularParameterRows,
@@ -152,6 +156,9 @@ jobs:
               difficultyCorrelation: rep.difficultyCorrelation,
               discriminationRmse: rep.discriminationRmse,
               difficultyRmse: rep.difficultyRmse,
+              discriminationBias: rep.discriminationBias,
+              difficultyBias: rep.difficultyBias,
+              domainRecovery: rep.domainRecovery,
               lowDiscriminationControlsObserved: rep.lowDiscriminationControlsObserved,
               lowDiscriminationControlsBelow035: rep.lowDiscriminationControlsBelow035,
               negativeDiscriminationControlsObserved: rep.negativeDiscriminationControlsObserved,
@@ -170,6 +177,9 @@ jobs:
               difficultyCorrelation: report.aggregate?.difficultyCorrelation,
               discriminationRmse: report.aggregate?.discriminationRmse,
               difficultyRmse: report.aggregate?.difficultyRmse,
+              discriminationBias: report.aggregate?.discriminationBias,
+              difficultyBias: report.aggregate?.difficultyBias,
+              domainRecovery: report.aggregate?.domainRecovery,
               difSensitivity: report.aggregate?.difSensitivity,
               difFalsePositiveRate: report.aggregate?.difFalsePositiveRate,
               knownDifControlsObserved: report.aggregate?.knownDifControlsObserved,
@@ -182,7 +192,8 @@ jobs:
           console.log(JSON.stringify({ diagnostic }, null, 2));
           if (report.status !== 'complete-diagnostic') fail(`Unexpected report status: ${report.status}`);
           if (report.configuration.replicates !== 2) fail('Expected exactly two bounded CI replicates');
-          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Recovery metrics were not finite for every replicate');
+          if (report.configuration.deterministicAnalysisSeed !== true) fail('Expected deterministic R analysis seeding');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Recovery metrics were not finite for every replicate/domain');
           if (report.gates.scientificThresholdsPreRegistered !== false) fail('v9 must not invent post-hoc scientific pass thresholds');
           for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
             if (report.gates[key] !== false) fail(`${key} must remain false`);
@@ -197,10 +208,60 @@ jobs:
             status: report.status,
             discriminationCorrelation: report.aggregate.discriminationCorrelation,
             difficultyCorrelation: report.aggregate.difficultyCorrelation,
+            discriminationBias: report.aggregate.discriminationBias,
+            difficultyBias: report.aggregate.difficultyBias,
             difSensitivity: report.aggregate.difSensitivity,
             difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
             productIqUnlocked: report.gates.productIqUnlocked
           }, null, 2));
+          NODE
+
+      - name: Verify deterministic replay
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 2 \
+            --participants 900 \
+            --seed-prefix cil-mc-v9-ci \
+            --out "$RUNNER_TEMP/cil-mc-v9-replay"
+          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-replay/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9/aggregate-safe-diagnostic.json" <<'NODE'
+          const crypto = require('crypto');
+          const fs = require('fs');
+          const primary = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const replay = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
+          const diagnosticPath = process.argv[4];
+
+          function normalized(report) {
+            const { generatedAt, ...rest } = report;
+            return rest;
+          }
+          function stableText(report) {
+            return JSON.stringify(normalized(report));
+          }
+          function digest(text) {
+            return crypto.createHash('sha256').update(text).digest('hex');
+          }
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
+
+          const primaryText = stableText(primary);
+          const replayText = stableText(replay);
+          const same = primaryText === replayText;
+          const diagnostic = JSON.parse(fs.readFileSync(diagnosticPath, 'utf8'));
+          diagnostic.reproducibility = {
+            deterministicReplayMatched: same,
+            primarySha256: digest(primaryText),
+            replaySha256: digest(replayText)
+          };
+          fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n');
+          if (!same) fail('Deterministic replay did not reproduce the same aggregate recovery summary');
+          console.log(JSON.stringify(diagnostic.reproducibility, null, 2));
           NODE
 
       - name: Upload aggregate-safe failure diagnostic

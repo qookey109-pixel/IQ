@@ -7,12 +7,15 @@ const path = require('path');
 const {
   buildSyntheticBank,
   chooseItemsForParticipant,
-  generateSynthetic
+  generateSynthetic,
+  rowsToCsv
 } = require('../scripts/generate-synthetic-calibration.js');
 const {
   parseArgs,
+  analysisSeed,
   buildPlan,
   parseCsv,
+  prepareSyntheticDifInput,
   summarizeReplicate
 } = require('../scripts/run-monte-carlo-recovery.js');
 
@@ -30,6 +33,7 @@ const {
   assert.strictEqual(args.dryRun, true);
 
   const plan = buildPlan(args);
+  assert.strictEqual(plan.version, 'CIL-MONTE-CARLO-RECOVERY-2026.09.2');
   assert.strictEqual(plan.design, 'fixed-42-item-synthetic-recovery-panel');
   assert.strictEqual(plan.steps.length, 6);
   assert.deepStrictEqual(plan.steps.map(step => step.name), [
@@ -37,6 +41,17 @@ const {
     'generate-02', 'irt-02', 'age-dif-02'
   ]);
   assert(plan.steps.filter(step => step.name.startsWith('generate-')).every(step => step.args.includes('recovery')));
+
+  const r1Seed = analysisSeed('test-v9-r01');
+  const r2Seed = analysisSeed('test-v9-r02');
+  assert(Number.isInteger(r1Seed) && r1Seed > 0);
+  assert(Number.isInteger(r2Seed) && r2Seed > 0);
+  assert.notStrictEqual(r1Seed, r2Seed);
+  assert.strictEqual(plan.steps.find(step => step.name === 'irt-01').env.CIL_ANALYSIS_SEED, String(r1Seed));
+  assert.strictEqual(plan.steps.find(step => step.name === 'age-dif-01').env.CIL_ANALYSIS_SEED, String(r1Seed));
+  assert.strictEqual(plan.steps.find(step => step.name === 'irt-02').env.CIL_ANALYSIS_SEED, String(r2Seed));
+  assert.strictEqual(plan.steps.find(step => step.name === 'age-dif-02').env.CIL_ANALYSIS_SEED, String(r2Seed));
+
   assert.strictEqual(plan.safety.containsRealParticipants, false);
   assert.strictEqual(plan.safety.syntheticOnly, true);
   assert.strictEqual(plan.safety.automaticUpload, false);
@@ -75,6 +90,30 @@ const {
   assert(generated.rows.every(row => row.formId === 'synthetic-recovery-panel-v1'));
 })();
 
+(function validateDifCompatibleRecoveryInput() {
+  const truth = buildSyntheticBank();
+  const generated = generateSynthetic({ participants: 250, seed: 'v9-dif-filter-test', panel: 'recovery' });
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cil-mc-v9-dif-'));
+  try {
+    const source = path.join(tmp, 'calibration-responses.csv');
+    const output = path.join(tmp, 'calibration-responses-dif-compatible.csv');
+    fs.writeFileSync(source, rowsToCsv(generated.rows));
+    const prepared = prepareSyntheticDifInput(source, output, truth);
+    assert.strictEqual(prepared.sourceRows, 250 * 42);
+    assert.strictEqual(prepared.filteredRows, 250 * 30);
+    assert.strictEqual(prepared.excludedItemCount, 12);
+
+    const filtered = parseCsv(fs.readFileSync(output, 'utf8'));
+    const filteredIds = new Set(filtered.map(row => row.itemId));
+    const excluded = truth.filter(item => item.defect === 'low-discrimination-control' || item.defect === 'negative-discrimination-control');
+    const ageDifControls = truth.filter(item => item.defect === 'age-dif-control');
+    assert(excluded.every(item => !filteredIds.has(item.itemId)));
+    assert(ageDifControls.every(item => filteredIds.has(item.itemId)));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+})();
+
 (function validateCsvParserAndRecoverySummarizer() {
   assert.deepStrictEqual(parseCsv('a,b\n1,"two,2"\n'), [{ a: '1', b: 'two,2' }]);
 
@@ -94,8 +133,16 @@ const {
 
     const summary = summarizeReplicate(tmp, truth);
     assert.strictEqual(summary.matchedParameterRows, selected.length);
+    assert.strictEqual(summary.regularParameterRows, 4);
     assert(Math.abs(summary.discriminationCorrelation - 1) < 1e-12);
     assert(Math.abs(summary.difficultyCorrelation - 1) < 1e-12);
+    assert(Math.abs(summary.discriminationBias) < 1e-12);
+    assert(Math.abs(summary.difficultyBias) < 1e-12);
+    assert.strictEqual(summary.domainRecovery['verbal-comprehension'].regularParameterRows, 4);
+    assert(Math.abs(summary.domainRecovery['verbal-comprehension'].discriminationCorrelation - 1) < 1e-12);
+    assert(Math.abs(summary.domainRecovery['verbal-comprehension'].difficultyCorrelation - 1) < 1e-12);
+    assert(Math.abs(summary.domainRecovery['verbal-comprehension'].discriminationBias) < 1e-12);
+    assert(Math.abs(summary.domainRecovery['verbal-comprehension'].difficultyBias) < 1e-12);
     assert.strictEqual(summary.knownDifControlsObserved, 1);
     assert.strictEqual(summary.knownDifControlsDetected, 1);
     assert.strictEqual(summary.nullDifItemsObserved, 1);

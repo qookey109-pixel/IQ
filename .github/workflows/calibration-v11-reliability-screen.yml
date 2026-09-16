@@ -1,0 +1,112 @@
+name: Calibration v11 — Reliability Screen Discrimination
+
+on:
+  push:
+    branches:
+      - feature/calibration-v11-reliability-screen-discrimination
+    paths:
+      - 'calibration/confirmatory-reliability-v11.json'
+      - 'calibration/CONFIRMATORY_RELIABILITY_V11.md'
+      - 'scripts/run-confirmatory-reliability-v11.js'
+      - 'tests/confirmatory-reliability-v11-validation.js'
+      - '.github/workflows/calibration-v11-reliability-screen.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confirmatory-reliability-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate frozen v11 protocol and harness
+        run: |
+          node --check scripts/run-confirmatory-reliability-v11.js
+          node --check tests/confirmatory-reliability-v11-validation.js
+          node tests/confirmatory-reliability-v11-validation.js
+          node scripts/run-confirmatory-reliability-v11.js \
+            --protocol calibration/confirmatory-reliability-v11.json \
+            --out "$RUNNER_TEMP/cil-v11-dry" \
+            --dry-run > "$RUNNER_TEMP/cil-v11-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/cil-v11-plan.json"
+          grep -q '"autoCpiToIq": false' "$RUNNER_TEMP/cil-v11-plan.json"
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install full pipeline dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::psych
+            any::mirt
+            any::lavaan
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run preregistered v11 confirmatory study
+        run: |
+          node scripts/run-confirmatory-reliability-v11.js \
+            --protocol calibration/confirmatory-reliability-v11.json \
+            --out "$RUNNER_TEMP/cil-v11"
+
+      - name: Validate aggregate v11 result
+        run: |
+          node - "$RUNNER_TEMP/cil-v11/confirmatory-reliability-v11-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          function fail(message) { throw new Error(String(message)); }
+          if (report.status !== 'complete-confirmatory') fail(`Unexpected v11 status: ${report.status}`);
+          if (report.preregistration?.commit !== 'e1428b44167cfd2d8f882b11d417b6e8789f8223') fail('Unexpected preregistration commit');
+          if (report.preregistration?.sha256 !== 'cb0e7e1359f41681f2a8d758e7f468176214c8984b22c8f09143ec34615ed3ff') fail('Unexpected preregistration hash');
+          if (report.configuration?.replicatesPerCondition !== 3) fail('Expected 3 replicates per condition');
+          if (report.configuration?.participantsPerReplicate !== 1200) fail('Expected 1200 participants per replicate');
+          if (report.conditions?.['weak-control']?.expectedReliabilityScreenPass !== false) fail('Weak control expectation drift');
+          if (report.conditions?.['high-information-control']?.expectedReliabilityScreenPass !== true) fail('High-information expectation drift');
+          for (const row of report.conditions['weak-control'].replicates) {
+            if (row.reliabilityScreenPass !== false || row.reliabilityClassificationMatched !== true) fail('Weak control classification mismatch');
+          }
+          for (const row of report.conditions['high-information-control'].replicates) {
+            if (row.reliabilityScreenPass !== true || row.reliabilityClassificationMatched !== true) fail('High-information classification mismatch');
+          }
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates?.[key] !== false) fail(`${key} must remain false`);
+          }
+          if (report.safety?.syntheticOnly !== true || report.safety?.containsRealParticipants !== false) fail('v11 must remain synthetic-only');
+          console.log(JSON.stringify({
+            status: report.status,
+            weakControlOmegaRange: report.conditions['weak-control'].minimumOmegaTotalRange,
+            highInformationOmegaRange: report.conditions['high-information-control'].minimumOmegaTotalRange,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-v11-public"
+          cp "$RUNNER_TEMP/cil-v11/confirmatory-reliability-v11-summary.json" "$RUNNER_TEMP/cil-v11-public/"
+          test "$(find "$RUNNER_TEMP/cil-v11-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'sourceKey|sessionId|synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|administrationId' "$RUNNER_TEMP/cil-v11-public"
+
+      - name: Upload aggregate-only v11 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v11-confirmatory-reliability-summary
+          path: ${{ runner.temp }}/cil-v11-public/confirmatory-reliability-v11-summary.json
+          retention-days: 30

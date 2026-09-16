@@ -60,6 +60,45 @@ jobs:
           node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" <<'NODE'
           const fs = require('fs');
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          console.log(JSON.stringify({
+            diagnostic: {
+              status: report.status,
+              configuration: {
+                replicates: report.configuration?.replicates,
+                participantsPerReplicate: report.configuration?.participantsPerReplicate
+              },
+              gates: {
+                allReplicatesProducedFiniteRecoveryMetrics: report.gates?.allReplicatesProducedFiniteRecoveryMetrics,
+                scientificThresholdsPreRegistered: report.gates?.scientificThresholdsPreRegistered,
+                productNormEligible: report.gates?.productNormEligible,
+                productIqUnlocked: report.gates?.productIqUnlocked,
+                autoCpiToIq: report.gates?.autoCpiToIq
+              },
+              safety: {
+                containsRealParticipants: report.safety?.containsRealParticipants,
+                syntheticOnly: report.safety?.syntheticOnly
+              },
+              replicates: report.replicates?.map(rep => ({
+                replicate: rep.replicate,
+                seed: rep.seed,
+                parameterRows: rep.parameterRows,
+                matchedParameterRows: rep.matchedParameterRows,
+                regularParameterRows: rep.regularParameterRows,
+                discriminationCorrelation: rep.discriminationCorrelation,
+                difficultyCorrelation: rep.difficultyCorrelation,
+                discriminationRmse: rep.discriminationRmse,
+                difficultyRmse: rep.difficultyRmse,
+                difRows: rep.difRows,
+                knownDifControlsObserved: rep.knownDifControlsObserved,
+                knownDifControlsDetected: rep.knownDifControlsDetected,
+                nullDifItemsObserved: rep.nullDifItemsObserved,
+                nullDifItemsFlagged: rep.nullDifItemsFlagged,
+                difSensitivity: rep.difSensitivity,
+                difFalsePositiveRate: rep.difFalsePositiveRate
+              })),
+              aggregate: report.aggregate
+            }
+          }, null, 2));
           if (report.status !== 'complete-diagnostic') throw new Error(`Unexpected report status: ${report.status}`);
           if (report.configuration.replicates !== 2) throw new Error('Expected exactly two bounded CI replicates');
           if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) throw new Error('Recovery metrics were not finite for every replicate');

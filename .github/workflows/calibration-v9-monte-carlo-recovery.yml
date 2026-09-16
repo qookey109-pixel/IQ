@@ -60,6 +60,15 @@ jobs:
           node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" <<'NODE'
           const fs = require('fs');
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
           console.log(JSON.stringify({
             diagnostic: {
               status: report.status,
@@ -99,18 +108,18 @@ jobs:
               aggregate: report.aggregate
             }
           }, null, 2));
-          if (report.status !== 'complete-diagnostic') throw new Error(`Unexpected report status: ${report.status}`);
-          if (report.configuration.replicates !== 2) throw new Error('Expected exactly two bounded CI replicates');
-          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) throw new Error('Recovery metrics were not finite for every replicate');
-          if (report.gates.scientificThresholdsPreRegistered !== false) throw new Error('v9 must not invent post-hoc scientific pass thresholds');
+          if (report.status !== 'complete-diagnostic') fail(`Unexpected report status: ${report.status}`);
+          if (report.configuration.replicates !== 2) fail('Expected exactly two bounded CI replicates');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Recovery metrics were not finite for every replicate');
+          if (report.gates.scientificThresholdsPreRegistered !== false) fail('v9 must not invent post-hoc scientific pass thresholds');
           for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
-            if (report.gates[key] !== false) throw new Error(`${key} must remain false`);
+            if (report.gates[key] !== false) fail(`${key} must remain false`);
           }
           if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) {
-            throw new Error('Monte Carlo artifact must remain synthetic-only');
+            fail('Monte Carlo artifact must remain synthetic-only');
           }
           if (!report.replicates.every(rep => rep.matchedParameterRows > 0 && rep.difRows > 0)) {
-            throw new Error('Each replicate must produce IRT and DIF diagnostics');
+            fail('Each replicate must produce IRT and DIF diagnostics');
           }
           console.log(JSON.stringify({
             status: report.status,

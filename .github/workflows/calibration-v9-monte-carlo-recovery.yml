@@ -159,6 +159,7 @@ jobs:
               discriminationBias: rep.discriminationBias,
               difficultyBias: rep.difficultyBias,
               domainRecovery: rep.domainRecovery,
+              domainControlRecovery: rep.domainControlRecovery,
               lowDiscriminationControlsObserved: rep.lowDiscriminationControlsObserved,
               lowDiscriminationControlsBelow035: rep.lowDiscriminationControlsBelow035,
               negativeDiscriminationControlsObserved: rep.negativeDiscriminationControlsObserved,
@@ -170,6 +171,7 @@ jobs:
               nullDifItemsFlagged: rep.nullDifItemsFlagged,
               difSensitivity: rep.difSensitivity,
               difFalsePositiveRate: rep.difFalsePositiveRate,
+              domainDifRecovery: rep.domainDifRecovery,
               difDiagnostic: readDifDiagnostic(rep.replicate)
             })),
             aggregate: {
@@ -180,6 +182,8 @@ jobs:
               discriminationBias: report.aggregate?.discriminationBias,
               difficultyBias: report.aggregate?.difficultyBias,
               domainRecovery: report.aggregate?.domainRecovery,
+              domainControlRecovery: report.aggregate?.domainControlRecovery,
+              domainDifRecovery: report.aggregate?.domainDifRecovery,
               difSensitivity: report.aggregate?.difSensitivity,
               difFalsePositiveRate: report.aggregate?.difFalsePositiveRate,
               knownDifControlsObserved: report.aggregate?.knownDifControlsObserved,
@@ -212,6 +216,7 @@ jobs:
             difficultyBias: report.aggregate.difficultyBias,
             difSensitivity: report.aggregate.difSensitivity,
             difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
+            domainDifRecovery: report.aggregate.domainDifRecovery,
             productIqUnlocked: report.gates.productIqUnlocked
           }, null, 2));
           NODE
@@ -285,4 +290,102 @@ jobs:
         with:
           name: calibration-v9-monte-carlo-recovery-summary
           path: ${{ runner.temp }}/cil-mc-v9-public/monte-carlo-recovery-summary.json
+          retention-days: 30
+
+  bounded-full-recovery:
+    needs: synthetic-recovery
+    if: ${{ needs.synthetic-recovery.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v9-full]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install bounded recovery dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run pre-specified five-seed full study
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 5 \
+            --participants 1200 \
+            --seed-prefix cil-mc-v9-full \
+            --out "$RUNNER_TEMP/cil-mc-v9-full"
+
+      - name: Validate full aggregate report
+        run: |
+          node - "$RUNNER_TEMP/cil-mc-v9-full/monte-carlo-recovery-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
+          if (report.status !== 'complete-diagnostic') fail(`Unexpected full-study report status: ${report.status}`);
+          if (report.configuration.replicates !== 5) fail('Expected exactly five full-study replicates');
+          if (report.configuration.participantsPerReplicate !== 1200) fail('Expected exactly 1200 participants per full-study replicate');
+          if (report.configuration.seedPrefix !== 'cil-mc-v9-full') fail('Unexpected full-study seed prefix');
+          if (report.configuration.deterministicAnalysisSeed !== true) fail('Expected deterministic R analysis seeding');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Full-study recovery metrics were not finite for every replicate/domain');
+          if (report.gates.scientificThresholdsPreRegistered !== false) fail('v9 full study must not invent post-hoc scientific pass thresholds');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates[key] !== false) fail(`${key} must remain false`);
+          }
+          if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) {
+            fail('Full-study artifact must remain synthetic-only');
+          }
+          if (Object.keys(report.aggregate?.domainRecovery || {}).length !== 6) fail('Expected six domain recovery summaries');
+          if (Object.keys(report.aggregate?.domainDifRecovery || {}).length !== 6) fail('Expected six domain DIF recovery summaries');
+          if (Object.keys(report.aggregate?.domainControlRecovery || {}).length !== 6) fail('Expected six domain control recovery summaries');
+          console.log(JSON.stringify({
+            status: report.status,
+            configuration: report.configuration,
+            discriminationCorrelation: report.aggregate.discriminationCorrelation,
+            difficultyCorrelation: report.aggregate.difficultyCorrelation,
+            discriminationBias: report.aggregate.discriminationBias,
+            difficultyBias: report.aggregate.difficultyBias,
+            difSensitivity: report.aggregate.difSensitivity,
+            difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
+            domainDifRecovery: report.aggregate.domainDifRecovery,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only full-study artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-mc-v9-full-public"
+          cp "$RUNNER_TEMP/cil-mc-v9-full/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-full-public/"
+          test "$(find "$RUNNER_TEMP/cil-mc-v9-full-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/cil-mc-v9-full-public"
+
+      - name: Upload aggregate-only full-study result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-monte-carlo-full-summary
+          path: ${{ runner.temp }}/cil-mc-v9-full-public/monte-carlo-recovery-summary.json
           retention-days: 30

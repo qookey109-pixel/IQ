@@ -33,7 +33,7 @@ const {
   assert.strictEqual(args.dryRun, true);
 
   const plan = buildPlan(args);
-  assert.strictEqual(plan.version, 'CIL-MONTE-CARLO-RECOVERY-2026.09.2');
+  assert.strictEqual(plan.version, 'CIL-MONTE-CARLO-RECOVERY-2026.09.3');
   assert.strictEqual(plan.design, 'fixed-42-item-synthetic-recovery-panel');
   assert.strictEqual(plan.steps.length, 6);
   assert.deepStrictEqual(plan.steps.map(step => step.name), [
@@ -118,7 +118,7 @@ const {
   assert.deepStrictEqual(parseCsv('a,b\n1,"two,2"\n'), [{ a: '1', b: 'two,2' }]);
 
   const truth = buildSyntheticBank();
-  const selected = truth.filter(item => ['SYN-01-02','SYN-01-04','SYN-01-05','SYN-01-06','SYN-01-07'].includes(item.itemId));
+  const selected = truth.filter(item => ['SYN-01-01','SYN-01-02','SYN-01-03','SYN-01-04','SYN-01-05','SYN-01-06','SYN-01-07'].includes(item.itemId));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cil-mc-v9-'));
   try {
     fs.writeFileSync(path.join(tmp, 'item-parameters.csv'), [
@@ -128,7 +128,8 @@ const {
     fs.writeFileSync(path.join(tmp, 'age-dif.csv'), [
       'domain,itemId,difFlag,difDeltaR2,status',
       'verbal-comprehension,SYN-01-02,TRUE,0.03,ok',
-      'verbal-comprehension,SYN-01-04,FALSE,0.00,ok'
+      'verbal-comprehension,SYN-01-04,FALSE,0.00,ok',
+      'verbal-comprehension,SYN-01-05,TRUE,0.01,ok'
     ].join('\n') + '\n');
 
     const summary = summarizeReplicate(tmp, truth);
@@ -143,10 +144,28 @@ const {
     assert(Math.abs(summary.domainRecovery['verbal-comprehension'].difficultyCorrelation - 1) < 1e-12);
     assert(Math.abs(summary.domainRecovery['verbal-comprehension'].discriminationBias) < 1e-12);
     assert(Math.abs(summary.domainRecovery['verbal-comprehension'].difficultyBias) < 1e-12);
+
+    const controls = summary.domainControlRecovery['verbal-comprehension'];
+    assert.strictEqual(controls.lowDiscriminationObserved, true);
+    assert.strictEqual(controls.lowDiscriminationBelow035, true);
+    assert.strictEqual(controls.negativeDiscriminationObserved, true);
+    assert.strictEqual(controls.negativeDiscriminationEstimatedNegative, true);
+
     assert.strictEqual(summary.knownDifControlsObserved, 1);
     assert.strictEqual(summary.knownDifControlsDetected, 1);
-    assert.strictEqual(summary.nullDifItemsObserved, 1);
-    assert.strictEqual(summary.nullDifItemsFlagged, 0);
+    assert.strictEqual(summary.nullDifItemsObserved, 2);
+    assert.strictEqual(summary.nullDifItemsFlagged, 1);
+    assert.strictEqual(summary.difSensitivity, 1);
+    assert.strictEqual(summary.difFalsePositiveRate, 0.5);
+
+    const domainDif = summary.domainDifRecovery['verbal-comprehension'];
+    assert.strictEqual(domainDif.difRows, 3);
+    assert.strictEqual(domainDif.knownDifControlsObserved, 1);
+    assert.strictEqual(domainDif.knownDifControlsDetected, 1);
+    assert.strictEqual(domainDif.nullDifItemsObserved, 2);
+    assert.strictEqual(domainDif.nullDifItemsFlagged, 1);
+    assert.strictEqual(domainDif.difSensitivity, 1);
+    assert.strictEqual(domainDif.difFalsePositiveRate, 0.5);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

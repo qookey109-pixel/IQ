@@ -48,13 +48,29 @@ node scripts/run-monte-carlo-recovery.js \
   --out calibration/output/monte-carlo-v9
 ```
 
-The CI smoke run is intentionally smaller: two replicates × 900 synthetic participants. It checks that the full recovery path executes and produces finite diagnostics without making a post-hoc scientific PASS claim.
+The ordinary CI smoke run remains intentionally smaller: two replicates × 900 synthetic participants. It checks that the full recovery path executes and produces finite diagnostics without making a post-hoc scientific PASS claim.
+
+## Bounded full study
+
+Calibration v9.3 pre-specifies one bounded full diagnostic study before its results are inspected:
+
+- 5 replicates;
+- 1,200 synthetic participants per replicate;
+- seed prefix `cil-mc-v9-full`;
+- the same fixed 42-item recovery panel;
+- the same synthetic truth, including `ageDif = 0.70` for the implanted DIF control;
+- the same `lordif` criterion (`Chisqr`) and `alpha = 0.01`;
+- no post-hoc change to effect size, alpha, truth parameters, or scoring gates based on the earlier 2 × 900 smoke results.
+
+The GitHub workflow runs this heavier study only on a push whose commit message contains `[v9-full]`. This keeps routine branch CI bounded while preserving a versioned, reproducible full-study trigger.
+
+The full study is still diagnostic. It does not introduce empirical success thresholds and cannot unlock product scoring or formal norming.
 
 ### Deterministic analysis seed
 
-The synthetic response generator is deterministic from the replicate seed. v9.2 also derives a positive R integer seed from that same replicate seed and passes it to both `irt_mirt.R` and `age_dif.R` through `CIL_ANALYSIS_SEED`. Both R scripts call `set.seed()` when the variable is present.
+The synthetic response generator is deterministic from the replicate seed. v9.2+ also derives a positive R integer seed from that same replicate seed and passes it to both `irt_mirt.R` and `age_dif.R` through `CIL_ANALYSIS_SEED`. Both R scripts call `set.seed()` when the variable is present.
 
-This is a reproducibility control, not a scientific threshold. Re-running the same replicate seed should not change the estimator simply because the R process started with a different RNG state.
+This is a reproducibility control, not a scientific threshold. Re-running the same replicate seed should not materially change the estimator simply because the R process started with a different RNG state. Separate GitHub runners may still differ at floating-point machine precision because of underlying numerical libraries; counts, flags, and scientific interpretation must remain stable.
 
 ### DIF-compatible control separation
 
@@ -77,20 +93,26 @@ For regular non-defect items, v9 reports both overall and per-domain recovery di
 
 The aggregate report also summarizes the across-replicate range of each metric for every domain so seed/domain instability is visible instead of being hidden by one overall value.
 
-For injected controls, v9 reports:
+For injected discrimination controls, v9 reports overall counts plus aggregate domain-level diagnostics:
 
 - low-discrimination controls observed and estimated below an informational `|a| < .35` marker;
+- the estimated `a` range for each domain's low-discrimination control across replicates;
 - negative-discrimination controls observed and estimated with negative slope;
+- the estimated `a` range for each domain's negative-discrimination control across replicates.
+
+For Age-DIF recovery, v9 reports both overall and per-domain diagnostics:
+
 - known Age-DIF controls observed and flagged;
 - null-DIF items observed and falsely flagged;
-- aggregate DIF sensitivity;
-- aggregate DIF false-positive rate.
+- DIF sensitivity;
+- DIF false-positive rate;
+- per-domain counts showing where implanted controls were detected or missed and where null items were falsely flagged.
 
 These are diagnostics. v9 deliberately does **not** define success thresholds after seeing the results. Any scientific thresholds intended to gate later work must be specified prospectively in a later versioned policy.
 
 ## Structural completeness gate
 
-`complete-diagnostic` only means the bounded recovery workflow produced structurally usable diagnostics. It requires finite overall and per-domain correlation/RMSE/bias values for all six fixed domains, non-empty matched IRT output, and non-empty DIF output for every replicate.
+`complete-diagnostic` only means the bounded recovery workflow produced structurally usable diagnostics. It requires finite overall and per-domain correlation/RMSE/bias values for all six fixed domains, observed low/negative discrimination controls in every domain, non-empty matched IRT output, and non-empty Age-DIF output containing the implanted control in every domain for every replicate.
 
 It does **not** mean the values are scientifically acceptable. Scientific review must still inspect effect sizes, bias, domain stability, control recovery, DIF sensitivity, false-positive rate, and repeated-run reproducibility.
 
@@ -98,11 +120,7 @@ It does **not** mean the values are scientifically acceptable. Scientific review
 
 Replicate-level synthetic response files and analysis outputs remain under the local/output or GitHub runner temporary directory.
 
-The CI artifact contains only:
-
-- `monte-carlo-recovery-summary.json`
-
-The uploaded summary contains aggregate and replicate-level diagnostic counts/metrics only. It must not contain synthetic participant rows, `sourceKey`, `sessionId`, or any real participant data.
+The CI artifacts contain only aggregate-safe JSON summaries. They must not contain synthetic participant rows, `sourceKey`, `sessionId`, or any real participant data.
 
 ## Governance locks
 

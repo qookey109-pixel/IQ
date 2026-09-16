@@ -103,7 +103,7 @@ function buildPlan(options = {}) {
     );
   }
   return {
-    version: 'CIL-MONTE-CARLO-RECOVERY-2026.09.2',
+    version: 'CIL-MONTE-CARLO-RECOVERY-2026.09.3',
     design: 'fixed-42-item-synthetic-recovery-panel',
     replicates: cfg.replicates,
     participantsPerReplicate: cfg.participants,
@@ -251,6 +251,36 @@ function recoveryMetricsFinite(metrics) {
   return Boolean(metrics) && RECOVERY_METRIC_KEYS.every(key => Number.isFinite(metrics[key]));
 }
 
+function difRecoveryMetrics(rows, truth) {
+  const known = rows.filter(row => truth.get(row.itemId)?.ageDif > 0);
+  const nullRows = rows.filter(row => truth.get(row.itemId)?.ageDif === 0);
+  const isFlagged = row => String(row.difFlag).toLowerCase() === 'true';
+  const detectedKnownDif = known.filter(isFlagged).length;
+  const falsePositiveDif = nullRows.filter(isFlagged).length;
+  return {
+    difRows: rows.length,
+    knownDifControlsObserved: known.length,
+    knownDifControlsDetected: detectedKnownDif,
+    nullDifItemsObserved: nullRows.length,
+    nullDifItemsFlagged: falsePositiveDif,
+    difSensitivity: known.length ? detectedKnownDif / known.length : null,
+    difFalsePositiveRate: nullRows.length ? falsePositiveDif / nullRows.length : null
+  };
+}
+
+function domainControlRecovery(domain, lowControls, negativeControls) {
+  const low = lowControls.find(row => row.domain === domain) || null;
+  const negative = negativeControls.find(row => row.domain === domain) || null;
+  return {
+    lowDiscriminationObserved: Boolean(low),
+    lowDiscriminationEstimateA: low?.estimateA ?? null,
+    lowDiscriminationBelow035: low ? Math.abs(low.estimateA) < 0.35 : null,
+    negativeDiscriminationObserved: Boolean(negative),
+    negativeDiscriminationEstimateA: negative?.estimateA ?? null,
+    negativeDiscriminationEstimatedNegative: negative ? negative.estimateA < 0 : null
+  };
+}
+
 function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
   const truth = new Map(truthBank.map(item => [item.itemId, item]));
   const params = readCsv(path.join(analysisDir, 'item-parameters.csv'));
@@ -285,30 +315,31 @@ function summarizeReplicate(analysisDir, truthBank = buildSyntheticBank()) {
       recoveryMetrics(regular.filter(row => row.domain === domain))
     ])
   );
+  const domainControl = Object.fromEntries(
+    DOMAINS.map(domain => [domain, domainControlRecovery(domain, lowControls, negativeControls)])
+  );
 
   const difRows = dif.filter(row => row.itemId && row.status === 'ok' && truth.has(row.itemId));
-  const knownDif = difRows.filter(row => truth.get(row.itemId).ageDif > 0);
-  const nullDif = difRows.filter(row => truth.get(row.itemId).ageDif === 0);
-  const isFlagged = row => String(row.difFlag).toLowerCase() === 'true';
-  const detectedKnownDif = knownDif.filter(isFlagged).length;
-  const falsePositiveDif = nullDif.filter(isFlagged).length;
+  const overallDif = difRecoveryMetrics(difRows, truth);
+  const domainDifRecovery = Object.fromEntries(
+    DOMAINS.map(domain => [
+      domain,
+      difRecoveryMetrics(difRows.filter(row => truth.get(row.itemId)?.domain === domain), truth)
+    ])
+  );
 
   return {
     parameterRows: params.length,
     matchedParameterRows: matched.length,
     ...overallRecovery,
     domainRecovery,
+    domainControlRecovery: domainControl,
     lowDiscriminationControlsObserved: lowControls.length,
     lowDiscriminationControlsBelow035: lowControls.filter(row => Math.abs(row.estimateA) < 0.35).length,
     negativeDiscriminationControlsObserved: negativeControls.length,
     negativeDiscriminationControlsEstimatedNegative: negativeControls.filter(row => row.estimateA < 0).length,
-    difRows: difRows.length,
-    knownDifControlsObserved: knownDif.length,
-    knownDifControlsDetected: detectedKnownDif,
-    nullDifItemsObserved: nullDif.length,
-    nullDifItemsFlagged: falsePositiveDif,
-    difSensitivity: knownDif.length ? detectedKnownDif / knownDif.length : null,
-    difFalsePositiveRate: nullDif.length ? falsePositiveDif / nullDif.length : null
+    ...overallDif,
+    domainDifRecovery
   };
 }
 
@@ -329,6 +360,44 @@ function aggregateDomainRecovery(replicates) {
         difficultyRmse: rangeSummary(rows.map(row => row.difficultyRmse)),
         discriminationBias: rangeSummary(rows.map(row => row.discriminationBias)),
         difficultyBias: rangeSummary(rows.map(row => row.difficultyBias))
+      }];
+    })
+  );
+}
+
+function aggregateDomainControlRecovery(replicates) {
+  return Object.fromEntries(
+    DOMAINS.map(domain => {
+      const rows = replicates.map(rep => rep.domainControlRecovery?.[domain]).filter(Boolean);
+      return [domain, {
+        replicatesObserved: rows.length,
+        lowDiscriminationControlsObserved: rows.filter(row => row.lowDiscriminationObserved).length,
+        lowDiscriminationControlsBelow035: rows.filter(row => row.lowDiscriminationBelow035 === true).length,
+        lowDiscriminationEstimateA: rangeSummary(rows.map(row => row.lowDiscriminationEstimateA)),
+        negativeDiscriminationControlsObserved: rows.filter(row => row.negativeDiscriminationObserved).length,
+        negativeDiscriminationControlsEstimatedNegative: rows.filter(row => row.negativeDiscriminationEstimatedNegative === true).length,
+        negativeDiscriminationEstimateA: rangeSummary(rows.map(row => row.negativeDiscriminationEstimateA))
+      }];
+    })
+  );
+}
+
+function aggregateDomainDifRecovery(replicates) {
+  return Object.fromEntries(
+    DOMAINS.map(domain => {
+      const rows = replicates.map(rep => rep.domainDifRecovery?.[domain]).filter(Boolean);
+      const totals = {
+        difRows: rows.reduce((s, row) => s + row.difRows, 0),
+        knownDifControlsObserved: rows.reduce((s, row) => s + row.knownDifControlsObserved, 0),
+        knownDifControlsDetected: rows.reduce((s, row) => s + row.knownDifControlsDetected, 0),
+        nullDifItemsObserved: rows.reduce((s, row) => s + row.nullDifItemsObserved, 0),
+        nullDifItemsFlagged: rows.reduce((s, row) => s + row.nullDifItemsFlagged, 0)
+      };
+      return [domain, {
+        replicatesObserved: rows.filter(row => row.difRows > 0).length,
+        ...totals,
+        difSensitivity: totals.knownDifControlsObserved ? totals.knownDifControlsDetected / totals.knownDifControlsObserved : null,
+        difFalsePositiveRate: totals.nullDifItemsObserved ? totals.nullDifItemsFlagged / totals.nullDifItemsObserved : null
       }];
     })
   );
@@ -358,7 +427,13 @@ function aggregateResults(plan) {
   const structuralPass = replicates.every(r =>
     r.matchedParameterRows > 0 &&
     recoveryMetricsFinite(r) &&
-    DOMAINS.every(domain => recoveryMetricsFinite(r.domainRecovery?.[domain])) &&
+    DOMAINS.every(domain =>
+      recoveryMetricsFinite(r.domainRecovery?.[domain]) &&
+      r.domainControlRecovery?.[domain]?.lowDiscriminationObserved === true &&
+      r.domainControlRecovery?.[domain]?.negativeDiscriminationObserved === true &&
+      r.domainDifRecovery?.[domain]?.difRows > 0 &&
+      r.domainDifRecovery?.[domain]?.knownDifControlsObserved > 0
+    ) &&
     r.difRows > 0
   );
 
@@ -383,6 +458,8 @@ function aggregateResults(plan) {
       discriminationBias: rangeSummary(replicates.map(r => r.discriminationBias)),
       difficultyBias: rangeSummary(replicates.map(r => r.difficultyBias)),
       domainRecovery: aggregateDomainRecovery(replicates),
+      domainControlRecovery: aggregateDomainControlRecovery(replicates),
+      domainDifRecovery: aggregateDomainDifRecovery(replicates),
       difSensitivity: totals.knownDifControlsObserved ? totals.knownDifControlsDetected / totals.knownDifControlsObserved : null,
       difFalsePositiveRate: totals.nullDifItemsObserved ? totals.nullDifItemsFlagged / totals.nullDifItemsObserved : null,
       ...totals
@@ -449,6 +526,7 @@ module.exports = {
   prepareSyntheticDifInput,
   bias,
   recoveryMetrics,
+  difRecoveryMetrics,
   summarizeReplicate,
   aggregateResults,
   writeSummary,

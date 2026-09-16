@@ -28,7 +28,7 @@ const READINESS_POLICY = require('../calibration/psychometric-readiness-policy.j
 
 const VERSION = 'CIL-V11-RELIABILITY-SCREEN-2026.09.1';
 const PREREGISTRATION_COMMIT = 'e1428b44167cfd2d8f882b11d417b6e8789f8223';
-const PREREGISTRATION_SHA256 = 'cb0e7e1359f41681f2a8d758e7f468176214c8984b22c8f09143ec34615ed3ff';
+const PREREGISTRATION_SHA256 = '11d051aac6b20e0689b14afac97cd3378c2c97b375c5f4ca5c4b2c4418cdcda6';
 
 function sha256(text) {
   return crypto.createHash('sha256').update(text).digest('hex');

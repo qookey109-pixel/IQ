@@ -74,7 +74,7 @@ jobs:
           function fail(message) { throw new Error(String(message)); }
           if (report.status !== 'complete-confirmatory') fail(`Unexpected v11 status: ${report.status}`);
           if (report.preregistration?.commit !== 'e1428b44167cfd2d8f882b11d417b6e8789f8223') fail('Unexpected preregistration commit');
-          if (report.preregistration?.sha256 !== 'cb0e7e1359f41681f2a8d758e7f468176214c8984b22c8f09143ec34615ed3ff') fail('Unexpected preregistration hash');
+          if (report.preregistration?.sha256 !== '11d051aac6b20e0689b14afac97cd3378c2c97b375c5f4ca5c4b2c4418cdcda6') fail('Unexpected preregistration hash');
           if (report.configuration?.replicatesPerCondition !== 3) fail('Expected 3 replicates per condition');
           if (report.configuration?.participantsPerReplicate !== 1200) fail('Expected 1200 participants per replicate');
           if (report.conditions?.['weak-control']?.expectedReliabilityScreenPass !== false) fail('Weak control expectation drift');

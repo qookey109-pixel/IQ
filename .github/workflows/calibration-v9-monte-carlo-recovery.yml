@@ -57,7 +57,7 @@ jobs:
 
       - name: Validate aggregate recovery report
         run: |
-          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" <<'NODE'
+          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9/aggregate-safe-diagnostic.json" <<'NODE'
           const fs = require('fs');
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           function fail(message) {
@@ -69,45 +69,60 @@ jobs:
             console.error(`::error::${annotation}`);
             throw new Error(text);
           }
-          console.log(JSON.stringify({
-            diagnostic: {
-              status: report.status,
-              configuration: {
-                replicates: report.configuration?.replicates,
-                participantsPerReplicate: report.configuration?.participantsPerReplicate
-              },
-              gates: {
-                allReplicatesProducedFiniteRecoveryMetrics: report.gates?.allReplicatesProducedFiniteRecoveryMetrics,
-                scientificThresholdsPreRegistered: report.gates?.scientificThresholdsPreRegistered,
-                productNormEligible: report.gates?.productNormEligible,
-                productIqUnlocked: report.gates?.productIqUnlocked,
-                autoCpiToIq: report.gates?.autoCpiToIq
-              },
-              safety: {
-                containsRealParticipants: report.safety?.containsRealParticipants,
-                syntheticOnly: report.safety?.syntheticOnly
-              },
-              replicates: report.replicates?.map(rep => ({
-                replicate: rep.replicate,
-                seed: rep.seed,
-                parameterRows: rep.parameterRows,
-                matchedParameterRows: rep.matchedParameterRows,
-                regularParameterRows: rep.regularParameterRows,
-                discriminationCorrelation: rep.discriminationCorrelation,
-                difficultyCorrelation: rep.difficultyCorrelation,
-                discriminationRmse: rep.discriminationRmse,
-                difficultyRmse: rep.difficultyRmse,
-                difRows: rep.difRows,
-                knownDifControlsObserved: rep.knownDifControlsObserved,
-                knownDifControlsDetected: rep.knownDifControlsDetected,
-                nullDifItemsObserved: rep.nullDifItemsObserved,
-                nullDifItemsFlagged: rep.nullDifItemsFlagged,
-                difSensitivity: rep.difSensitivity,
-                difFalsePositiveRate: rep.difFalsePositiveRate
-              })),
-              aggregate: report.aggregate
+          const diagnostic = {
+            status: report.status,
+            configuration: {
+              replicates: report.configuration?.replicates,
+              participantsPerReplicate: report.configuration?.participantsPerReplicate
+            },
+            gates: {
+              allReplicatesProducedFiniteRecoveryMetrics: report.gates?.allReplicatesProducedFiniteRecoveryMetrics,
+              scientificThresholdsPreRegistered: report.gates?.scientificThresholdsPreRegistered,
+              productNormEligible: report.gates?.productNormEligible,
+              productIqUnlocked: report.gates?.productIqUnlocked,
+              autoCpiToIq: report.gates?.autoCpiToIq
+            },
+            safety: {
+              containsRealParticipants: report.safety?.containsRealParticipants,
+              syntheticOnly: report.safety?.syntheticOnly
+            },
+            replicates: report.replicates?.map(rep => ({
+              replicate: rep.replicate,
+              seed: rep.seed,
+              parameterRows: rep.parameterRows,
+              matchedParameterRows: rep.matchedParameterRows,
+              regularParameterRows: rep.regularParameterRows,
+              discriminationCorrelation: rep.discriminationCorrelation,
+              difficultyCorrelation: rep.difficultyCorrelation,
+              discriminationRmse: rep.discriminationRmse,
+              difficultyRmse: rep.difficultyRmse,
+              lowDiscriminationControlsObserved: rep.lowDiscriminationControlsObserved,
+              lowDiscriminationControlsBelow035: rep.lowDiscriminationControlsBelow035,
+              negativeDiscriminationControlsObserved: rep.negativeDiscriminationControlsObserved,
+              negativeDiscriminationControlsEstimatedNegative: rep.negativeDiscriminationControlsEstimatedNegative,
+              difRows: rep.difRows,
+              knownDifControlsObserved: rep.knownDifControlsObserved,
+              knownDifControlsDetected: rep.knownDifControlsDetected,
+              nullDifItemsObserved: rep.nullDifItemsObserved,
+              nullDifItemsFlagged: rep.nullDifItemsFlagged,
+              difSensitivity: rep.difSensitivity,
+              difFalsePositiveRate: rep.difFalsePositiveRate
+            })),
+            aggregate: {
+              discriminationCorrelation: report.aggregate?.discriminationCorrelation,
+              difficultyCorrelation: report.aggregate?.difficultyCorrelation,
+              discriminationRmse: report.aggregate?.discriminationRmse,
+              difficultyRmse: report.aggregate?.difficultyRmse,
+              difSensitivity: report.aggregate?.difSensitivity,
+              difFalsePositiveRate: report.aggregate?.difFalsePositiveRate,
+              knownDifControlsObserved: report.aggregate?.knownDifControlsObserved,
+              knownDifControlsDetected: report.aggregate?.knownDifControlsDetected,
+              nullDifItemsObserved: report.aggregate?.nullDifItemsObserved,
+              nullDifItemsFlagged: report.aggregate?.nullDifItemsFlagged
             }
-          }, null, 2));
+          };
+          fs.writeFileSync(process.argv[3], JSON.stringify(diagnostic, null, 2) + '\n');
+          console.log(JSON.stringify({ diagnostic }, null, 2));
           if (report.status !== 'complete-diagnostic') fail(`Unexpected report status: ${report.status}`);
           if (report.configuration.replicates !== 2) fail('Expected exactly two bounded CI replicates');
           if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Recovery metrics were not finite for every replicate');
@@ -130,6 +145,15 @@ jobs:
             productIqUnlocked: report.gates.productIqUnlocked
           }, null, 2));
           NODE
+
+      - name: Upload aggregate-safe failure diagnostic
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-aggregate-safe-failure-diagnostic
+          path: ${{ runner.temp }}/cil-mc-v9/aggregate-safe-diagnostic.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Enforce aggregate-only artifact
         run: |

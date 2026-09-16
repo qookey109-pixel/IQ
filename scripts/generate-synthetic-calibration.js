@@ -61,7 +61,7 @@ function logistic(x) {
 function csvCell(value) {
   if (value == null) return '';
   const text = String(value);
-  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  return /[\",\n\r]/.test(text) ? `\"${text.replaceAll('\"', '\"\"')}\"` : text;
 }
 
 function buildSyntheticBank() {
@@ -110,6 +110,13 @@ function chooseItemsForParticipant(bank, participantIndex, panel = 'matrix') {
       rows.push(...pool.slice(0, 7));
       continue;
     }
+    if (panel === 'pipeline') {
+      // Calibration v10 uses a clean common-item panel so reliability,
+      // CFA/invariance, norming, and linking are tested without the deliberate
+      // v9 low/negative-discrimination or age-DIF controls.
+      rows.push(...pool.slice(7, 14));
+      continue;
+    }
     if (panel !== 'matrix') throw new Error(`Unsupported synthetic panel: ${panel}`);
     for (let j = 0; j < 7; j++) {
       const index = (participantIndex * 7 + j * 8) % pool.length;
@@ -123,7 +130,7 @@ function generateSynthetic(options = {}) {
   const participants = Math.max(10, Number(options.participants) || 600);
   const seed = String(options.seed || 'cil-offline-v1');
   const panel = String(options.panel || 'matrix');
-  if (!['matrix', 'recovery'].includes(panel)) throw new Error(`Unsupported synthetic panel: ${panel}`);
+  if (!['matrix', 'recovery', 'pipeline'].includes(panel)) throw new Error(`Unsupported synthetic panel: ${panel}`);
   const rand = mulberry32(hashSeed(seed));
   const bank = buildSyntheticBank();
   const rows = [];
@@ -167,7 +174,9 @@ function generateSynthetic(options = {}) {
         scoringVersion: 'synthetic-method-validation-only',
         formId: panel === 'recovery'
           ? 'synthetic-recovery-panel-v1'
-          : `synthetic-matrix-${String(p % 56).padStart(2, '0')}`,
+          : panel === 'pipeline'
+            ? 'synthetic-pipeline-panel-v1'
+            : `synthetic-matrix-${String(p % 56).padStart(2, '0')}`,
         itemId: item.itemId,
         domain: item.domain,
         family: item.family,
@@ -187,9 +196,18 @@ function generateSynthetic(options = {}) {
     const cpi = Math.round((correctCount / 42) * 100);
     personRows.forEach(row => { row.cpi = cpi; });
     rows.push(...personRows);
-    participantsMeta.push({ sourceKey, ageYears: age, ageBand: band, syntheticG: g, cpi });
+    participantsMeta.push({
+      sourceKey,
+      sessionId,
+      ageYears: age,
+      ageBand: band,
+      syntheticG: g,
+      syntheticDomainTheta: { ...domainTheta },
+      cpi
+    });
   }
 
+  const administeredIds = new Set(rows.map(row => row.itemId));
   return {
     rows,
     manifest: {
@@ -201,7 +219,7 @@ function generateSynthetic(options = {}) {
       participants,
       rows: rows.length,
       items: bank.length,
-      administeredUniqueItems: new Set(rows.map(row => row.itemId)).size,
+      administeredUniqueItems: administeredIds.size,
       domains: DOMAINS,
       sourceKind: 'synthetic',
       productNormEligible: false,
@@ -209,6 +227,9 @@ function generateSynthetic(options = {}) {
       containsRealParticipants: false,
       containsDirectIdentifiers: false,
       controlledDefects: bank.filter(item => item.defect).map(({ itemId, domain, defect }) => ({ itemId, domain, defect })),
+      administeredControlledDefects: bank
+        .filter(item => item.defect && administeredIds.has(item.itemId))
+        .map(({ itemId, domain, defect }) => ({ itemId, domain, defect })),
       warning: 'Synthetic responses validate software behavior only. They are not reliability, validity, fairness, norming, or IQ evidence.'
     },
     participantsMeta
@@ -257,6 +278,7 @@ module.exports = {
   ageBand,
   hashSeed,
   mulberry32,
+  normal,
   buildSyntheticBank,
   chooseItemsForParticipant,
   generateSynthetic,

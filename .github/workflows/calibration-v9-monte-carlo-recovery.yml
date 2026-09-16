@@ -59,7 +59,63 @@ jobs:
         run: |
           node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9/aggregate-safe-diagnostic.json" <<'NODE'
           const fs = require('fs');
-          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const path = require('path');
+          const reportPath = process.argv[2];
+          const diagnosticPath = process.argv[3];
+          const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+          function parseCsv(text) {
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+              const ch = text[i];
+              if (quoted) {
+                if (ch === '"' && text[i + 1] === '"') {
+                  cell += '"';
+                  i++;
+                } else if (ch === '"') quoted = false;
+                else cell += ch;
+              } else if (ch === '"') quoted = true;
+              else if (ch === ',') {
+                row.push(cell);
+                cell = '';
+              } else if (ch === '\n') {
+                row.push(cell.replace(/\r$/, ''));
+                rows.push(row);
+                row = [];
+                cell = '';
+              } else cell += ch;
+            }
+            if (cell.length || row.length) {
+              row.push(cell.replace(/\r$/, ''));
+              rows.push(row);
+            }
+            if (!rows.length) return [];
+            const header = rows.shift();
+            return rows
+              .filter(values => values.length > 1 || values[0] !== '')
+              .map(values => Object.fromEntries(header.map((key, i) => [key, values[i] ?? ''])));
+          }
+
+          function readDifDiagnostic(replicate) {
+            const id = String(replicate).padStart(2, '0');
+            const file = path.join(path.dirname(reportPath), `replicate-${id}`, 'analysis', 'age-dif.csv');
+            if (!fs.existsSync(file)) {
+              return { filePresent: false, rowCount: 0, okRowCount: 0, nonOkDomainStatuses: [] };
+            }
+            const rows = parseCsv(fs.readFileSync(file, 'utf8'));
+            return {
+              filePresent: true,
+              rowCount: rows.length,
+              okRowCount: rows.filter(row => row.status === 'ok').length,
+              nonOkDomainStatuses: rows
+                .filter(row => row.status !== 'ok')
+                .map(row => ({ domain: row.domain || null, status: row.status || null }))
+            };
+          }
+
           function fail(message) {
             const text = String(message);
             const annotation = text
@@ -106,7 +162,8 @@ jobs:
               nullDifItemsObserved: rep.nullDifItemsObserved,
               nullDifItemsFlagged: rep.nullDifItemsFlagged,
               difSensitivity: rep.difSensitivity,
-              difFalsePositiveRate: rep.difFalsePositiveRate
+              difFalsePositiveRate: rep.difFalsePositiveRate,
+              difDiagnostic: readDifDiagnostic(rep.replicate)
             })),
             aggregate: {
               discriminationCorrelation: report.aggregate?.discriminationCorrelation,
@@ -121,7 +178,7 @@ jobs:
               nullDifItemsFlagged: report.aggregate?.nullDifItemsFlagged
             }
           };
-          fs.writeFileSync(process.argv[3], JSON.stringify(diagnostic, null, 2) + '\n');
+          fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n');
           console.log(JSON.stringify({ diagnostic }, null, 2));
           if (report.status !== 'complete-diagnostic') fail(`Unexpected report status: ${report.status}`);
           if (report.configuration.replicates !== 2) fail('Expected exactly two bounded CI replicates');

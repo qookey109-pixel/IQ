@@ -13,6 +13,13 @@ input <- args[1] %||% "calibration/data/calibration-responses.csv"
 out_dir <- args[2] %||% "calibration/output"
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
+analysis_seed_text <- Sys.getenv("CIL_ANALYSIS_SEED", unset = "")
+if (nzchar(analysis_seed_text)) {
+  analysis_seed <- suppressWarnings(as.integer(analysis_seed_text))
+  if (is.na(analysis_seed) || analysis_seed < 1L) stop("CIL_ANALYSIS_SEED must be a positive integer")
+  set.seed(analysis_seed)
+}
+
 raw <- independent_sessions(read_calibration(input))
 age <- participant_age_table(raw)
 domains <- sort(unique(raw$domain))

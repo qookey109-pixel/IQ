@@ -102,10 +102,15 @@ function buildSyntheticBank() {
   return items;
 }
 
-function chooseItemsForParticipant(bank, participantIndex) {
+function chooseItemsForParticipant(bank, participantIndex, panel = 'matrix') {
   const rows = [];
   for (const domain of DOMAINS) {
     const pool = bank.filter(item => item.domain === domain);
+    if (panel === 'recovery') {
+      rows.push(...pool.slice(0, 7));
+      continue;
+    }
+    if (panel !== 'matrix') throw new Error(`Unsupported synthetic panel: ${panel}`);
     for (let j = 0; j < 7; j++) {
       const index = (participantIndex * 7 + j * 8) % pool.length;
       rows.push(pool[index]);
@@ -117,6 +122,8 @@ function chooseItemsForParticipant(bank, participantIndex) {
 function generateSynthetic(options = {}) {
   const participants = Math.max(10, Number(options.participants) || 600);
   const seed = String(options.seed || 'cil-offline-v1');
+  const panel = String(options.panel || 'matrix');
+  if (!['matrix', 'recovery'].includes(panel)) throw new Error(`Unsupported synthetic panel: ${panel}`);
   const rand = mulberry32(hashSeed(seed));
   const bank = buildSyntheticBank();
   const rows = [];
@@ -128,7 +135,7 @@ function generateSynthetic(options = {}) {
     const g = normal(rand);
     const sourceKey = `synthetic-${String(p + 1).padStart(6, '0')}`;
     const sessionId = `synthetic-session-${String(p + 1).padStart(6, '0')}`;
-    const chosen = chooseItemsForParticipant(bank, p);
+    const chosen = chooseItemsForParticipant(bank, p, panel);
     let correctCount = 0;
     const personRows = [];
 
@@ -158,7 +165,9 @@ function generateSynthetic(options = {}) {
         bankVersion: 'synthetic-v1',
         bankRevision: seed,
         scoringVersion: 'synthetic-method-validation-only',
-        formId: `synthetic-matrix-${String(p % 56).padStart(2, '0')}`,
+        formId: panel === 'recovery'
+          ? 'synthetic-recovery-panel-v1'
+          : `synthetic-matrix-${String(p % 56).padStart(2, '0')}`,
         itemId: item.itemId,
         domain: item.domain,
         family: item.family,
@@ -188,9 +197,11 @@ function generateSynthetic(options = {}) {
       generator: 'Cognitive IQ Lab Offline Validation Lab',
       generatedAt: new Date().toISOString(),
       seed,
+      panel,
       participants,
       rows: rows.length,
       items: bank.length,
+      administeredUniqueItems: new Set(rows.map(row => row.itemId)).size,
       domains: DOMAINS,
       sourceKind: 'synthetic',
       productNormEligible: false,
@@ -217,10 +228,11 @@ function rowsToCsv(rows) {
 }
 
 function parseArgs(argv) {
-  const options = { participants: 600, seed: 'cil-offline-v1', outDir: 'calibration/output/synthetic' };
+  const options = { participants: 600, seed: 'cil-offline-v1', panel: 'matrix', outDir: 'calibration/output/synthetic' };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--participants') options.participants = Number(argv[++i]);
     else if (argv[i] === '--seed') options.seed = argv[++i];
+    else if (argv[i] === '--panel') options.panel = argv[++i];
     else if (argv[i] === '--out') options.outDir = argv[++i];
   }
   return options;
@@ -234,7 +246,7 @@ function main(argv = process.argv.slice(2)) {
   fs.writeFileSync(path.join(options.outDir, 'synthetic-manifest.json'), JSON.stringify(generated.manifest, null, 2) + '\n');
   fs.writeFileSync(path.join(options.outDir, 'synthetic-participants.json'), JSON.stringify(generated.participantsMeta, null, 2) + '\n');
   console.log(`Synthetic calibration dataset written: ${generated.manifest.participants} participants, ${generated.manifest.rows} rows.`);
-  console.log('Method validation only. Product norms and IQ remain locked.');
+  console.log(`Synthetic panel: ${generated.manifest.panel}. Method validation only. Product norms and IQ remain locked.`);
 }
 
 if (require.main === module) main();

@@ -1,0 +1,391 @@
+name: Calibration v9 — Monte Carlo Recovery
+
+on:
+  push:
+    branches:
+      - feature/calibration-v9-monte-carlo-recovery
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Validate v9 harness
+        run: |
+          node --check scripts/generate-synthetic-calibration.js
+          node --check scripts/run-monte-carlo-recovery.js
+          node tests/monte-carlo-recovery-validation.js
+          Rscript -e 'parse(file="calibration/analysis/irt_mirt.R"); parse(file="calibration/analysis/age_dif.R"); cat("R parse PASS\n")'
+
+      - name: Install bounded recovery dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run bounded two-seed recovery study
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 2 \
+            --participants 900 \
+            --seed-prefix cil-mc-v9-ci \
+            --out "$RUNNER_TEMP/cil-mc-v9"
+
+      - name: Validate aggregate recovery report
+        run: |
+          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9/aggregate-safe-diagnostic.json" <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const reportPath = process.argv[2];
+          const diagnosticPath = process.argv[3];
+          const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+          function parseCsv(text) {
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+              const ch = text[i];
+              if (quoted) {
+                if (ch === '"' && text[i + 1] === '"') {
+                  cell += '"';
+                  i++;
+                } else if (ch === '"') quoted = false;
+                else cell += ch;
+              } else if (ch === '"') quoted = true;
+              else if (ch === ',') {
+                row.push(cell);
+                cell = '';
+              } else if (ch === '\n') {
+                row.push(cell.replace(/\r$/, ''));
+                rows.push(row);
+                row = [];
+                cell = '';
+              } else cell += ch;
+            }
+            if (cell.length || row.length) {
+              row.push(cell.replace(/\r$/, ''));
+              rows.push(row);
+            }
+            if (!rows.length) return [];
+            const header = rows.shift();
+            return rows
+              .filter(values => values.length > 1 || values[0] !== '')
+              .map(values => Object.fromEntries(header.map((key, i) => [key, values[i] ?? ''])));
+          }
+
+          function readDifDiagnostic(replicate) {
+            const id = String(replicate).padStart(2, '0');
+            const file = path.join(path.dirname(reportPath), `replicate-${id}`, 'analysis', 'age-dif.csv');
+            if (!fs.existsSync(file)) {
+              return { filePresent: false, rowCount: 0, okRowCount: 0, nonOkDomainStatuses: [] };
+            }
+            const rows = parseCsv(fs.readFileSync(file, 'utf8'));
+            return {
+              filePresent: true,
+              rowCount: rows.length,
+              okRowCount: rows.filter(row => row.status === 'ok').length,
+              nonOkDomainStatuses: rows
+                .filter(row => row.status !== 'ok')
+                .map(row => ({ domain: row.domain || null, status: row.status || null }))
+            };
+          }
+
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
+
+          const diagnostic = {
+            status: report.status,
+            configuration: {
+              replicates: report.configuration?.replicates,
+              participantsPerReplicate: report.configuration?.participantsPerReplicate,
+              deterministicAnalysisSeed: report.configuration?.deterministicAnalysisSeed,
+              analysisSeedMethod: report.configuration?.analysisSeedMethod
+            },
+            gates: {
+              allReplicatesProducedFiniteRecoveryMetrics: report.gates?.allReplicatesProducedFiniteRecoveryMetrics,
+              scientificThresholdsPreRegistered: report.gates?.scientificThresholdsPreRegistered,
+              productNormEligible: report.gates?.productNormEligible,
+              productIqUnlocked: report.gates?.productIqUnlocked,
+              autoCpiToIq: report.gates?.autoCpiToIq
+            },
+            safety: {
+              containsRealParticipants: report.safety?.containsRealParticipants,
+              syntheticOnly: report.safety?.syntheticOnly
+            },
+            replicates: report.replicates?.map(rep => ({
+              replicate: rep.replicate,
+              seed: rep.seed,
+              analysisSeed: rep.analysisSeed,
+              parameterRows: rep.parameterRows,
+              matchedParameterRows: rep.matchedParameterRows,
+              regularParameterRows: rep.regularParameterRows,
+              discriminationCorrelation: rep.discriminationCorrelation,
+              difficultyCorrelation: rep.difficultyCorrelation,
+              discriminationRmse: rep.discriminationRmse,
+              difficultyRmse: rep.difficultyRmse,
+              discriminationBias: rep.discriminationBias,
+              difficultyBias: rep.difficultyBias,
+              domainRecovery: rep.domainRecovery,
+              domainControlRecovery: rep.domainControlRecovery,
+              lowDiscriminationControlsObserved: rep.lowDiscriminationControlsObserved,
+              lowDiscriminationControlsBelow035: rep.lowDiscriminationControlsBelow035,
+              negativeDiscriminationControlsObserved: rep.negativeDiscriminationControlsObserved,
+              negativeDiscriminationControlsEstimatedNegative: rep.negativeDiscriminationControlsEstimatedNegative,
+              difRows: rep.difRows,
+              knownDifControlsObserved: rep.knownDifControlsObserved,
+              knownDifControlsDetected: rep.knownDifControlsDetected,
+              nullDifItemsObserved: rep.nullDifItemsObserved,
+              nullDifItemsFlagged: rep.nullDifItemsFlagged,
+              difSensitivity: rep.difSensitivity,
+              difFalsePositiveRate: rep.difFalsePositiveRate,
+              domainDifRecovery: rep.domainDifRecovery,
+              difDiagnostic: readDifDiagnostic(rep.replicate)
+            })),
+            aggregate: {
+              discriminationCorrelation: report.aggregate?.discriminationCorrelation,
+              difficultyCorrelation: report.aggregate?.difficultyCorrelation,
+              discriminationRmse: report.aggregate?.discriminationRmse,
+              difficultyRmse: report.aggregate?.difficultyRmse,
+              discriminationBias: report.aggregate?.discriminationBias,
+              difficultyBias: report.aggregate?.difficultyBias,
+              domainRecovery: report.aggregate?.domainRecovery,
+              domainControlRecovery: report.aggregate?.domainControlRecovery,
+              domainDifRecovery: report.aggregate?.domainDifRecovery,
+              difSensitivity: report.aggregate?.difSensitivity,
+              difFalsePositiveRate: report.aggregate?.difFalsePositiveRate,
+              knownDifControlsObserved: report.aggregate?.knownDifControlsObserved,
+              knownDifControlsDetected: report.aggregate?.knownDifControlsDetected,
+              nullDifItemsObserved: report.aggregate?.nullDifItemsObserved,
+              nullDifItemsFlagged: report.aggregate?.nullDifItemsFlagged
+            }
+          };
+          fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n');
+          console.log(JSON.stringify({ diagnostic }, null, 2));
+          if (report.status !== 'complete-diagnostic') fail(`Unexpected report status: ${report.status}`);
+          if (report.configuration.replicates !== 2) fail('Expected exactly two bounded CI replicates');
+          if (report.configuration.deterministicAnalysisSeed !== true) fail('Expected deterministic R analysis seeding');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Recovery metrics were not finite for every replicate/domain');
+          if (report.gates.scientificThresholdsPreRegistered !== false) fail('v9 must not invent post-hoc scientific pass thresholds');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates[key] !== false) fail(`${key} must remain false`);
+          }
+          if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) {
+            fail('Monte Carlo artifact must remain synthetic-only');
+          }
+          if (!report.replicates.every(rep => rep.matchedParameterRows > 0 && rep.difRows > 0)) {
+            fail('Each replicate must produce IRT and DIF diagnostics');
+          }
+          console.log(JSON.stringify({
+            status: report.status,
+            discriminationCorrelation: report.aggregate.discriminationCorrelation,
+            difficultyCorrelation: report.aggregate.difficultyCorrelation,
+            discriminationBias: report.aggregate.discriminationBias,
+            difficultyBias: report.aggregate.difficultyBias,
+            difSensitivity: report.aggregate.difSensitivity,
+            difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
+            domainDifRecovery: report.aggregate.domainDifRecovery,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Verify deterministic replay
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 2 \
+            --participants 900 \
+            --seed-prefix cil-mc-v9-ci \
+            --out "$RUNNER_TEMP/cil-mc-v9-replay"
+          node - "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-replay/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9/aggregate-safe-diagnostic.json" <<'NODE'
+          const crypto = require('crypto');
+          const fs = require('fs');
+          const primary = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const replay = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
+          const diagnosticPath = process.argv[4];
+
+          function normalized(report) {
+            const { generatedAt, ...rest } = report;
+            return rest;
+          }
+          function stableText(report) {
+            return JSON.stringify(normalized(report));
+          }
+          function digest(text) {
+            return crypto.createHash('sha256').update(text).digest('hex');
+          }
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
+
+          const primaryText = stableText(primary);
+          const replayText = stableText(replay);
+          const same = primaryText === replayText;
+          const diagnostic = JSON.parse(fs.readFileSync(diagnosticPath, 'utf8'));
+          diagnostic.reproducibility = {
+            deterministicReplayMatched: same,
+            primarySha256: digest(primaryText),
+            replaySha256: digest(replayText)
+          };
+          fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n');
+          if (!same) fail('Deterministic replay did not reproduce the same aggregate recovery summary');
+          console.log(JSON.stringify(diagnostic.reproducibility, null, 2));
+          NODE
+
+      - name: Upload aggregate-safe failure diagnostic
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-aggregate-safe-failure-diagnostic
+          path: ${{ runner.temp }}/cil-mc-v9/aggregate-safe-diagnostic.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce aggregate-only artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-mc-v9-public"
+          cp "$RUNNER_TEMP/cil-mc-v9/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-public/"
+          test "$(find "$RUNNER_TEMP/cil-mc-v9-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/cil-mc-v9-public"
+
+      - name: Upload aggregate-only recovery result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-monte-carlo-recovery-summary
+          path: ${{ runner.temp }}/cil-mc-v9-public/monte-carlo-recovery-summary.json
+          retention-days: 30
+
+  bounded-full-recovery:
+    needs: synthetic-recovery
+    if: ${{ needs.synthetic-recovery.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v9-full]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install bounded recovery dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run pre-specified five-seed full study
+        run: |
+          node scripts/run-monte-carlo-recovery.js \
+            --replicates 5 \
+            --participants 1200 \
+            --seed-prefix cil-mc-v9-full \
+            --out "$RUNNER_TEMP/cil-mc-v9-full"
+
+      - name: Validate full aggregate report
+        run: |
+          node - "$RUNNER_TEMP/cil-mc-v9-full/monte-carlo-recovery-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          function fail(message) {
+            const text = String(message);
+            const annotation = text
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(`::error::${annotation}`);
+            throw new Error(text);
+          }
+          if (report.status !== 'complete-diagnostic') fail(`Unexpected full-study report status: ${report.status}`);
+          if (report.configuration.replicates !== 5) fail('Expected exactly five full-study replicates');
+          if (report.configuration.participantsPerReplicate !== 1200) fail('Expected exactly 1200 participants per full-study replicate');
+          if (report.configuration.seedPrefix !== 'cil-mc-v9-full') fail('Unexpected full-study seed prefix');
+          if (report.configuration.deterministicAnalysisSeed !== true) fail('Expected deterministic R analysis seeding');
+          if (!report.gates.allReplicatesProducedFiniteRecoveryMetrics) fail('Full-study recovery metrics were not finite for every replicate/domain');
+          if (report.gates.scientificThresholdsPreRegistered !== false) fail('v9 full study must not invent post-hoc scientific pass thresholds');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates[key] !== false) fail(`${key} must remain false`);
+          }
+          if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) {
+            fail('Full-study artifact must remain synthetic-only');
+          }
+          if (Object.keys(report.aggregate?.domainRecovery || {}).length !== 6) fail('Expected six domain recovery summaries');
+          if (Object.keys(report.aggregate?.domainDifRecovery || {}).length !== 6) fail('Expected six domain DIF recovery summaries');
+          if (Object.keys(report.aggregate?.domainControlRecovery || {}).length !== 6) fail('Expected six domain control recovery summaries');
+          console.log(JSON.stringify({
+            status: report.status,
+            configuration: report.configuration,
+            discriminationCorrelation: report.aggregate.discriminationCorrelation,
+            difficultyCorrelation: report.aggregate.difficultyCorrelation,
+            discriminationBias: report.aggregate.discriminationBias,
+            difficultyBias: report.aggregate.difficultyBias,
+            difSensitivity: report.aggregate.difSensitivity,
+            difFalsePositiveRate: report.aggregate.difFalsePositiveRate,
+            domainDifRecovery: report.aggregate.domainDifRecovery,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only full-study artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-mc-v9-full-public"
+          cp "$RUNNER_TEMP/cil-mc-v9-full/monte-carlo-recovery-summary.json" "$RUNNER_TEMP/cil-mc-v9-full-public/"
+          test "$(find "$RUNNER_TEMP/cil-mc-v9-full-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/cil-mc-v9-full-public"
+
+      - name: Upload aggregate-only full-study result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v9-monte-carlo-full-summary
+          path: ${{ runner.temp }}/cil-mc-v9-full-public/monte-carlo-recovery-summary.json
+          retention-days: 30

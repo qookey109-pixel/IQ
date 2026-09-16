@@ -33,7 +33,9 @@ jobs:
           node --check scripts/generate-synthetic-calibration.js
           node --check scripts/run-psychometric-pipeline.js
           node --check scripts/run-full-pipeline-recovery.js
+          node --check scripts/run-full-pipeline-stability.js
           node tests/full-pipeline-recovery-validation.js
+          node tests/full-pipeline-stability-validation.js
           Rscript -e 'for (f in c("calibration/analysis/reliability.R","calibration/analysis/irt_mirt.R","calibration/analysis/age_dif.R","calibration/analysis/cfa_invariance.R","calibration/analysis/general_theta.R","calibration/analysis/norming.R","calibration/analysis/external_linking.R")) parse(file=f); cat("R parse PASS\n")'
 
       - name: Install full pipeline dependencies
@@ -129,4 +131,94 @@ jobs:
         with:
           name: calibration-v10-full-pipeline-recovery-summary
           path: ${{ runner.temp }}/cil-v10-public/full-pipeline-recovery-summary.json
+          retention-days: 30
+
+  bounded-full-stability:
+    needs: full-pipeline-recovery
+    if: ${{ needs.full-pipeline-recovery.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v10-full]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Validate multi-seed harness
+        run: |
+          node --check scripts/run-full-pipeline-stability.js
+          node tests/full-pipeline-stability-validation.js
+
+      - name: Install full pipeline dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::psych
+            any::mirt
+            any::lavaan
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run pre-specified five-seed stability study
+        run: |
+          node scripts/run-full-pipeline-stability.js \
+            --replicates 5 \
+            --participants 1200 \
+            --seed-prefix cil-v10-full-stability \
+            --out "$RUNNER_TEMP/cil-v10-full"
+
+      - name: Validate aggregate stability report
+        run: |
+          node - "$RUNNER_TEMP/cil-v10-full/full-pipeline-stability-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          function fail(message) { throw new Error(String(message)); }
+          if (report.status !== 'complete-diagnostic') fail(`Unexpected full-study status: ${report.status}`);
+          if (report.configuration.replicates !== 5) fail('Expected five stability replicates');
+          if (report.configuration.participantsPerReplicate !== 1200) fail('Expected 1200 participants per stability replicate');
+          if (report.configuration.seedPrefix !== 'cil-v10-full-stability') fail('Unexpected stability seed prefix');
+          if (report.configuration.developmentSeedExcluded !== true) fail('Development seed must be excluded');
+          if (report.gates.allReplicatesStructurallyComplete !== true) fail('Not all stability replicates completed structurally');
+          if (report.gates.scientificThresholdsPreRegistered !== false) fail('No post-hoc scientific threshold is permitted');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.gates[key] !== false) fail(`${key} must remain false`);
+          }
+          if (report.safety.containsRealParticipants !== false || report.safety.syntheticOnly !== true) fail('Full stability artifact must be synthetic-only');
+          if (Object.keys(report.aggregate.reliability || {}).length !== 6) fail('Expected six reliability domains');
+          console.log(JSON.stringify({
+            status: report.status,
+            reliability: report.aggregate.reliability,
+            generalThetaCorrelationWithTrueG: report.aggregate.generalThetaCorrelationWithTrueG,
+            normingBandMeanRecoveryRmse: report.aggregate.normingBandMeanRecoveryRmse,
+            externalCpiSlopeBias: report.aggregate.externalCpiSlopeBias,
+            cleanPanelDifFalsePositiveRate: report.aggregate.cleanPanelDifFalsePositiveRate,
+            productIqUnlocked: report.gates.productIqUnlocked
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only stability artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/cil-v10-full-public"
+          cp "$RUNNER_TEMP/cil-v10-full/full-pipeline-stability-summary.json" "$RUNNER_TEMP/cil-v10-full-public/"
+          test "$(find "$RUNNER_TEMP/cil-v10-full-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'sourceKey|sessionId|synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|administrationId' "$RUNNER_TEMP/cil-v10-full-public"
+
+      - name: Upload aggregate-only stability result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v10-full-pipeline-stability-summary
+          path: ${{ runner.temp }}/cil-v10-full-public/full-pipeline-stability-summary.json
           retention-days: 30

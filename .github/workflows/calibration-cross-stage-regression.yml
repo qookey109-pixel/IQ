@@ -1,0 +1,99 @@
+name: Calibration Cross-Stage Regression
+
+on:
+  push:
+    branches:
+      - feature/calibration-v9-monte-carlo-recovery
+  pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'scripts/run-offline-validation-lab.js'
+      - 'scripts/pool-calibration-exports.js'
+      - 'scripts/run-psychometric-pipeline.js'
+      - 'scripts/build-psychometric-readiness-report.js'
+      - 'tests/calibration-*.js'
+      - 'tests/offline-validation-lab-validation.js'
+      - 'tests/pooled-study-validation.js'
+      - 'tests/psychometric-pipeline-validation.js'
+      - '.github/workflows/calibration-*.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  calibration-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check calibration JavaScript syntax
+        run: |
+          node --check scripts/generate-synthetic-calibration.js
+          node --check scripts/run-offline-validation-lab.js
+          node --check scripts/pool-calibration-exports.js
+          node --check scripts/run-psychometric-pipeline.js
+          node --check scripts/build-psychometric-readiness-report.js
+          node --check scripts/run-monte-carlo-recovery.js
+          node --check tests/offline-validation-lab-validation.js
+          node --check tests/calibration-readiness-validation.js
+          node --check tests/calibration-toolchain-validation.js
+          node --check tests/calibration-anchor-study-validation.js
+          node --check tests/calibration-matrix-form-validation.js
+          node --check tests/pooled-study-validation.js
+          node --check tests/psychometric-pipeline-validation.js
+          node --check tests/monte-carlo-recovery-validation.js
+
+      - name: Run cross-stage calibration regression tests
+        run: |
+          node tests/offline-validation-lab-validation.js
+          node tests/calibration-readiness-validation.js
+          node tests/calibration-toolchain-validation.js
+          node tests/calibration-anchor-study-validation.js
+          node tests/calibration-matrix-form-validation.js
+          node tests/pooled-study-validation.js
+          node tests/psychometric-pipeline-validation.js
+          node tests/monte-carlo-recovery-validation.js
+
+      - name: Smoke-test synthetic offline lab and psychometric dry-run
+        run: |
+          OUT="$RUNNER_TEMP/cil-offline-regression"
+          node scripts/run-offline-validation-lab.js \
+            --mode synthetic \
+            --participants 40 \
+            --seed calibration-regression \
+            --out "$OUT"
+          test -f "$OUT/offline-lab-manifest.json"
+          test -f "$OUT/synthetic/calibration-responses.csv"
+          test -f "$OUT/synthetic/synthetic-manifest.json"
+          node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(m.safety.participantBackend!==false || m.safety.automaticUpload!==false || m.safety.productIqUnlocked!==false) process.exit(1);' "$OUT/offline-lab-manifest.json"
+
+          node scripts/run-psychometric-pipeline.js \
+            --dry-run \
+            --input calibration/output/pooled-study/pooled-independent-responses.csv \
+            --out calibration/output/psychometric-v5 > "$RUNNER_TEMP/psychometric-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/psychometric-plan.json"
+          grep -q '"general-theta"' "$RUNNER_TEMP/psychometric-plan.json"
+          grep -q '"readiness-report"' "$RUNNER_TEMP/psychometric-plan.json"
+
+      - name: Set up R for analysis-script parsing
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Parse full psychometric R analysis surface
+        run: |
+          Rscript -e 'files <- c(
+            "calibration/analysis/common.R",
+            "calibration/analysis/reliability.R",
+            "calibration/analysis/irt_mirt.R",
+            "calibration/analysis/age_dif.R",
+            "calibration/analysis/cfa_invariance.R",
+            "calibration/analysis/general_theta.R",
+            "calibration/analysis/norming.R",
+            "calibration/analysis/external_linking.R"
+          ); for (f in files) { parse(file=f); cat("Parsed", f, "\n") }'

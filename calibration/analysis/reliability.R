@@ -11,6 +11,13 @@ args <- commandArgs(trailingOnly = TRUE)
 input <- args[1] %||% "calibration/data/calibration-responses.csv"
 out <- args[2] %||% "calibration/output/reliability.json"
 
+analysis_seed_text <- Sys.getenv("CIL_ANALYSIS_SEED", unset = "")
+if (nzchar(analysis_seed_text)) {
+  analysis_seed <- suppressWarnings(as.integer(analysis_seed_text))
+  if (is.na(analysis_seed) || analysis_seed < 1) stop("CIL_ANALYSIS_SEED must be a positive integer")
+  set.seed(analysis_seed)
+}
+
 raw <- independent_sessions(read_calibration(input))
 domains <- sort(unique(raw$domain))
 results <- list()

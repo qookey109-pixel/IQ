@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/calibration-v9-monte-carlo-recovery
+      - feature/calibration-v10-full-pipeline-recovery
   pull_request:
     paths:
       - 'calibration/**'
@@ -11,8 +12,10 @@ on:
       - 'scripts/run-offline-validation-lab.js'
       - 'scripts/pool-calibration-exports.js'
       - 'scripts/run-psychometric-pipeline.js'
+      - 'scripts/run-full-pipeline-*.js'
       - 'scripts/build-psychometric-readiness-report.js'
       - 'tests/calibration-*.js'
+      - 'tests/full-pipeline-*.js'
       - 'tests/offline-validation-lab-validation.js'
       - 'tests/pooled-study-validation.js'
       - 'tests/psychometric-pipeline-validation.js'
@@ -39,6 +42,8 @@ jobs:
           node --check scripts/run-offline-validation-lab.js
           node --check scripts/pool-calibration-exports.js
           node --check scripts/run-psychometric-pipeline.js
+          node --check scripts/run-full-pipeline-recovery.js
+          node --check scripts/run-full-pipeline-stability.js
           node --check scripts/build-psychometric-readiness-report.js
           node --check scripts/run-monte-carlo-recovery.js
           node --check tests/offline-validation-lab-validation.js
@@ -49,6 +54,8 @@ jobs:
           node --check tests/pooled-study-validation.js
           node --check tests/psychometric-pipeline-validation.js
           node --check tests/monte-carlo-recovery-validation.js
+          node --check tests/full-pipeline-recovery-validation.js
+          node --check tests/full-pipeline-stability-validation.js
 
       - name: Run cross-stage calibration regression tests
         run: |
@@ -60,6 +67,8 @@ jobs:
           node tests/pooled-study-validation.js
           node tests/psychometric-pipeline-validation.js
           node tests/monte-carlo-recovery-validation.js
+          node tests/full-pipeline-recovery-validation.js
+          node tests/full-pipeline-stability-validation.js
 
       - name: Smoke-test synthetic offline lab and psychometric dry-run
         run: |
@@ -81,6 +90,22 @@ jobs:
           grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/psychometric-plan.json"
           grep -q '"general-theta"' "$RUNNER_TEMP/psychometric-plan.json"
           grep -q '"readiness-report"' "$RUNNER_TEMP/psychometric-plan.json"
+
+          node scripts/run-full-pipeline-recovery.js \
+            --participants 500 \
+            --seed calibration-v10-regression \
+            --out "$RUNNER_TEMP/v10-dry" \
+            --dry-run > "$RUNNER_TEMP/v10-plan.json"
+          grep -q '"syntheticOnly": true' "$RUNNER_TEMP/v10-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/v10-plan.json"
+
+          node scripts/run-full-pipeline-stability.js \
+            --replicates 2 \
+            --participants 500 \
+            --seed-prefix calibration-v10-regression-stability \
+            --out "$RUNNER_TEMP/v10-stability-dry" \
+            --dry-run > "$RUNNER_TEMP/v10-stability-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/v10-stability-plan.json"
 
       - name: Set up R for analysis-script parsing
         uses: r-lib/actions/setup-r@v2

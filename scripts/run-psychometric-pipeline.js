@@ -17,10 +17,20 @@ function parseArgs(argv) {
   return out;
 }
 
+function normalizeAnalysisSeed(value) {
+  if (value == null || value === '') return null;
+  const seed = Number(value);
+  if (!Number.isInteger(seed) || seed < 1 || seed > 2147483646) {
+    throw new Error('analysisSeed must be an integer from 1 to 2147483646');
+  }
+  return seed;
+}
+
 function buildPlan(options = {}) {
   const input = options.input || 'calibration/output/pooled-study/pooled-independent-responses.csv';
   const outDir = options.outDir || 'calibration/output/psychometric-v5';
   const external = options.external || null;
+  const analysisSeed = normalizeAnalysisSeed(options.analysisSeed);
   const generalTheta = path.join(outDir, 'participant-general-theta.csv');
   const generalManifest = path.join(outDir, 'general-theta-manifest.json');
   const steps = [];
@@ -44,7 +54,7 @@ function buildPlan(options = {}) {
     command: process.execPath,
     args: ['scripts/build-psychometric-readiness-report.js', '--input', input, '--out', outDir]
   });
-  return { input, outDir, external, steps };
+  return { input, outDir, external, analysisSeed, steps };
 }
 
 function commandExists(command) {
@@ -52,11 +62,16 @@ function commandExists(command) {
   return !result.error && result.status === 0;
 }
 
-function runStep(step, cwd = process.cwd()) {
+function runStep(step, cwd = process.cwd(), analysisSeed = null) {
+  const env = {
+    ...process.env,
+    ALLOW_RESEARCH_STANDARD_SCORE: process.env.ALLOW_RESEARCH_STANDARD_SCORE || '0'
+  };
+  if (analysisSeed != null) env.CIL_ANALYSIS_SEED = String(analysisSeed);
   const result = spawnSync(step.command, step.args, {
     cwd,
     stdio: 'inherit',
-    env: { ...process.env, ALLOW_RESEARCH_STANDARD_SCORE: process.env.ALLOW_RESEARCH_STANDARD_SCORE || '0' }
+    env
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${step.name} failed with exit code ${result.status}`);
@@ -65,10 +80,12 @@ function runStep(step, cwd = process.cwd()) {
 function writeManifest(plan, outDir, completedSteps, status, error = null) {
   fs.mkdirSync(outDir, { recursive: true });
   const manifest = {
-    version: 'CIL-PSYCH-PIPELINE-2026.09.1',
+    version: 'CIL-PSYCH-PIPELINE-2026.09.2',
     generatedAt: new Date().toISOString(),
     input: plan.input,
     external: plan.external,
+    analysisSeed: plan.analysisSeed,
+    deterministicAnalysisSeed: plan.analysisSeed != null,
     steps: plan.steps.map(step => step.name),
     completedSteps,
     status,
@@ -92,6 +109,7 @@ function main(argv = process.argv.slice(2)) {
     input: args.input,
     outDir: args.out,
     external: args.external,
+    analysisSeed: args.analysisSeed,
     installPackages: args.installPackages
   });
 
@@ -118,7 +136,7 @@ function main(argv = process.argv.slice(2)) {
   try {
     for (const step of plan.steps) {
       console.log(`\n=== ${step.name} ===`);
-      runStep(step);
+      runStep(step, process.cwd(), plan.analysisSeed);
       completed.push(step.name);
     }
     writeManifest(plan, plan.outDir, completed, 'success');
@@ -139,4 +157,12 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseArgs, buildPlan, commandExists, runStep, writeManifest, main };
+module.exports = {
+  parseArgs,
+  normalizeAnalysisSeed,
+  buildPlan,
+  commandExists,
+  runStep,
+  writeManifest,
+  main
+};

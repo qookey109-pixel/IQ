@@ -1,0 +1,54 @@
+{
+  "version": "CIL-V11-RELIABILITY-SCREEN-2026.09.1",
+  "status": "preregistered-before-first-execution",
+  "purpose": "Prospective synthetic confirmatory check that the existing reliability screen discriminates a weak-information control from a high-information control without changing product IQ/norm governance.",
+  "authority": {
+    "basisMainSha": "9182f0fa805a83ccdf8c268a04aa191e34eca528",
+    "readinessPolicyPath": "calibration/psychometric-readiness-policy.json",
+    "readinessPolicyVersion": "CIL-PSYCH-2026.09.1"
+  },
+  "design": {
+    "panel": "pipeline",
+    "itemsPerDomain": 7,
+    "domains": 6,
+    "replicatesPerCondition": 3,
+    "participantsPerReplicate": 1200,
+    "conditions": [
+      {
+        "id": "weak-control",
+        "seedPrefix": "cil-v11-weak-control",
+        "itemDiscriminationMultiplier": 1.0,
+        "expectedReliabilityScreenPass": false
+      },
+      {
+        "id": "high-information-control",
+        "seedPrefix": "cil-v11-high-information-control",
+        "itemDiscriminationMultiplier": 2.0,
+        "expectedReliabilityScreenPass": true
+      }
+    ]
+  },
+  "acceptance": {
+    "minimumOmegaTotal": 0.70,
+    "minimumConfiguralCFI": 0.90,
+    "maximumConfiguralRMSEA": 0.08,
+    "maximumAbsoluteDeltaCFI": 0.01,
+    "maximumCleanPanelDifFalsePositiveRate": 0.10,
+    "allReplicatesMustBeStructurallyComplete": true,
+    "allReplicatesMustMeetExistingCfaScreen": true,
+    "allReplicatesMustMeetExistingCleanDifScreen": true,
+    "allReplicatesMustMatchExpectedReliabilityClassification": true,
+    "noPostExecutionThresholdChanges": true
+  },
+  "governance": {
+    "syntheticOnly": true,
+    "containsRealParticipants": false,
+    "automaticUpload": false,
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "requiresHumanPsychometricReviewForAnyFutureUnlock": true
+  },
+  "interpretation": "A pass only shows that the engineering pipeline can distinguish the pre-specified synthetic weak- versus high-information reliability conditions while preserving existing CFA/DIF screens and governance locks. It is not real-user reliability, validity, norming, or IQ evidence."
+}

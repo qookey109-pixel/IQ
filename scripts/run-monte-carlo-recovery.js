@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { buildSyntheticBank } = require('./generate-synthetic-calibration.js');
+const { buildSyntheticBank, rowsToCsv } = require('./generate-synthetic-calibration.js');
 
 function parseArgs(argv) {
   const out = {
@@ -45,6 +45,7 @@ function buildPlan(options = {}) {
     const syntheticDir = path.join(repDir, 'synthetic');
     const analysisDir = path.join(repDir, 'analysis');
     const input = path.join(syntheticDir, 'calibration-responses.csv');
+    const difInput = path.join(syntheticDir, 'calibration-responses-dif-compatible.csv');
     const seed = `${cfg.seedPrefix}-r${id}`;
     steps.push(
       {
@@ -70,7 +71,8 @@ function buildPlan(options = {}) {
       {
         name: `age-dif-${id}`,
         command: 'Rscript',
-        args: ['calibration/analysis/age_dif.R', input, analysisDir],
+        args: ['calibration/analysis/age_dif.R', difInput, analysisDir],
+        sourceInput: input,
         replicate: i + 1,
         seed
       }
@@ -145,6 +147,34 @@ function parseCsv(text) {
 function readCsv(file) {
   if (!fs.existsSync(file)) return [];
   return parseCsv(fs.readFileSync(file, 'utf8'));
+}
+
+function prepareSyntheticDifInput(sourceFile, outputFile, truthBank = buildSyntheticBank()) {
+  const excludedIds = new Set(
+    truthBank
+      .filter(item => item.defect === 'low-discrimination-control' || item.defect === 'negative-discrimination-control')
+      .map(item => item.itemId)
+  );
+  const rows = readCsv(sourceFile);
+  if (!rows.length) throw new Error(`Synthetic DIF source input is empty: ${sourceFile}`);
+
+  const observedExcludedIds = new Set(
+    rows
+      .filter(row => excludedIds.has(row.itemId))
+      .map(row => row.itemId)
+  );
+  if (observedExcludedIds.size !== excludedIds.size) {
+    throw new Error(`Expected ${excludedIds.size} discrimination controls in synthetic recovery input, found ${observedExcludedIds.size}`);
+  }
+
+  const filtered = rows.filter(row => !excludedIds.has(row.itemId));
+  fs.mkdirSync(path.dirname(outputFile), { recursive: true });
+  fs.writeFileSync(outputFile, rowsToCsv(filtered));
+  return {
+    sourceRows: rows.length,
+    filteredRows: filtered.length,
+    excludedItemCount: observedExcludedIds.size
+  };
 }
 
 function finiteNumber(value) {
@@ -309,6 +339,10 @@ function main(argv = process.argv.slice(2)) {
   const completed = [];
   for (const step of plan.steps) {
     console.log(`\n=== ${step.name} ===`);
+    if (step.name.startsWith('age-dif-')) {
+      const prepared = prepareSyntheticDifInput(step.sourceInput, step.args[1]);
+      console.log(`Prepared DIF-compatible synthetic input: ${prepared.filteredRows}/${prepared.sourceRows} rows; excluded ${prepared.excludedItemCount} discrimination-control items.`);
+    }
     runStep(step);
     completed.push(step.name);
   }
@@ -333,6 +367,7 @@ module.exports = {
   buildPlan,
   runStep,
   parseCsv,
+  prepareSyntheticDifInput,
   summarizeReplicate,
   aggregateResults,
   writeSummary,

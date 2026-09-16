@@ -5,6 +5,7 @@ on:
     branches:
       - feature/calibration-v9-monte-carlo-recovery
       - feature/calibration-v10-full-pipeline-recovery
+      - feature/calibration-v11-reliability-screen-discrimination
   pull_request:
     paths:
       - 'calibration/**'
@@ -13,9 +14,11 @@ on:
       - 'scripts/pool-calibration-exports.js'
       - 'scripts/run-psychometric-pipeline.js'
       - 'scripts/run-full-pipeline-*.js'
+      - 'scripts/run-confirmatory-reliability-v11.js'
       - 'scripts/build-psychometric-readiness-report.js'
       - 'tests/calibration-*.js'
       - 'tests/full-pipeline-*.js'
+      - 'tests/confirmatory-reliability-v11-validation.js'
       - 'tests/offline-validation-lab-validation.js'
       - 'tests/pooled-study-validation.js'
       - 'tests/psychometric-pipeline-validation.js'
@@ -44,6 +47,7 @@ jobs:
           node --check scripts/run-psychometric-pipeline.js
           node --check scripts/run-full-pipeline-recovery.js
           node --check scripts/run-full-pipeline-stability.js
+          node --check scripts/run-confirmatory-reliability-v11.js
           node --check scripts/build-psychometric-readiness-report.js
           node --check scripts/run-monte-carlo-recovery.js
           node --check tests/offline-validation-lab-validation.js
@@ -56,6 +60,7 @@ jobs:
           node --check tests/monte-carlo-recovery-validation.js
           node --check tests/full-pipeline-recovery-validation.js
           node --check tests/full-pipeline-stability-validation.js
+          node --check tests/confirmatory-reliability-v11-validation.js
 
       - name: Run cross-stage calibration regression tests
         run: |
@@ -69,6 +74,7 @@ jobs:
           node tests/monte-carlo-recovery-validation.js
           node tests/full-pipeline-recovery-validation.js
           node tests/full-pipeline-stability-validation.js
+          node tests/confirmatory-reliability-v11-validation.js
 
       - name: Smoke-test synthetic offline lab and psychometric dry-run
         run: |
@@ -106,6 +112,16 @@ jobs:
             --out "$RUNNER_TEMP/v10-stability-dry" \
             --dry-run > "$RUNNER_TEMP/v10-stability-plan.json"
           grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/v10-stability-plan.json"
+
+          node scripts/run-confirmatory-reliability-v11.js \
+            --protocol calibration/confirmatory-reliability-v11.json \
+            --out "$RUNNER_TEMP/v11-dry" \
+            --dry-run > "$RUNNER_TEMP/v11-plan.json"
+          grep -q '"minimumOmegaTotal": 0.7' "$RUNNER_TEMP/v11-plan.json"
+          grep -q '"syntheticOnly": true' "$RUNNER_TEMP/v11-plan.json"
+          grep -q '"productNormEligible": false' "$RUNNER_TEMP/v11-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/v11-plan.json"
+          grep -q '"autoCpiToIq": false' "$RUNNER_TEMP/v11-plan.json"
 
       - name: Set up R for analysis-script parsing
         uses: r-lib/actions/setup-r@v2

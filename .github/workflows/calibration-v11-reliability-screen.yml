@@ -97,16 +97,24 @@ jobs:
           }, null, 2));
           NODE
 
-      - name: Enforce aggregate-only artifact
+      - name: Preserve aggregate-only v11 result when available
+        if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/cil-v11-public"
-          cp "$RUNNER_TEMP/cil-v11/confirmatory-reliability-v11-summary.json" "$RUNNER_TEMP/cil-v11-public/"
-          test "$(find "$RUNNER_TEMP/cil-v11-public" -type f | wc -l)" -eq 1
-          ! grep -R -E 'sourceKey|sessionId|synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|administrationId' "$RUNNER_TEMP/cil-v11-public"
+          summary="$RUNNER_TEMP/cil-v11/confirmatory-reliability-v11-summary.json"
+          if [ -f "$summary" ]; then
+            cp "$summary" "$RUNNER_TEMP/cil-v11-public/"
+            test "$(find "$RUNNER_TEMP/cil-v11-public" -type f | wc -l)" -eq 1
+            ! grep -R -E 'sourceKey|sessionId|synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|administrationId' "$RUNNER_TEMP/cil-v11-public"
+          else
+            echo "No aggregate v11 summary was produced before failure."
+          fi
 
-      - name: Upload aggregate-only v11 result
+      - name: Upload aggregate-only v11 result when available
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: calibration-v11-confirmatory-reliability-summary
           path: ${{ runner.temp }}/cil-v11-public/confirmatory-reliability-v11-summary.json
+          if-no-files-found: ignore
           retention-days: 30

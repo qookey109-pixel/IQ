@@ -7,12 +7,15 @@ on:
     paths:
       - 'calibration/analysis/v11_dif_effectsize_diagnostic.R'
       - 'calibration/analysis/v11_dif_true_theta_diagnostic.R'
+      - 'calibration/analysis/v11_dif_conditioning_layers_diagnostic.R'
       - 'scripts/run-v11-dif-postfailure-diagnostic.js'
       - 'scripts/run-v11-dif-effectsize-postfailure-diagnostic.js'
       - 'scripts/run-v11-dif-conditioning-postfailure-diagnostic.js'
+      - 'scripts/run-v11-dif-conditioning-layers-postfailure-diagnostic.js'
       - 'tests/v11-dif-postfailure-diagnostic-validation.js'
       - 'tests/v11-dif-effectsize-postfailure-diagnostic-validation.js'
       - 'tests/v11-dif-conditioning-postfailure-diagnostic-validation.js'
+      - 'tests/v11-dif-conditioning-layers-postfailure-diagnostic-validation.js'
       - '.github/workflows/calibration-v11-dif-postfailure-diagnostic.yml'
   workflow_dispatch:
 
@@ -37,13 +40,16 @@ jobs:
           node --check scripts/run-v11-dif-postfailure-diagnostic.js
           node --check scripts/run-v11-dif-effectsize-postfailure-diagnostic.js
           node --check scripts/run-v11-dif-conditioning-postfailure-diagnostic.js
+          node --check scripts/run-v11-dif-conditioning-layers-postfailure-diagnostic.js
           node --check tests/v11-dif-postfailure-diagnostic-validation.js
           node --check tests/v11-dif-effectsize-postfailure-diagnostic-validation.js
           node --check tests/v11-dif-conditioning-postfailure-diagnostic-validation.js
+          node --check tests/v11-dif-conditioning-layers-postfailure-diagnostic-validation.js
           node tests/v11-dif-postfailure-diagnostic-validation.js
           node tests/v11-dif-effectsize-postfailure-diagnostic-validation.js
           node tests/v11-dif-conditioning-postfailure-diagnostic-validation.js
-          node scripts/run-v11-dif-conditioning-postfailure-diagnostic.js \
+          node tests/v11-dif-conditioning-layers-postfailure-diagnostic-validation.js
+          node scripts/run-v11-dif-conditioning-layers-postfailure-diagnostic.js \
             --protocol calibration/confirmatory-reliability-v11.json \
             --out "$RUNNER_TEMP/cil-v11-dif-diagnostic" \
             --dry-run > "$RUNNER_TEMP/cil-v11-dif-plan.json"
@@ -67,6 +73,7 @@ jobs:
         run: |
           Rscript -e "parse(file='calibration/analysis/v11_dif_effectsize_diagnostic.R')"
           Rscript -e "parse(file='calibration/analysis/v11_dif_true_theta_diagnostic.R')"
+          Rscript -e "parse(file='calibration/analysis/v11_dif_conditioning_layers_diagnostic.R')"
 
       - name: Install full pipeline dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
@@ -82,30 +89,30 @@ jobs:
             any::jsonlite
           cache-version: 1
 
-      - name: Reproduce high-information r01 and diagnose DIF conditioning
+      - name: Reproduce high-information r01 and isolate DIF conditioning layers
         run: |
-          node scripts/run-v11-dif-conditioning-postfailure-diagnostic.js \
+          node scripts/run-v11-dif-conditioning-layers-postfailure-diagnostic.js \
             --protocol calibration/confirmatory-reliability-v11.json \
             --out "$RUNNER_TEMP/cil-v11-dif-diagnostic"
 
       - name: Validate aggregate-only diagnostic result
         run: |
-          node - "$RUNNER_TEMP/cil-v11-dif-diagnostic/v11-dif-postfailure-conditioning-diagnostic.json" <<'NODE'
+          node - "$RUNNER_TEMP/cil-v11-dif-diagnostic/v11-dif-postfailure-conditioning-layers-diagnostic.json" <<'NODE'
           const fs = require('fs');
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           function fail(message) { throw new Error(String(message)); }
-          if (report.status !== 'post-failure-conditioning-diagnostic-complete') fail(`Unexpected status: ${report.status}`);
+          if (report.status !== 'post-failure-conditioning-layer-isolation-complete') fail(`Unexpected status: ${report.status}`);
           if (report.scope?.conditionId !== 'high-information-control') fail('Wrong condition');
           if (report.scope?.replicate !== 1) fail('Wrong replicate');
           if (report.scope?.seed !== 'cil-v11-high-information-control-r01') fail('Seed drift');
           if (report.scope?.analysisSeed !== 2147221403) fail('Analysis seed drift');
-          if (report.scope?.participants !== 1200) fail('Participant count drift');
-          if (report.estimatedThetaDif?.materialByMcFaddenR2 !== 5) fail('Expected 5 estimated-theta material DIF items');
-          if (report.trueThetaDif?.extractionComplete !== true) fail('Known-truth DIF extraction incomplete');
-          if (!Number.isFinite(report.trueThetaDif?.materialByMcFaddenR2)) fail('Known-truth material DIF count missing');
-          if (!String(report.finding?.classification || '').startsWith('estimated-theta-conditioning-')) fail('Unexpected conditioning classification');
-          if (report.productionEffectSizeDefect?.difDeltaR2AvailableItems !== 0) fail('Production age-dif unexpectedly exposed usable difDeltaR2 values');
-          if (report.productionEffectSizeDefect?.causalForV11Failure !== false) fail('Effect-size extraction defect must not be marked causal for frozen v11 failure');
+          if (report.conditioningLayers?.finding?.trueThetaMaterialFlags !== 0) fail('Known-truth conditioning should retain zero material DIF items');
+          if (report.conditioningLayers?.finding?.lordifFinalMaterialFlags !== 5) fail('Final lordif result must reproduce five material DIF items');
+          for (const key of ['pipelineEapMaterialFlags','lordifInitialMaterialFlags','lordifSparseMaterialFlags']) {
+            if (!Number.isFinite(report.conditioningLayers?.finding?.[key])) fail(`${key} missing`);
+          }
+          if (report.conditioningLayers?.finding?.classification === 'incomplete') fail('Conditioning-layer isolation incomplete');
+          if (report.productionEffectSizeDefect?.causalForV11Failure !== false) fail('Production effect-size extraction defect must remain non-causal for frozen v11 failure');
           if (report.governance?.confirmatoryVerdictRemains !== 'failed-confirmatory') fail('Confirmatory verdict changed');
           if (report.governance?.changesConfirmatoryVerdict !== false) fail('Diagnostic must not change confirmatory verdict');
           if (report.governance?.thresholdChangesAllowed !== false) fail('Threshold rewrite is forbidden');
@@ -114,12 +121,13 @@ jobs:
           }
           console.log(JSON.stringify({
             status: report.status,
-            estimatedThetaMaterialFlags: report.estimatedThetaDif.materialByMcFaddenR2,
-            trueThetaStatisticalFlags: report.trueThetaDif.statisticalFlags,
-            trueThetaMaterialFlags: report.trueThetaDif.materialByMcFaddenR2,
-            classification: report.finding.classification,
-            maxAbsoluteAgeBandBiasZ: report.thetaRecoveryAudit.maxAbsoluteAgeBandBiasZ,
-            itemCharacteristics: report.itemCharacteristics,
+            classification: report.conditioningLayers.finding.classification,
+            trueThetaMaterialFlags: report.conditioningLayers.finding.trueThetaMaterialFlags,
+            pipelineEapMaterialFlags: report.conditioningLayers.finding.pipelineEapMaterialFlags,
+            lordifInitialMaterialFlags: report.conditioningLayers.finding.lordifInitialMaterialFlags,
+            lordifSparseMaterialFlags: report.conditioningLayers.finding.lordifSparseMaterialFlags,
+            lordifFinalMaterialFlags: report.conditioningLayers.finding.lordifFinalMaterialFlags,
+            domainThetaCorrelations: Object.fromEntries(Object.entries(report.conditioningLayers.domains || {}).map(([domain, x]) => [domain, x.thetaCorrelations])),
             confirmatoryVerdictRemains: report.governance.confirmatoryVerdictRemains,
             productIqUnlocked: report.governance.productIqUnlocked
           }, null, 2));
@@ -128,13 +136,13 @@ jobs:
       - name: Enforce aggregate-only artifact
         run: |
           mkdir -p "$RUNNER_TEMP/cil-v11-dif-public"
-          cp "$RUNNER_TEMP/cil-v11-dif-diagnostic/v11-dif-postfailure-conditioning-diagnostic.json" "$RUNNER_TEMP/cil-v11-dif-public/"
+          cp "$RUNNER_TEMP/cil-v11-dif-diagnostic/v11-dif-postfailure-conditioning-layers-diagnostic.json" "$RUNNER_TEMP/cil-v11-dif-public/"
           test "$(find "$RUNNER_TEMP/cil-v11-dif-public" -type f | wc -l)" -eq 1
           ! grep -R -E 'sourceKey|sessionId|synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|administrationId' "$RUNNER_TEMP/cil-v11-dif-public"
 
       - name: Upload aggregate-only diagnostic
         uses: actions/upload-artifact@v4
         with:
-          name: calibration-v11-dif-postfailure-conditioning-diagnostic
-          path: ${{ runner.temp }}/cil-v11-dif-public/v11-dif-postfailure-conditioning-diagnostic.json
+          name: calibration-v11-dif-postfailure-conditioning-layers-diagnostic
+          path: ${{ runner.temp }}/cil-v11-dif-public/v11-dif-postfailure-conditioning-layers-diagnostic.json
           retention-days: 30

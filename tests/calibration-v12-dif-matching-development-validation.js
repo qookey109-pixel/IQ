@@ -19,10 +19,12 @@ const {
     'crossfit-six-factor-map-fixed-theta'
   ]);
   assert.strictEqual(protocol.version, 'CIL-V12-DIF-MATCHING-2026.09.2');
-  const smoke = parseArgs(['--replicates','1','--participants','300','--targets-per-domain','1','--out','/tmp/v12']);
+  const smoke = parseArgs(['--replicates','1','--participants','300','--targets-per-domain','1','--panel','clean','--replicate-start','3','--out','/tmp/v12']);
   assert.strictEqual(smoke.replicates, 1);
   assert.strictEqual(smoke.participants, 300);
   assert.strictEqual(smoke.targetsPerDomain, 1);
+  assert.strictEqual(smoke.panel, 'clean');
+  assert.strictEqual(smoke.replicateStart, 3);
 })();
 
 (function syntheticPanels() {
@@ -44,17 +46,22 @@ const {
     replicates: 1,
     participants: 300,
     targetsPerDomain: 1,
+    panel: 'clean',
+    replicateStart: 3,
     outDir: '/tmp/v12-smoke'
   });
   assert.strictEqual(smoke.selectionEligible, false);
-  assert.strictEqual(smoke.replicates.length, 2);
-  assert.ok(smoke.replicates.every(x => x.seed.startsWith('cil-v12-dev-')));
+  assert.strictEqual(smoke.replicates.length, 1);
+  assert.strictEqual(smoke.replicates[0].replicate, 3);
+  assert.strictEqual(smoke.replicates[0].seed, 'cil-v12-dev-clean-r03');
   assert.ok(smoke.replicates.every(x => !x.seed.startsWith('cil-v12-confirm-')));
 
   const full = makePlan({
     replicates: 5,
     participants: 1200,
     targetsPerDomain: 7,
+    panel: 'both',
+    replicateStart: 1,
     outDir: '/tmp/v12-full'
   });
   assert.strictEqual(full.selectionEligible, true);

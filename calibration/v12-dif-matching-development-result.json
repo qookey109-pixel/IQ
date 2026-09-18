@@ -1,0 +1,71 @@
+{
+  "version": "CIL-V12-DIF-MATCHING-DEVELOPMENT-RESULT-2026.09.1",
+  "status": "complete-development",
+  "generatedAt": "2026-09-18T08:29:35.506Z",
+  "authority": {
+    "executionCommit": "6b90d4855eac8ed37ff14f435470a4615184cae0",
+    "workflowRunId": 35320435949,
+    "aggregateArtifactId": 10538417515,
+    "aggregateArtifactName": "calibration-v12-dif-matching-development-summary",
+    "protocolVersion": "CIL-V12-DIF-MATCHING-2026.09.2",
+    "protocolBlobSha": "686775476ed8c8c910ad08ac371cedde191de3c9",
+    "analysisBlobSha": "82d63707bb413ebc2cb1e4b0173283127e0c98ef",
+    "developmentRunnerBlobSha": "7769182d3a792d7775dfbeff92e874e6e09a01f6",
+    "aggregatorBlobSha": "14afc59dfaee93a678884c6b050acde0b193b28d"
+  },
+  "configuration": {
+    "participantsPerReplicate": 1200,
+    "replicatesPerPanel": 5,
+    "targetsPerDomain": 7,
+    "executionMode": "10-shard-parallel-development",
+    "selectionEligible": true
+  },
+  "referenceBaseline": {
+    "method": "lordif-iterative-current",
+    "selectable": false,
+    "cleanAggregateFalsePositiveRate": 0.09523809523809523,
+    "cleanMaximumReplicateFalsePositiveRate": 0.1667,
+    "implantedDifSensitivity": 0.03333333333333333
+  },
+  "candidates": {
+    "domain-loo-eap-fixed-theta": {
+      "pass": true,
+      "cleanAggregateFalsePositiveRate": 0.06190476190476191,
+      "cleanMaximumReplicateFalsePositiveRate": 0.0714,
+      "cleanReplicateFalsePositiveRates": [0.0714, 0.0714, 0.0238, 0.0714, 0.0714],
+      "implantedKnownDifControlsObserved": 30,
+      "implantedKnownDifControlsDetected": 23,
+      "implantedDifSensitivity": 0.7666666666666667,
+      "implantedMaximumReplicateFalsePositiveRate": 0.0556
+    },
+    "crossfit-six-factor-map-fixed-theta": {
+      "pass": true,
+      "cleanAggregateFalsePositiveRate": 0.04285714285714286,
+      "cleanMaximumReplicateFalsePositiveRate": 0.0714,
+      "cleanReplicateFalsePositiveRates": [0.0238, 0.0714, 0, 0.0714, 0.0476],
+      "implantedKnownDifControlsObserved": 30,
+      "implantedKnownDifControlsDetected": 23,
+      "implantedDifSensitivity": 0.7666666666666667,
+      "implantedMaximumReplicateFalsePositiveRate": 0.0556
+    }
+  },
+  "selection": {
+    "status": "method-selected-development",
+    "selectedMethod": "domain-loo-eap-fixed-theta",
+    "tieBreakApplied": true,
+    "tieBreakReason": "Both candidates passed, had the same worst clean-replicate DIF false-positive rate (0.0714), and the same aggregate implanted-DIF sensitivity (23/30 = 0.7666666667). The preregistered third tie-break therefore selected domain-loo-eap-fixed-theta as the lower-complexity method."
+  },
+  "governance": {
+    "developmentOnly": true,
+    "confirmatorySeedsUsed": false,
+    "confirmatoryExecutionAuthorized": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false
+  },
+  "nonAuthority": {
+    "legacyAccidentalWorkflowRunId": 35318989805,
+    "mayBeUsedForSelection": false,
+    "reason": "An older escaped GitHub if-expression unintentionally started a legacy full-development job. The corrected authority run is 35320435949."
+  }
+}

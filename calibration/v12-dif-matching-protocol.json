@@ -1,6 +1,6 @@
 {
-  "version": "CIL-V12-DIF-MATCHING-2026.09.1",
-  "status": "prospective-method-selection-protocol",
+  "version": "CIL-V12-DIF-MATCHING-2026.09.2",
+  "status": "prospective-method-selection-protocol-pre-execution-amended",
   "purpose": "Prospectively evaluate target-independent DIF matching methods after the frozen v11 confirmatory failure, without changing v11 history, the existing clean-DIF threshold, or product IQ/norm governance.",
   "authority": {
     "basisMainSha": "c830e48c2170d0bab5341506487f36c6ae7f88d2",
@@ -20,7 +20,7 @@
     "alpha": 0.01,
     "pseudoR2": "McFadden",
     "referenceMaterialDeltaR2": 0.02,
-    "maximumCleanPanelDifFlagRate": 0.10
+    "maximumCleanPanelDifFlagRate": 0.1
   },
   "development": {
     "replicatesPerPanel": 5,
@@ -31,7 +31,7 @@
       "domains": 6,
       "itemsPerDomain": 7,
       "totalTargetItems": 42,
-      "itemDiscriminationMultiplier": 2.0,
+      "itemDiscriminationMultiplier": 2,
       "implantedAgeDif": false
     },
     "implantedDifPanel": {
@@ -41,7 +41,7 @@
       "itemsPerDomain": 7,
       "totalTargetItems": 42,
       "implantedAgeDifPerDomain": 1,
-      "implantedAgeDifEffect": 0.70
+      "implantedAgeDifEffect": 0.7
     }
   },
   "matchingMethods": [
@@ -63,20 +63,21 @@
       "purificationFeedback": false
     },
     {
-      "id": "crossfit-six-factor-eap-fixed-theta",
+      "id": "crossfit-six-factor-map-fixed-theta",
       "role": "candidate",
       "selectable": true,
       "targetIndependent": true,
-      "matchingModel": "correlated-six-factor-2PL-EAP",
+      "matchingModel": "correlated-six-factor-2PL-MAP",
       "matchingResponses": "all 41 non-target responses; target item excluded; target-domain factor used for matching",
+      "scoreEstimator": "MAP",
       "difExecution": "lordif::rundif with externally fixed theta",
       "purificationFeedback": false
     }
   ],
   "selectionRule": {
     "candidateMustCompleteEveryDevelopmentReplicate": true,
-    "candidateMustKeepEveryCleanReplicateAtOrBelowDifFlagRate": 0.10,
-    "minimumAggregateImplantedDifSensitivity": 0.70,
+    "candidateMustKeepEveryCleanReplicateAtOrBelowDifFlagRate": 0.1,
+    "minimumAggregateImplantedDifSensitivity": 0.7,
     "primaryCleanMetric": "difFlag false-positive rate",
     "secondaryDiagnostics": [
       "material McFadden delta-R2 flag rate",
@@ -99,8 +100,8 @@
     "cleanSeedPrefix": "cil-v12-confirm-clean",
     "implantedSeedPrefix": "cil-v12-confirm-implanted",
     "acceptance": {
-      "everyCleanReplicateMaximumDifFlagRate": 0.10,
-      "minimumAggregateImplantedDifSensitivity": 0.70,
+      "everyCleanReplicateMaximumDifFlagRate": 0.1,
+      "minimumAggregateImplantedDifSensitivity": 0.7,
       "allReplicatesMustComplete": true,
       "selectedMethodMayNotChangeAfterConfirmatoryStarts": true,
       "runnerUpFallbackAllowed": false,
@@ -117,5 +118,14 @@
     "productIqUnlocked": false,
     "requiresHumanPsychometricReviewForAnyFutureUnlock": true
   },
-  "interpretation": "A future v12 pass would validate a pre-specified target-independent DIF matching method under synthetic known-truth conditions. It would not repair v11, establish real-user fairness, create population norms, or unlock IQ reporting."
+  "interpretation": "A future v12 pass would validate a pre-specified target-independent DIF matching method under synthetic known-truth conditions. It would not repair v11, establish real-user fairness, create population norms, or unlock IQ reporting.",
+  "preExecutionAmendment": {
+    "amendmentBasisMainSha": "db7d929c2b5ae7cd0d76338c2feb2119cb018009",
+    "analysesExecutedBeforeAmendment": false,
+    "resultsInspectedBeforeAmendment": false,
+    "reason": "The mirt scoring documentation advises MAP rather than EAP for models with more than three factors because high-dimensional EAP integration becomes large and less precise. Candidate B has six correlated factors.",
+    "thresholdsChanged": false,
+    "seedFamiliesChanged": false,
+    "governanceLocksChanged": false
+  }
 }

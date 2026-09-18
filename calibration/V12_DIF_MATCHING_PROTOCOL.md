@@ -1,8 +1,10 @@
 # Calibration v12 — Prospective DIF Matching Recovery Protocol
 
-Status: **prospective method-selection protocol; no v12 analysis has been executed**
+Status: **prospective method-selection protocol; pre-execution amendment applied; no v12 analysis has been executed**
 
 Basis main: `c830e48c2170d0bab5341506487f36c6ae7f88d2`
+
+Pre-execution amendment: after PR #18 merged, but before any v12 data generation or analysis, Candidate B was changed from six-factor EAP to six-factor MAP. `mirt` documents that EAP factor scoring above three dimensions is generally not recommended because the integration grid becomes large; MAP is recommended for higher-dimensional models. No threshold, seed family, governance lock, or historical v11 verdict changed.
 
 Historical authorities:
 
@@ -108,21 +110,21 @@ For each target item:
 
 This candidate directly removes target self-inclusion, but it intentionally retains the short six-item information limit so that v12 can test whether removing feedback alone is sufficient.
 
-### Candidate B — cross-fit correlated six-factor fixed theta
+### Candidate B — cross-fit correlated six-factor MAP fixed theta
 
-`crossfit-six-factor-eap-fixed-theta`
+`crossfit-six-factor-map-fixed-theta`
 
 For each target item:
 
 1. remove the target item from the response matrix;
 2. fit a correlated six-factor 2PL model to the remaining 41 responses;
-3. estimate participant EAP scores for the six latent domains;
-4. use the target item's domain-factor score as the matching theta;
+3. estimate participant **MAP** scores for the six latent domains;
+4. use the target item's domain-factor MAP score as the matching theta;
 5. hold that theta fixed;
 6. run `lordif::rundif` for the target item;
 7. do not feed target-item DIF flags back into theta estimation.
 
-This candidate keeps the target item out of its own matching variable while allowing the correlated-domain model to borrow information from the broader response pattern.
+This candidate keeps the target item out of its own matching variable while allowing the correlated-domain model to borrow information from the broader response pattern. MAP is used prospectively because the scoring model is six-dimensional and the package documentation recommends MAP rather than high-dimensional EAP.
 
 ## Prospective selection rule
 
@@ -207,7 +209,7 @@ References used for method rationale:
 
 ## Current disposition
 
-This commit freezes the **design logic only**.
+The protocol design is frozen at version `CIL-V12-DIF-MATCHING-2026.09.2` after the pre-execution MAP amendment.
 
 No v12 development simulation has been run yet.
 

@@ -9,7 +9,7 @@ suppressPackageStartupMessages({
 })
 source("calibration/analysis/common.R")
 
-\`%||%\` <- function(x, y) if (is.null(x) || is.na(x) || !nzchar(x)) y else x
+`%||%` <- function(x, y) if (is.null(x) || is.na(x) || !nzchar(x)) y else x
 args <- commandArgs(trailingOnly = TRUE)
 input <- args[1] %||% "calibration/data/calibration-responses.csv"
 truth_file <- args[2] %||% "calibration/output/v12-true-domain-theta.csv"

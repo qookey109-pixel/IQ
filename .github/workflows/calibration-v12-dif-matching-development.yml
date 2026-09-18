@@ -116,12 +116,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: calibration-v12-dif-matching-smoke-summary
-          path: \${{ runner.temp }}/v12-smoke-public/v12-dif-matching-development-summary.json
+          path: ${{ runner.temp }}/v12-smoke-public/v12-dif-matching-development-summary.json
           retention-days: 14
 
   full-development-shards:
     needs: validate-and-smoke
-    if: \${{ needs.validate-and-smoke.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v12-dev-full]') }}
+    if: ${{ needs.validate-and-smoke.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v12-dev-full]') }}
     strategy:
       fail-fast: false
       matrix:
@@ -159,8 +159,8 @@ jobs:
       - name: Run preregistered development shard
         run: |
           node scripts/run-v12-dif-matching-development.js \
-            --panel "\${{ matrix.panel }}" \
-            --replicate-start "\${{ matrix.replicate }}" \
+            --panel "${{ matrix.panel }}" \
+            --replicate-start "${{ matrix.replicate }}" \
             --replicates 1 \
             --participants 1200 \
             --targets-per-domain 7 \
@@ -182,13 +182,13 @@ jobs:
       - name: Upload aggregate-safe development shard
         uses: actions/upload-artifact@v4
         with:
-          name: calibration-v12-development-\${{ matrix.panel }}-r\${{ matrix.replicate }}
-          path: \${{ runner.temp }}/v12-shard/v12-dif-matching-development-summary.json
+          name: calibration-v12-development-${{ matrix.panel }}-r${{ matrix.replicate }}
+          path: ${{ runner.temp }}/v12-shard/v12-dif-matching-development-summary.json
           retention-days: 14
 
   aggregate-full-development:
     needs: full-development-shards
-    if: \${{ needs.full-development-shards.result == 'success' }}
+    if: ${{ needs.full-development-shards.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -203,7 +203,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: calibration-v12-development-*
-          path: \${{ runner.temp }}/v12-shards
+          path: ${{ runner.temp }}/v12-shards
           merge-multiple: false
 
       - name: Aggregate preregistered development study
@@ -236,5 +236,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: calibration-v12-dif-matching-development-summary
-          path: \${{ runner.temp }}/v12-full/v12-dif-matching-development-summary.json
+          path: ${{ runner.temp }}/v12-full/v12-dif-matching-development-summary.json
           retention-days: 30

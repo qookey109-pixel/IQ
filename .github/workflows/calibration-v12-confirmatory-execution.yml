@@ -1,0 +1,107 @@
+name: Calibration v12 — Confirmatory Execution
+
+on:
+  push:
+    branches:
+      - research/calibration-v12-confirmatory-execution-20260918
+
+permissions:
+  contents: read
+
+jobs:
+  confirmatory:
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[v12-confirm-full]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate exact active authority and frozen plan
+        run: |
+          node --check scripts/run-v12-confirmatory.js
+          node --check tests/calibration-v12-confirmatory-active-authority-validation.js
+          node tests/calibration-v12-confirmatory-active-authority-validation.js
+          node scripts/run-v12-confirmatory.js \
+            --dry-run \
+            --out "$RUNNER_TEMP/v12-confirmatory-dry" > "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          grep -q '"totalReplicates": 10' "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          grep -q '"participantsPerReplicate": 1200' "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          grep -q '"selectedMethod": "domain-loo-eap-fixed-theta"' "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          test ! -e "$RUNNER_TEMP/v12-confirmatory-dry"
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Parse selected-method confirmatory analysis
+        run: |
+          Rscript -e 'parse(file="calibration/analysis/v12_dif_confirmatory_selected.R"); cat("v12 confirmatory R parse PASS\n")'
+
+      - name: Install frozen confirmatory dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Execute all 10 preregistered confirmatory replicates
+        run: |
+          node scripts/run-v12-confirmatory.js \
+            --authority calibration/v12-confirmatory-execution-authority.json \
+            --out "$RUNNER_TEMP/v12-confirmatory"
+
+      - name: Validate aggregate-only completed confirmatory result
+        run: |
+          node - "$RUNNER_TEMP/v12-confirmatory/v12-confirmatory-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!['confirmatory-pass','confirmatory-fail'].includes(report.status)) {
+            throw new Error('Unexpected confirmatory status');
+          }
+          if (report.selectedMethod !== 'domain-loo-eap-fixed-theta') throw new Error('Selected method drift');
+          if (report.allTenReplicatesComplete !== true) throw new Error('All 10 replicates must complete');
+          if (!Array.isArray(report.clean.replicateFalsePositiveRates) || report.clean.replicateFalsePositiveRates.length !== 5) {
+            throw new Error('Expected 5 clean replicate rates');
+          }
+          if (report.implanted.knownDifControlsObserved !== 30) throw new Error('Expected 30 implanted DIF controls');
+          if (report.clean.threshold !== 0.10) throw new Error('Clean threshold drift');
+          if (report.implanted.threshold !== 0.70) throw new Error('Sensitivity threshold drift');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.governance[key] !== false) throw new Error(key + ' must remain false');
+          }
+          console.log(JSON.stringify({
+            status: report.status,
+            selectedMethod: report.selectedMethod,
+            allTenReplicatesComplete: report.allTenReplicatesComplete,
+            clean: report.clean,
+            implanted: report.implanted,
+            governance: report.governance
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only artifact boundary
+        run: |
+          mkdir -p "$RUNNER_TEMP/v12-confirmatory-public"
+          cp "$RUNNER_TEMP/v12-confirmatory/v12-confirmatory-summary.json" "$RUNNER_TEMP/v12-confirmatory-public/"
+          test "$(find "$RUNNER_TEMP/v12-confirmatory-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/v12-confirmatory-public"
+
+      - name: Upload aggregate-only confirmatory result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v12-confirmatory-summary
+          path: ${{ runner.temp }}/v12-confirmatory-public/v12-confirmatory-summary.json
+          retention-days: 30

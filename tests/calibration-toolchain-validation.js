@@ -12,9 +12,14 @@ const readme = read('calibration/README.md');
 const schema = JSON.parse(read('calibration/schema.json'));
 const policy = JSON.parse(read('calibration/item-review-policy.json'));
 
-assert.ok(html.includes('<script src="calibration-study.js"></script>'), 'calibration study runtime must be loaded');
+const scriptTags = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*><\/script>/g)];
+const scriptFiles = scriptTags.map(match => match[1]);
+const calibrationStudyIndex = scriptFiles.indexOf('calibration-study.js');
+const calibrationReadinessIndex = scriptFiles.indexOf('calibration-readiness.js');
+assert.ok(calibrationStudyIndex >= 0, 'calibration study runtime must be loaded');
+assert.ok(/\bdefer\b/.test(scriptTags[calibrationStudyIndex][0]), 'calibration study runtime must be deferred');
 assert.ok(
-  html.indexOf('calibration-study.js') > html.indexOf('calibration-readiness.js'),
+  calibrationStudyIndex > calibrationReadinessIndex,
   'calibration study exporter must load after existing readiness recorder'
 );
 

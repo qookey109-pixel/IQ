@@ -1,0 +1,46 @@
+name: Calibration v13 — Real Validation & Norming Protocol
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_REAL_VALIDATION_NORMING_PROTOCOL.md'
+      - 'calibration/v13-real-validation-norming-protocol.json'
+      - 'tests/calibration-v13-real-validation-norming-protocol-validation.js'
+      - '.github/workflows/calibration-v13-real-validation-norming-protocol.yml'
+  push:
+    branches:
+      - research/calibration-v13-real-validation-norming-protocol-20260918
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v13-protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate prospective v13 protocol
+        run: |
+          node --check tests/calibration-v13-real-validation-norming-protocol-validation.js
+          node tests/calibration-v13-real-validation-norming-protocol-validation.js
+
+      - name: Prove no real-participant execution surface is introduced
+        run: |
+          node - <<'NODE'
+          const p = require('./calibration/v13-real-validation-norming-protocol.json');
+          if (p.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (p.executionLock.participantDataAccessAuthorized !== false) process.exit(1);
+          if (p.executionLock.phaseAAnalysisAuthorized !== false) process.exit(1);
+          if (p.executionLock.phaseBCollectionAuthorized !== false) process.exit(1);
+          if (p.executionLock.phaseBNormEstimationAuthorized !== false) process.exit(1);
+          if (p.executionLock.executionWorkflowIncludedInThisProtocol !== false) process.exit(1);
+          if (p.analysisAndReporting.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 execution lock PASS');
+          NODE

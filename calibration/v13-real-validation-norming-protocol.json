@@ -1,0 +1,206 @@
+{
+  "version": "CIL-V13-REAL-VALIDATION-NORMING-PROTOCOL-2026.09.1",
+  "status": "prospective-protocol-target-population-amendment-required-before-data",
+  "purpose": "Prospectively define the real-participant psychometric validation and representative norming sequence after Calibration v12 synthetic DIF-method confirmation, without authorizing participant-data collection, access, analysis, norm publication, or IQ unlock.",
+  "authority": {
+    "basisMainSha": "f00849fc823676d4758332f9854c9e2f1b9a60bd",
+    "v12ConfirmatoryResultBlobSha": "2a8a703176080f3d9df357c0d0426b92c874adb8",
+    "psychometricReadinessPolicyBlobSha": "5c992e16e12bcba9cdbaa7c941782f5a14667fe7",
+    "pooledStudyPolicyBlobSha": "d87e6ad056eac9fb905ae90727a92beeb4385e7a",
+    "externalValidationSchemaBlobSha": "864aa0c98edc9997e8a533418a1f2adb192fdf18"
+  },
+  "historicalBoundary": {
+    "v12ConfirmatoryStatus": "confirmatory-pass",
+    "v12Scope": "synthetic-known-truth-DIF-method-validation-only",
+    "v11Verdict": "failed-confirmatory",
+    "mayReinterpretV11": false,
+    "legacyAccidentalV12RunId": 35318989805,
+    "mayUseLegacyAccidentalV12RunForInference": false
+  },
+  "targetPopulation": {
+    "ageYears": { "minimum": 18, "maximum": 65 },
+    "jurisdiction": null,
+    "languageVersion": null,
+    "samplingFrameReference": null,
+    "populationBenchmarkReference": null,
+    "populationBenchmarkVersion": null,
+    "requiredBeforeAnyRealParticipantCollection": true,
+    "crossJurisdictionPoolingWithoutNewProtocolAllowed": false,
+    "crossLanguagePoolingWithoutNewProtocolAllowed": false,
+    "reasonUnspecified": "Formal norms require a named target population and external population benchmarks. These fields must be frozen in a pre-collection protocol amendment before any real-participant collection is authorized."
+  },
+  "privacyAndEthics": {
+    "explicitResearchConsentRequired": true,
+    "ethicsOrIrBDeterminationRequiredBeforeCollectionWhenApplicable": true,
+    "directIdentifiersAllowed": false,
+    "nameAllowed": false,
+    "emailAllowed": false,
+    "accountIdAllowed": false,
+    "ipAddressAllowed": false,
+    "streetLocationAllowed": false,
+    "dateOfBirthAllowed": false,
+    "wholeYearAgeAllowed": true,
+    "coarseDemographicsOnlyWhenPreregisteredAndConsented": true,
+    "automaticUploadAllowed": false,
+    "backendCollectionAuthorized": false,
+    "manualOfflineExportRemainsAuthorityUntilSeparateBackendReview": true
+  },
+  "independence": {
+    "unit": "sourceKey",
+    "atMostOneIndependentSessionPerSourceKey": true,
+    "phaseAAndPhaseBSourceKeyOverlapAllowed": false,
+    "repeatedSessionsMayBeRetainedOnlyForPreregisteredRetestAnalysis": true
+  },
+  "phaseARealValidation": {
+    "name": "real-psychometric-validation",
+    "collectionAuthorized": false,
+    "analysisAuthorized": false,
+    "normEligible": false,
+    "minimumIndependentParticipants": 2500,
+    "minimumPerAgeBand": 250,
+    "ageBands": ["18–24", "25–34", "35–44", "45–54", "55–65"],
+    "minimumMatrixSlotsObserved": 48,
+    "minimumAnchorCompletionRate": 0.70,
+    "minimumAverageFormalItemExposure": 40,
+    "analysisOrder": [
+      "reliability",
+      "domain-2PL-IRT",
+      "v12-selected-real-age-DIF",
+      "CFA-and-age-invariance-screen",
+      "external-common-person-linking",
+      "human-psychometric-review"
+    ],
+    "reliabilityScreen": {
+      "minimumDomainsOk": 6,
+      "minimumOmegaTotal": 0.70,
+      "source": "psychometric-readiness-policy"
+    },
+    "irtScreen": {
+      "minimumDomainsOk": 6,
+      "source": "psychometric-readiness-policy"
+    },
+    "dif": {
+      "selectedMethod": "domain-loo-eap-fixed-theta",
+      "criterion": "Chisqr",
+      "alpha": 0.01,
+      "pseudoR2": "McFadden",
+      "referenceMaterialDeltaR2": 0.02,
+      "minimumDomainsAnalyzed": 6,
+      "maximumMaterialFlagRateScreen": 0.10,
+      "finalCandidateRequiresZeroUnresolvedMaterialFlags": true,
+      "knownTruthSensitivityAvailableInRealData": false,
+      "runnerUpFallbackAllowed": false
+    },
+    "cfaAndAgeInvarianceScreen": {
+      "minimumCFI": 0.90,
+      "maximumRMSEA": 0.08,
+      "maximumAbsoluteDeltaCFI": 0.01,
+      "source": "psychometric-readiness-policy"
+    },
+    "externalLinking": {
+      "commonPersonLinkingRequired": true,
+      "minimumLinkedParticipantsForPrimaryEvidence": 100,
+      "plannedTargetLinkedParticipants": 500,
+      "plannedTargetIsValidityThreshold": false,
+      "approvedInstrumentAndDocumentedPermissionRequired": true,
+      "protectedItemContentStored": false,
+      "protectedScoringKeyStored": false,
+      "automaticScoreConversionAllowed": false
+    },
+    "revisionRule": {
+      "itemOrScoringChangesAllowedAfterReview": true,
+      "anyItemPromptAnswerKeyScoringOrModelChangeRequiresNewBankOrModelVersion": true,
+      "phaseADataMayNotBecomeFormalNormsAfterDataDrivenRevision": true,
+      "phaseBMayStartOnlyAfterFinalBankScoringAndModelFreeze": true
+    }
+  },
+  "phaseBNorming": {
+    "name": "representative-age-norming",
+    "collectionAuthorized": false,
+    "analysisAuthorized": false,
+    "mayStartBeforePhaseAFinalFreeze": false,
+    "mustUseNewIndependentParticipantsNotInPhaseA": true,
+    "minimumIndependentParticipants": 5000,
+    "minimumPerAgeBand": 500,
+    "ageBands": ["18–24", "25–34", "35–44", "45–54", "55–65"],
+    "minimumMatrixSlotsObserved": 56,
+    "minimumAnchorCompletionRate": 0.80,
+    "minimumAverageFormalItemExposure": 80,
+    "representativeSampling": {
+      "required": true,
+      "targetPopulationMustBeNamed": true,
+      "samplingFrameMustBeFrozenBeforeCollection": true,
+      "populationBenchmarksMustBeVersioned": true,
+      "minimumBenchmarkDimension": "ageBand",
+      "additionalBenchmarkDimensionsMustBePreregistered": true,
+      "unweightedAndWeightedDistributionsMustBothBeReported": true,
+      "weightingMethodMustBePreregistered": true,
+      "effectiveSampleSizeAfterWeightingMustBeReported": true,
+      "ageBandMinimumsAloneDoNotEstablishRepresentativeness": true
+    },
+    "uncertainty": {
+      "required": true,
+      "confidenceLevel": 0.95,
+      "stratifiedBootstrapReplicates": 2000,
+      "bootstrapStratification": "ageBand",
+      "mustReportFor": [
+        "age-band-mean",
+        "age-band-standard-deviation",
+        "age-band-p05",
+        "age-band-p50",
+        "age-band-p95",
+        "any-future-score-conversion"
+      ],
+      "automaticAccuracyThreshold": null,
+      "humanReviewRequired": true
+    },
+    "postCollectionChangeRule": {
+      "itemPromptAnswerKeyScoringOrMeasurementModelChangesAllowedWithoutNewNormCohort": false,
+      "ifChangeRequiredThenNormingCandidateInvalidated": true,
+      "newProtocolVersionAndNewNormingCohortRequired": true
+    }
+  },
+  "eligibilityAndQc": {
+    "consentRequired": true,
+    "ageRange": "18-65",
+    "exactly42ScoredFormalRowsRequired": true,
+    "uniqueFormalItemIdsRequired": 42,
+    "nonNullIqEstimateAllowed": false,
+    "populationNormedFlagAllowed": false,
+    "structuralQcUsesExistingPooledStudyRules": true,
+    "newBehavioralExclusionThresholdsMayBeAddedPostHoc": false,
+    "anyAdditionalBehavioralQcMustBePreregisteredBeforeCollection": true
+  },
+  "analysisAndReporting": {
+    "rawParticipantDataCommittedToGitAllowed": false,
+    "participantLevelArtifactUploadAllowed": false,
+    "aggregateOnlyPublicArtifacts": true,
+    "partialCohortInferenceAllowed": false,
+    "researchStandardScoreOutputDefaultEnabled": false,
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false
+  },
+  "unlockBoundary": {
+    "numericScreensAloneMayUnlockIq": false,
+    "requiresHumanPsychometricReview": true,
+    "requiresRepresentativeAgeNormStudy": true,
+    "requiresExternalValidityOrLinking": true,
+    "requiresVersionedUncertaintyEvidence": true,
+    "requiresSeparateExplicitProductUnlockDecision": true,
+    "thisProtocolAuthorizesProductUnlock": false
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "executionWorkflowIncludedInThisProtocol": false,
+    "separatePreCollectionTargetPopulationAmendmentRequired": true,
+    "separateExecutionAuthorizationRequired": true
+  }
+}

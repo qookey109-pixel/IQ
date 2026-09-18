@@ -1,0 +1,36 @@
+name: Calibration v12 — Confirmatory Authority Preparation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - research/calibration-v12-confirmatory-authority-prep-20260918
+
+jobs:
+  validate-authority-preparation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate inactive authority proposal
+        run: |
+          node --check tests/calibration-v12-confirmatory-authority-prep-validation.js
+          node tests/calibration-v12-confirmatory-authority-prep-validation.js
+
+      - name: Prove active authority is absent
+        run: |
+          test ! -e calibration/v12-confirmatory-execution-authority.json
+
+      - name: Validate confirmatory dry-run remains non-executing
+        run: |
+          node scripts/run-v12-confirmatory.js --dry-run --out "$RUNNER_TEMP/v12-confirmatory-dry" > "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          grep -q '"totalReplicates": 10' "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          grep -q '"confirmatorySeedsConsumed": false' "$RUNNER_TEMP/v12-confirmatory-plan.json"
+          test ! -e "$RUNNER_TEMP/v12-confirmatory-dry"

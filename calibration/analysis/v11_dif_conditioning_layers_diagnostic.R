@@ -264,6 +264,7 @@ for (domain_name in domains) {
   )
 
   leave_one_out <- list(available = FALSE)
+  target_matching_comparison <- list(available = FALSE)
   if (domain_name %in% names(leave_one_out_targets)) {
     target_item <- unname(leave_one_out_targets[[domain_name]])
     loo_theta <- fit_leave_one_out_theta(resp, target_item)
@@ -276,8 +277,19 @@ for (domain_name in domains) {
         thetaCorrelationWithTrueTheta = cor_safe(loo_theta, true_theta),
         targetDif = extract_target_dif(loo_out, item_ids, target_item)
       )
+      target_matching_comparison <- list(
+        available = TRUE,
+        targetItem = target_item,
+        trueTheta = extract_target_dif(true_out, item_ids, target_item),
+        fullPipelineEap = extract_target_dif(pipeline_out, item_ids, target_item),
+        lordifInitialEap = extract_target_dif(initial_out, item_ids, target_item),
+        leaveOneOutEap = extract_target_dif(loo_out, item_ids, target_item),
+        fullEapTrueThetaCorrelation = cor_safe(pipeline_eap, true_theta),
+        leaveOneOutTrueThetaCorrelation = cor_safe(loo_theta, true_theta)
+      )
     } else {
       leave_one_out <- list(available = FALSE, targetItem = target_item)
+      target_matching_comparison <- list(available = FALSE, targetItem = target_item)
     }
   }
 
@@ -305,6 +317,7 @@ for (domain_name in domains) {
     ),
     ageBandPurificationShift = summarize_age_band_theta_shift(group, initial_theta, sparse_theta),
     leaveOneOutMatching = leave_one_out,
+    targetMatchingComparison = target_matching_comparison,
     sources = sources
   )
 }
@@ -344,7 +357,7 @@ classification <- if (!all_complete) {
 }
 
 report <- list(
-  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.2",
+  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.3",
   generatedAt = format(Sys.time(), tz = "UTC", usetz = TRUE),
   analysis = "v11-post-failure-conditioning-layer-isolation",
   method = list(

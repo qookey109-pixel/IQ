@@ -70,11 +70,11 @@ for (domain_name in domains) {
   if (length(flags) != ncol(resp)) flags <- rep(NA, ncol(resp))
 
   delta <- rep(NA_real_, ncol(resp))
-  if (!is.null(fit$pseudo.R2)) {
-    pr2 <- as.matrix(fit$pseudo.R2)
-    if (nrow(pr2) == ncol(resp)) {
-      numeric_cols <- which(vapply(as.data.frame(pr2), is.numeric, logical(1)))
-      if (length(numeric_cols)) delta <- apply(pr2[, numeric_cols, drop = FALSE], 1, max, na.rm = TRUE)
+  if (!is.null(fit$stats)) {
+    stats <- as.data.frame(fit$stats, stringsAsFactors = FALSE)
+    if (nrow(stats) == ncol(resp) && "pseudo13.McFadden" %in% names(stats)) {
+      delta <- suppressWarnings(as.numeric(stats[["pseudo13.McFadden"]]))
+      delta[!is.finite(delta)] <- NA_real_
     }
   }
 

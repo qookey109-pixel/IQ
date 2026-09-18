@@ -92,6 +92,13 @@ assert(fs.existsSync(path.join(outDir, 'psychometric-report.md')));
 
 const runnerSource = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'run-psychometric-pipeline.js'), 'utf8');
 const reportSource = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-psychometric-readiness-report.js'), 'utf8');
+const ageDifSource = fs.readFileSync(path.join(__dirname, '..', 'calibration', 'analysis', 'age_dif.R'), 'utf8');
+
+assert(/flags\s*<-\s*fit\$flag/.test(ageDifSource), 'age DIF flags must continue to come from lordif fit$flag');
+assert(/difFlag\s*=\s*flags/.test(ageDifSource), 'age DIF output must preserve the existing difFlag path');
+assert(/fit\$stats/.test(ageDifSource), 'age DIF delta R2 must read lordif fit$stats');
+assert(/pseudo13\.McFadden/.test(ageDifSource), 'age DIF delta R2 must use pseudo13.McFadden');
+assert(!/fit\$pseudo\.R2/.test(ageDifSource), 'age DIF must not read the nonexistent top-level fit$pseudo.R2');
 assert(!/\b(fetch|XMLHttpRequest|sendBeacon)\s*\(/.test(runnerSource + reportSource), 'pipeline must not upload participant data');
 assert(/productIqUnlocked:\s*false/.test(runnerSource));
 assert(/productIqUnlocked:\s*false/.test(reportSource));

@@ -1,0 +1,120 @@
+{
+  "version": "CIL-V13-TARGET-POPULATION-AMENDMENT-PREP-2026.09.1",
+  "status": "prepared-incomplete-target-population-not-frozen",
+  "purpose": "Prepare the mandatory pre-collection target-population amendment required by Calibration v13 while keeping all real-participant collection and analysis locked until the target population, sampling frame, benchmark source/version, benchmark dimensions, weighting method, privacy implications, and language version are explicitly frozen.",
+  "authority": {
+    "basisMainSha": "3785342405cfd516323cdba6e7142a51e3dfce81",
+    "v13ProtocolBlobSha": "7dd6e940e2c188dd7bbbbf91f0df26ad75da2f4f",
+    "psychometricReadinessPolicyBlobSha": "5c992e16e12bcba9cdbaa7c941782f5a14667fe7",
+    "pooledStudyPolicyBlobSha": "d87e6ad056eac9fb905ae90727a92beeb4385e7a",
+    "responseSchemaBlobSha": "fab3c9f10b11f640490b77f55f41beab064a338c"
+  },
+  "targetPopulation": {
+    "ageYears": {
+      "minimum": 18,
+      "maximum": 65
+    },
+    "jurisdiction": null,
+    "populationDefinition": null,
+    "productionLanguageVersion": null,
+    "inclusionResidencyRule": null,
+    "samplingFrameReference": null,
+    "samplingFrameVersion": null,
+    "populationBenchmarkSource": null,
+    "populationBenchmarkVersion": null,
+    "benchmarkReferenceDate": null,
+    "complete": false
+  },
+  "benchmarkPlan": {
+    "minimumRequiredDimensions": [
+      "ageBand"
+    ],
+    "additionalBenchmarkDimensions": [],
+    "additionalDimensionsAuthorized": false,
+    "currentResponseSchemaContainsOnlyAgeForNormingDemographics": true,
+    "schemaAndPrivacyAmendmentRequiredBeforeAddingDemographics": true,
+    "officialOrDocumentedPopulationBenchmarkRequired": true,
+    "unweightedDistributionRequired": true,
+    "weightedDistributionRequired": true,
+    "effectiveSampleSizeAfterWeightingRequired": true
+  },
+  "weightingPlan": {
+    "method": null,
+    "weightTrimmingRule": null,
+    "maximumWeightRule": null,
+    "nonresponseAdjustment": null,
+    "calibrationOrPoststratificationVariables": [],
+    "methodFrozen": false,
+    "postCollectionMethodSelectionAllowed": false
+  },
+  "samplingPlan": {
+    "probabilitySamplingClaimAllowed": false,
+    "recruitmentChannels": [],
+    "channelAllocationRule": null,
+    "ageBandQuotaFloor": 500,
+    "totalIndependentParticipantFloor": 5000,
+    "matrixSlotsRequired": 56,
+    "minimumAnchorCompletionRate": 0.8,
+    "minimumAverageFormalItemExposure": 80,
+    "convenienceSampleMayBeCalledRepresentative": false,
+    "quotaCompletionAloneMayBeCalledRepresentative": false
+  },
+  "languageAndVersioning": {
+    "crossLanguagePoolingAllowed": false,
+    "crossJurisdictionPoolingAllowed": false,
+    "bankVersionMustBeFrozenBeforePhaseB": true,
+    "scoringVersionMustBeFrozenBeforePhaseB": true,
+    "measurementModelMustBeFrozenBeforePhaseB": true,
+    "postCollectionPromptAnswerKeyScoringOrModelChangeInvalidatesNormCohort": true
+  },
+  "privacyAndEthics": {
+    "directIdentifiersAllowed": false,
+    "dateOfBirthAllowed": false,
+    "wholeYearAgeAllowed": true,
+    "automaticUploadAllowed": false,
+    "backendCollectionAuthorized": false,
+    "additionalDemographicsCollectionAuthorized": false,
+    "coarseDemographicsRequirePreregistrationConsentAndPrivacyReview": true,
+    "ethicsOrIrBDeterminationRequiredWhenApplicable": true
+  },
+  "phaseAAndPhaseB": {
+    "phaseACollectionAuthorized": false,
+    "phaseADataAccessAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBNormingCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "phaseBMustUseNewIndependentParticipants": true
+  },
+  "readinessToFreeze": {
+    "jurisdictionSpecified": false,
+    "populationDefinitionSpecified": false,
+    "productionLanguageSpecified": false,
+    "samplingFrameSpecified": false,
+    "populationBenchmarkSpecified": false,
+    "populationBenchmarkVersionSpecified": false,
+    "weightingMethodSpecified": false,
+    "privacyReviewCompleteForAnyAdditionalDimensions": false,
+    "allRequiredFieldsComplete": false
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "executionWorkflowIncluded": false,
+    "separateCompletedAmendmentRequired": true,
+    "separateCollectionAuthorizationRequired": true
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "numericQuotaCompletionMayUnlockIq": false,
+    "requiresHumanPsychometricReview": true
+  },
+  "interpretation": "This is an incomplete pre-collection amendment proposal. It defines the fields and guards that must be resolved before any real-participant collection can be considered. It does not select a jurisdiction, language, benchmark source, sampling frame, weighting method, or demographic expansion."
+}

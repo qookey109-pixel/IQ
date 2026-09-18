@@ -1,0 +1,43 @@
+{
+  "version": "CIL-V12-CONFIRMATORY-EXECUTION-AUTHORITY-2026.09.1",
+  "status": "active-authorized-for-execution",
+  "activationState": "active",
+  "basisMainSha": "513a08d7f54d22506b2d43865607814614a88664",
+  "proposalBlobSha": "6f24810c609e183554dcd85f0983329f5c935b13",
+  "executionAuthorized": true,
+  "userAuthorizationRecorded": true,
+  "userAuthorizationDate": "2026-09-18",
+  "executionScope": "all-10-preregistered-replicates",
+  "selectedMethod": "domain-loo-eap-fixed-theta",
+  "preregistrationBlobSha": "edb01e1790bee7cb05f72578d9c501aa4e848ea2",
+  "runnerBlobSha": "4e15ca5b94c3138239ae297d9450b1ed15e9f5ea",
+  "analysisBlobSha": "7782586b3a5bc31a94e2204759c45702813ce545",
+  "reservedDesign": {
+    "cleanReplicates": 5,
+    "implantedReplicates": 5,
+    "participantsPerReplicate": 1200,
+    "targetItemsPerReplicate": 42,
+    "cleanMaximumReplicateDifFlagRate": 0.1,
+    "minimumAggregateImplantedDifSensitivity": 0.7
+  },
+  "executionBoundary": {
+    "partialExecutionAllowed": false,
+    "seedOverrideAllowed": false,
+    "methodOverrideAllowed": false,
+    "thresholdOverrideAllowed": false,
+    "runnerUpFallbackAllowed": false,
+    "partialRunInferenceAllowed": false
+  },
+  "seedStateAtAuthorization": {
+    "confirmatorySeedsConsumed": false,
+    "cleanSeedPrefix": "cil-v12-confirm-clean",
+    "implantedSeedPrefix": "cil-v12-confirm-implanted"
+  },
+  "governance": {
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false,
+    "autoPublishNorms": false
+  },
+  "interpretation": "This authority permits exactly one complete execution of the preregistered Calibration v12 synthetic confirmatory study. It does not authorize method, seed, threshold, product IQ, or norming changes."
+}

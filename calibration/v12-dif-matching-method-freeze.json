@@ -1,0 +1,46 @@
+{
+  "version": "CIL-V12-DIF-MATCHING-METHOD-FREEZE-2026.09.1",
+  "status": "development-method-frozen-confirmatory-locked",
+  "selectedMethod": {
+    "id": "domain-loo-eap-fixed-theta",
+    "matchingModel": "unidimensional-2PL-EAP-within-target-domain",
+    "matchingResponses": "six other domain items; target item excluded",
+    "difExecution": "lordif::rundif with externally fixed theta",
+    "purificationFeedback": false
+  },
+  "selectionAuthority": {
+    "executionCommit": "6b90d4855eac8ed37ff14f435470a4615184cae0",
+    "workflowRunId": 35320435949,
+    "aggregateArtifactId": 10538417515,
+    "resultBlobSha": "ebbd3aa66f1484bca7063d4576b45e3c955cf7c6",
+    "protocolBlobSha": "686775476ed8c8c910ad08ac371cedde191de3c9",
+    "analysisBlobSha": "82d63707bb413ebc2cb1e4b0173283127e0c98ef",
+    "developmentRunnerBlobSha": "7769182d3a792d7775dfbeff92e874e6e09a01f6",
+    "aggregatorBlobSha": "14afc59dfaee93a678884c6b050acde0b193b28d"
+  },
+  "frozenThresholds": {
+    "cleanMaximumReplicateDifFlagRate": 0.1,
+    "minimumAggregateImplantedDifSensitivity": 0.7,
+    "alpha": 0.01,
+    "pseudoR2": "McFadden",
+    "materialDeltaR2Reference": 0.02
+  },
+  "confirmatory": {
+    "executionAuthorized": false,
+    "seedsUsed": false,
+    "cleanSeedPrefix": "cil-v12-confirm-clean",
+    "implantedSeedPrefix": "cil-v12-confirm-implanted",
+    "selectedMethodMayChangeAfterConfirmatoryStarts": false,
+    "runnerUpFallbackAllowed": false,
+    "postExecutionThresholdChangesAllowed": false,
+    "separateAuthorizationRequired": true
+  },
+  "governance": {
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false,
+    "autoPublishNorms": false,
+    "containsRealParticipants": false
+  },
+  "interpretation": "This freeze records only the development-selected synthetic DIF matching method. It does not repair v11, establish real-user fairness or population norms, unlock IQ, or authorize v12 confirmatory execution."
+}

@@ -38,9 +38,11 @@ jobs:
           node --check tests/calibration-v12-dif-matching-protocol-validation.js
           node --check tests/calibration-v12-dif-matching-development-validation.js
           node --check tests/calibration-v12-dif-matching-aggregate-validation.js
+          node --check tests/calibration-v12-dif-matching-method-freeze-validation.js
           node tests/calibration-v12-dif-matching-protocol-validation.js
           node tests/calibration-v12-dif-matching-development-validation.js
           node tests/calibration-v12-dif-matching-aggregate-validation.js
+          node tests/calibration-v12-dif-matching-method-freeze-validation.js
           node scripts/run-v12-dif-matching-development.js \
             --dry-run \
             --panel implanted \

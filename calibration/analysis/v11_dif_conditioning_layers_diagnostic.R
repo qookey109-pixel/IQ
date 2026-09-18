@@ -95,6 +95,48 @@ run_with_theta <- function(item_ids, resp, theta, group) {
   )
 }
 
+fit_leave_one_out_theta <- function(resp, target_item) {
+  other_items <- setdiff(colnames(resp), target_item)
+  if (!(target_item %in% colnames(resp)) || length(other_items) < 5) return(NULL)
+  fit <- tryCatch(
+    mirt(
+      as.data.frame(resp[, other_items, drop = FALSE]),
+      1,
+      itemtype = "2PL",
+      technical = list(NCYCLES = 1000),
+      verbose = FALSE
+    ),
+    error = function(e) e
+  )
+  if (inherits(fit, "error")) return(NULL)
+  scores <- tryCatch(fscores(fit, method = "EAP"), error = function(e) e)
+  if (inherits(scores, "error")) return(NULL)
+  theta <- finite_or_na(as.data.frame(scores)[[1]])
+  if (length(theta) != nrow(resp) || any(!is.finite(theta))) return(NULL)
+  theta
+}
+
+extract_target_dif <- function(out, item_ids, target_item) {
+  idx <- match(target_item, item_ids)
+  if (is.null(out) || is.na(idx)) return(list(available = FALSE, itemId = target_item))
+  stats <- if (is.null(out$stats)) NULL else as.data.frame(out$stats, stringsAsFactors = FALSE)
+  if (is.null(stats) || nrow(stats) != length(item_ids)) {
+    return(list(available = FALSE, itemId = target_item))
+  }
+  flags <- as.logical(out$flag)
+  pseudo13 <- column_or_na(stats, "pseudo13.McFadden", length(item_ids))
+  list(
+    available = TRUE,
+    itemId = target_item,
+    statisticalFlag = isTRUE(flags[[idx]]),
+    chi12P = column_or_na(stats, "chi12", length(item_ids))[[idx]],
+    chi13P = column_or_na(stats, "chi13", length(item_ids))[[idx]],
+    chi23P = column_or_na(stats, "chi23", length(item_ids))[[idx]],
+    pseudo13McFadden = pseudo13[[idx]],
+    materialByMcFaddenR2 = is.finite(pseudo13[[idx]]) && pseudo13[[idx]] >= 0.02
+  )
+}
+
 cor_safe <- function(a, b) {
   keep <- is.finite(a) & is.finite(b)
   if (sum(keep) < 3) return(NA_real_)
@@ -141,6 +183,10 @@ pipeline_theta <- read_csv(pipeline_theta_file, show_col_types = FALSE)
 if (!("F1" %in% names(pipeline_theta))) stop("participant-domain-theta.csv must contain F1")
 
 domains <- sort(unique(raw$domain))
+leave_one_out_targets <- c(
+  "verbal-comprehension" = "SYN-01-13",
+  "processing-speed" = "SYN-05-14"
+)
 domain_reports <- list()
 aggregate_counts <- list(
   trueTheta = c(statistical = 0L, material = 0L),
@@ -217,6 +263,24 @@ for (domain_name in domains) {
     lordifFinal = summarize_out(final_out, item_ids)
   )
 
+  leave_one_out <- list(available = FALSE)
+  if (domain_name %in% names(leave_one_out_targets)) {
+    target_item <- unname(leave_one_out_targets[[domain_name]])
+    loo_theta <- fit_leave_one_out_theta(resp, target_item)
+    if (!is.null(loo_theta)) {
+      loo_out <- run_with_theta(item_ids, resp, loo_theta, group)
+      leave_one_out <- list(
+        available = !is.null(loo_out),
+        targetItem = target_item,
+        thetaCorrelationWithFullEap = cor_safe(loo_theta, pipeline_eap),
+        thetaCorrelationWithTrueTheta = cor_safe(loo_theta, true_theta),
+        targetDif = extract_target_dif(loo_out, item_ids, target_item)
+      )
+    } else {
+      leave_one_out <- list(available = FALSE, targetItem = target_item)
+    }
+  }
+
   for (source_name in names(sources)) {
     source <- sources[[source_name]]
     if (isTRUE(source$available)) {
@@ -240,6 +304,7 @@ for (domain_name in domains) {
       lordifInitialVsSparse = if (all(is.finite(sparse_theta))) cor_safe(initial_theta, sparse_theta) else NA_real_
     ),
     ageBandPurificationShift = summarize_age_band_theta_shift(group, initial_theta, sparse_theta),
+    leaveOneOutMatching = leave_one_out,
     sources = sources
   )
 }
@@ -279,7 +344,7 @@ classification <- if (!all_complete) {
 }
 
 report <- list(
-  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.1",
+  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.2",
   generatedAt = format(Sys.time(), tz = "UTC", usetz = TRUE),
   analysis = "v11-post-failure-conditioning-layer-isolation",
   method = list(

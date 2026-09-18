@@ -7,8 +7,8 @@ const protocolPath = 'calibration/v12-dif-matching-protocol.json';
 const protocol = JSON.parse(fs.readFileSync(protocolPath, 'utf8'));
 
 (function validateAuthorityAndHistory() {
-  assert.strictEqual(protocol.version, 'CIL-V12-DIF-MATCHING-2026.09.1');
-  assert.strictEqual(protocol.status, 'prospective-method-selection-protocol');
+  assert.strictEqual(protocol.version, 'CIL-V12-DIF-MATCHING-2026.09.2');
+  assert.strictEqual(protocol.status, 'prospective-method-selection-protocol-pre-execution-amended');
   assert.strictEqual(protocol.authority.basisMainSha, 'c830e48c2170d0bab5341506487f36c6ae7f88d2');
   assert.strictEqual(protocol.authority.frozenV11ConfirmatoryHead, '586f22d4b2ec405ae5ffd68def0f00f5b3423c73');
   assert.strictEqual(protocol.authority.v11PostFailureDiagnosticHead, '70d3f9af15c57cb4e33447d050f21e2bdf1320ef');
@@ -16,6 +16,11 @@ const protocol = JSON.parse(fs.readFileSync(protocolPath, 'utf8'));
   assert.strictEqual(protocol.historicalBoundary.mayReinterpretV11, false);
   assert.strictEqual(protocol.historicalBoundary.mayChangeV11Seeds, false);
   assert.strictEqual(protocol.historicalBoundary.mayChangeV11Thresholds, false);
+  assert.strictEqual(protocol.preExecutionAmendment.analysesExecutedBeforeAmendment, false);
+  assert.strictEqual(protocol.preExecutionAmendment.resultsInspectedBeforeAmendment, false);
+  assert.strictEqual(protocol.preExecutionAmendment.thresholdsChanged, false);
+  assert.strictEqual(protocol.preExecutionAmendment.seedFamiliesChanged, false);
+  assert.strictEqual(protocol.preExecutionAmendment.governanceLocksChanged, false);
 })();
 
 (function validateFrozenDifSettings() {
@@ -47,12 +52,16 @@ const protocol = JSON.parse(fs.readFileSync(protocolPath, 'utf8'));
 
   const baseline = methods.find(x => x.id === 'lordif-iterative-current');
   const loo = methods.find(x => x.id === 'domain-loo-eap-fixed-theta');
-  const crossfit = methods.find(x => x.id === 'crossfit-six-factor-eap-fixed-theta');
+  const crossfit = methods.find(x => x.id === 'crossfit-six-factor-map-fixed-theta');
 
   assert.ok(baseline && loo && crossfit);
   assert.strictEqual(baseline.selectable, false);
   assert.strictEqual(baseline.targetIndependent, false);
   assert.strictEqual(baseline.purificationFeedback, true);
+
+  assert.strictEqual(loo.matchingModel, 'unidimensional-2PL-EAP-within-target-domain');
+  assert.strictEqual(crossfit.matchingModel, 'correlated-six-factor-2PL-MAP');
+  assert.strictEqual(crossfit.scoreEstimator, 'MAP');
 
   for (const candidate of [loo, crossfit]) {
     assert.strictEqual(candidate.selectable, true);

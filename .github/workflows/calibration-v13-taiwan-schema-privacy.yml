@@ -1,0 +1,50 @@
+name: Calibration v13 — Taiwan Schema Privacy Amendment
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_SCHEMA_PRIVACY_AMENDMENT.md'
+      - 'calibration/v13-taiwan-schema-privacy-amendment.json'
+      - 'calibration/pooled-study-schema-v2-tw.proposed.json'
+      - 'tests/calibration-v13-taiwan-schema-privacy-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-schema-privacy.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-schema-privacy-amendment-20260918
+
+permissions:
+  contents: read
+
+jobs:
+  validate-taiwan-schema-privacy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate proposed schema and privacy contract
+        run: |
+          node --check tests/calibration-v13-taiwan-schema-privacy-validation.js
+          node tests/calibration-v13-taiwan-schema-privacy-validation.js
+
+      - name: Prove active collection/runtime remains unchanged
+        run: |
+          node - <<'NODE'
+          const a = require('./calibration/v13-taiwan-schema-privacy-amendment.json');
+          const active = require('./calibration/pooled-study-schema.json');
+          const proposed = require('./calibration/pooled-study-schema-v2-tw.proposed.json');
+          if (active.properties.schemaVersion.const !== 1) process.exit(1);
+          if (proposed.properties.schemaVersion.const !== 2) process.exit(1);
+          if (a.schemaActivation.activeProductionExporterChanged !== false) process.exit(1);
+          if (a.schemaActivation.activePoolingRuntimeChanged !== false) process.exit(1);
+          if (a.schemaActivation.schemaActivationAuthorized !== false) process.exit(1);
+          if (a.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (a.executionLock.participantDataAccessAuthorized !== false) process.exit(1);
+          if (a.governance.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 Taiwan proposed schema / collection lock PASS');
+          NODE

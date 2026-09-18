@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cognitive-iq-lab.local/calibration/pooled-study-export-v2-tw.proposed.json",
+  "title": "Cognitive IQ Lab proposed Taiwan calibration export v2 — NOT ACTIVE",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceKey", "privacy", "productStatus", "sessions"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "generatedAt": { "type": ["string", "null"] },
+    "updatedAt": { "type": ["string", "null"] },
+    "bankVersion": { "type": ["string", "null"] },
+    "bankRevision": { "type": ["string", "number", "null"] },
+    "sourceKey": {
+      "type": "string",
+      "minLength": 8,
+      "not": { "const": "local-unavailable" }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automaticUpload",
+        "containsName",
+        "containsAccount",
+        "containsDateOfBirth",
+        "containsIp",
+        "containsPreciseLocation",
+        "containsRawCountyCity",
+        "containsCoarseMacroRegion",
+        "containsSexForWeighting",
+        "containsHouseholdRegistrationEligibility"
+      ],
+      "properties": {
+        "automaticUpload": { "const": false },
+        "containsName": { "const": false },
+        "containsAccount": { "const": false },
+        "containsDateOfBirth": { "const": false },
+        "containsIp": { "const": false },
+        "containsPreciseLocation": { "const": false },
+        "containsRawCountyCity": { "const": false },
+        "containsCoarseMacroRegion": { "const": true },
+        "containsSexForWeighting": { "const": true },
+        "containsHouseholdRegistrationEligibility": { "const": true }
+      }
+    },
+    "productStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iqEstimateAvailable", "populationNormed"],
+      "properties": {
+        "cpiAvailable": { "type": "boolean" },
+        "iqEstimateAvailable": { "const": false },
+        "populationNormed": { "const": false }
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "sessionId",
+          "sourceKey",
+          "ageYears",
+          "ageBand",
+          "householdRegistrationEligibility",
+          "sexForWeighting",
+          "macroRegion",
+          "rows"
+        ],
+        "properties": {
+          "sessionId": { "type": "string", "minLength": 8 },
+          "sourceKey": {
+            "type": "string",
+            "minLength": 8,
+            "not": { "const": "local-unavailable" }
+          },
+          "ageYears": {
+            "type": "integer",
+            "minimum": 18,
+            "maximum": 65
+          },
+          "ageBand": {
+            "enum": ["18–24", "25–34", "35–44", "45–54", "55–65"]
+          },
+          "householdRegistrationEligibility": { "type": "boolean" },
+          "sexForWeighting": {
+            "enum": ["male", "female", "not-stated"]
+          },
+          "macroRegion": {
+            "enum": ["north", "central", "south", "east", "offshore", "not-stated"]
+          },
+          "cpi": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "iqEstimate": { "type": "null" },
+          "anchorStudy": {
+            "type": ["object", "null"]
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 42,
+            "items": { "$ref": "schema.json" }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "PROPOSED ONLY. This schema is not wired into the production exporter or pooling runtime. It introduces only coarse session-level Taiwan weighting metadata. No precise location, raw county/city, DOB, IP, name, account identifier, or automatic upload is permitted."
+}

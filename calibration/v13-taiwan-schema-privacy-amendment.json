@@ -1,0 +1,120 @@
+{
+  "version": "CIL-V13-TW-SCHEMA-PRIVACY-AMENDMENT-2026.09.1",
+  "status": "schema-privacy-defined-collection-still-locked",
+  "purpose": "Define the minimum coarse Taiwan weighting metadata and privacy rules required by the frozen v13 target-population plan without activating collection, changing the production exporter, authorizing participant-data access, or enabling norm estimation.",
+  "authority": {
+    "basisMainSha": "984b803228a010cac44f03498aff1c8d70912010",
+    "targetPopulationAmendmentBlobSha": "8f82950381e42e35f5c2c2e218001783e13dd63c",
+    "activeResponseRowSchemaBlobSha": "fab3c9f10b11f640490b77f55f41beab064a338c",
+    "activePooledExportSchemaBlobSha": "f36cdbe73ec082170515fb4259afda4b4506af91"
+  },
+  "minimumResearchMetadata": {
+    "storageLevel": "session",
+    "fields": {
+      "householdRegistrationEligibility": {
+        "type": "boolean",
+        "purpose": "Determine whether the participant belongs to the frozen Taiwan household-registered target population.",
+        "requiredForTargetPopulationCohort": true,
+        "requiredValueForTargetPopulationCohort": true
+      },
+      "sexForWeighting": {
+        "type": "enum",
+        "allowedValues": ["male", "female", "not-stated"],
+        "benchmarkableValues": ["male", "female"],
+        "purpose": "Calibration weighting margin against the frozen official benchmark.",
+        "mayBeInferred": false,
+        "refusalAllowed": true
+      },
+      "macroRegion": {
+        "type": "enum",
+        "allowedValues": ["north", "central", "south", "east", "offshore", "not-stated"],
+        "benchmarkableValues": ["north", "central", "south", "east", "offshore"],
+        "purpose": "Coarse geographic calibration margin without storing precise location or raw county/city.",
+        "mayBeInferredFromIp": false,
+        "refusalAllowed": true
+      }
+    }
+  },
+  "normingWeightEligibility": {
+    "requiresHouseholdRegistrationEligibilityTrue": true,
+    "requiresBenchmarkableSexForWeighting": true,
+    "requiresBenchmarkableMacroRegion": true,
+    "notStatedResponsesMayRemainInPsychometricValidationCohort": true,
+    "notStatedResponsesExcludedFromPrimaryRakedNormingCohort": true,
+    "missingOrNotStatedValuesMayNotBeImputedFromOtherPersonalSignals": true
+  },
+  "privacy": {
+    "directIdentifiersAllowed": false,
+    "nameAllowed": false,
+    "emailAllowed": false,
+    "accountIdAllowed": false,
+    "ipAddressAllowed": false,
+    "dateOfBirthAllowed": false,
+    "preciseLocationAllowed": false,
+    "rawCountyOrCityStorageAllowed": false,
+    "streetAddressAllowed": false,
+    "phoneAllowed": false,
+    "wholeYearAgeAllowed": true,
+    "macroRegionAllowed": true,
+    "sexForWeightingAllowed": true,
+    "householdRegistrationEligibilityAllowed": true,
+    "automaticUploadAllowed": false,
+    "manualOfflineExportRemainsAuthority": true,
+    "participantLevelPublicArtifactAllowed": false,
+    "participantLevelGitCommitAllowed": false
+  },
+  "consent": {
+    "explicitResearchConsentRequired": true,
+    "separateDisclosureForWeightingMetadataRequired": true,
+    "mustExplainWhySexAndRegionAreCollected": true,
+    "mustExplainNotStatedOption": true,
+    "mustExplainNoIqUnlockFromParticipation": true,
+    "mustExplainNoAutomaticUpload": true,
+    "consentVersionMustBeFrozenBeforeCollection": true
+  },
+  "retentionAndUse": {
+    "purposeLimitation": [
+      "psychometric-validation",
+      "fairness-analysis",
+      "representative-norming-weighting"
+    ],
+    "advertisingUseAllowed": false,
+    "accountPersonalizationUseAllowed": false,
+    "saleOfParticipantMetadataAllowed": false,
+    "rawParticipantDataPublicReleaseAllowed": false,
+    "aggregateOnlyPublicReporting": true,
+    "retentionDuration": null,
+    "retentionDurationMustBeFrozenBeforeCollection": true,
+    "deletionProcedureMustBeDocumentedBeforeCollection": true
+  },
+  "schemaActivation": {
+    "proposedSchemaPath": "calibration/pooled-study-schema-v2-tw.proposed.json",
+    "activePooledExportSchemaRemainsVersion": 1,
+    "activeProductionExporterChanged": false,
+    "activePoolingRuntimeChanged": false,
+    "collectionFormChanged": false,
+    "schemaActivationAuthorized": false,
+    "separateActivationAuthorizationRequired": true
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "productionExporterModificationAuthorized": false,
+    "executionWorkflowIncluded": false,
+    "separateRecruitmentExecutionPlanRequired": true,
+    "separateCollectionAuthorizationRequired": true
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "populationNormClaimAllowedNow": false
+  },
+  "interpretation": "The minimum Taiwan weighting metadata and privacy semantics are now prospectively defined, but the schema is only proposed. The active v1 exporter and pooler remain unchanged and no participant collection is authorized."
+}

@@ -1,0 +1,186 @@
+name: Calibration v12 — DIF Matching Development
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V12_DIF_MATCHING_PROTOCOL.md'
+      - 'calibration/v12-dif-matching-protocol.json'
+      - 'calibration/analysis/v12_dif_matching_compare.R'
+      - 'scripts/run-v12-dif-matching-development.js'
+      - 'tests/calibration-v12-dif-matching-*.js'
+      - '.github/workflows/calibration-v12-dif-matching-development.yml'
+  push:
+    branches:
+      - research/calibration-v12-dif-matching-development-20260918
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate protocol and harness
+        run: |
+          node --check scripts/run-v12-dif-matching-development.js
+          node --check tests/calibration-v12-dif-matching-protocol-validation.js
+          node --check tests/calibration-v12-dif-matching-development-validation.js
+          node tests/calibration-v12-dif-matching-protocol-validation.js
+          node tests/calibration-v12-dif-matching-development-validation.js
+          node scripts/run-v12-dif-matching-development.js \
+            --dry-run \
+            --replicates 1 \
+            --participants 300 \
+            --targets-per-domain 1 \
+            --out "$RUNNER_TEMP/v12-dry" > "$RUNNER_TEMP/v12-plan.json"
+          grep -q '"confirmatorySeedsUsed": false' "$RUNNER_TEMP/v12-plan.json"
+          grep -q '"productIqUnlocked": false' "$RUNNER_TEMP/v12-plan.json"
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Parse v12 R analysis
+        run: |
+          Rscript -e 'parse(file="calibration/analysis/v12_dif_matching_compare.R"); cat("v12 R parse PASS\n")'
+
+      - name: Install bounded v12 dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run bounded development integration smoke
+        run: |
+          node scripts/run-v12-dif-matching-development.js \
+            --replicates 1 \
+            --participants 300 \
+            --targets-per-domain 1 \
+            --out "$RUNNER_TEMP/v12-smoke"
+
+      - name: Validate aggregate-only smoke result
+        run: |
+          node - "$RUNNER_TEMP/v12-smoke/v12-dif-matching-development-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (report.status !== 'complete-smoke') throw new Error('Expected complete-smoke');
+          if (report.configuration.selectionEligible !== false) throw new Error('Smoke must not select a method');
+          if (report.selection.selectedMethod !== null) throw new Error('Smoke must not freeze a method');
+          if (report.governance.confirmatorySeedsUsed !== false) throw new Error('Confirmatory seeds must remain unused');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.governance[key] !== false) throw new Error(key + ' must remain false');
+          }
+          console.log(JSON.stringify({
+            status: report.status,
+            clean: report.aggregate.clean,
+            implanted: report.aggregate.implanted,
+            selection: report.selection,
+            governance: report.governance
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only smoke artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/v12-smoke-public"
+          cp "$RUNNER_TEMP/v12-smoke/v12-dif-matching-development-summary.json" "$RUNNER_TEMP/v12-smoke-public/"
+          test "$(find "$RUNNER_TEMP/v12-smoke-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/v12-smoke-public"
+
+      - name: Upload aggregate-only smoke result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v12-dif-matching-smoke-summary
+          path: \${{ runner.temp }}/v12-smoke-public/v12-dif-matching-development-summary.json
+          retention-days: 14
+
+  full-development:
+    needs: validate-and-smoke
+    if: \${{ needs.validate-and-smoke.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v12-dev-full]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install v12 development dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::mirt
+            any::lordif
+            any::readr
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+          cache-version: 1
+
+      - name: Run preregistered full development comparison
+        run: |
+          node scripts/run-v12-dif-matching-development.js \
+            --replicates 5 \
+            --participants 1200 \
+            --targets-per-domain 7 \
+            --out "$RUNNER_TEMP/v12-development"
+
+      - name: Validate full development summary
+        run: |
+          node - "$RUNNER_TEMP/v12-development/v12-dif-matching-development-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (report.status !== 'complete-development') throw new Error('Expected complete-development');
+          if (report.configuration.selectionEligible !== true) throw new Error('Full development run must be selection eligible');
+          if (report.governance.confirmatorySeedsUsed !== false) throw new Error('Confirmatory seeds must remain unused');
+          if (report.governance.confirmatoryExecutionAllowed !== false) throw new Error('Confirmatory execution must remain locked');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.governance[key] !== false) throw new Error(key + ' must remain false');
+          }
+          console.log(JSON.stringify({
+            status: report.status,
+            aggregate: report.aggregate,
+            selection: report.selection,
+            governance: report.governance
+          }, null, 2));
+          NODE
+
+      - name: Enforce aggregate-only full artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/v12-development-public"
+          cp "$RUNNER_TEMP/v12-development/v12-dif-matching-development-summary.json" "$RUNNER_TEMP/v12-development-public/"
+          test "$(find "$RUNNER_TEMP/v12-development-public" -type f | wc -l)" -eq 1
+          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/v12-development-public"
+
+      - name: Upload aggregate-only full development result
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v12-dif-matching-development-summary
+          path: \${{ runner.temp }}/v12-development-public/v12-dif-matching-development-summary.json
+          retention-days: 30

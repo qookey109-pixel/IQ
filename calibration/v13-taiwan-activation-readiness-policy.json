@@ -1,0 +1,65 @@
+{
+  "version": "CIL-V13-TW-ACTIVATION-READINESS-GUARD-2026.09.1",
+  "status": "guard-defined-collection-still-locked",
+  "purpose": "Machine-check whether the frozen Taiwan v13 design is ready to request a separate activation authorization. This guard never authorizes or launches recruitment, collection, data access, analysis, norming, or IQ unlock.",
+  "authority": {
+    "basisMainSha": "64668e5a0965edf98f4c785bb5c9a08b11758b35",
+    "targetPopulationAmendmentBlobSha": "8f82950381e42e35f5c2c2e218001783e13dd63c",
+    "schemaPrivacyAmendmentBlobSha": "67ac097fa8c3eb9f9ab7ecf79df5238b9fe3cc2e",
+    "recruitmentConsentPlanBlobSha": "8c3a63655868273d59ca764dd3c24ba5508890cf",
+    "consentDraftBlobSha": "4511254ba5dd3c8b3c10cf1d2d8fe1d9bdab6290",
+    "proposedTaiwanSchemaBlobSha": "e2c0e07e71c1f2c1b63abd7db84282a1897d4b9d"
+  },
+  "evaluation": {
+    "ciAsOfDate": "2026-09-19",
+    "acceptedEthicsDeterminationStates": [
+      "documented-approved",
+      "documented-exempt",
+      "documented-not-requiring-irb-rec"
+    ],
+    "benchmarkMaximumAgeDays": 120,
+    "readyStatus": "READY_FOR_SEPARATE_ACTIVATION_AUTHORIZATION",
+    "blockedStatus": "NOT_READY",
+    "authorizedStatusExists": false
+  },
+  "requiredVersions": {
+    "targetPopulationVersion": "CIL-V13-TW-TARGET-POPULATION-AMENDMENT-2026.09.1",
+    "schemaPrivacyVersion": "CIL-V13-TW-SCHEMA-PRIVACY-AMENDMENT-2026.09.1",
+    "recruitmentConsentVersion": "CIL-V13-TW-RECRUITMENT-CONSENT-PLAN-2026.09.1",
+    "participantConsentVersion": "CIL-V13-TW-CONSENT-2026.09.1",
+    "proposedSchemaVersion": 2,
+    "expectedActiveSchemaVersionBeforeActivation": 1
+  },
+  "hardRequirements": {
+    "targetPopulationComplete": true,
+    "benchmarkFresh": true,
+    "ethicsDeterminationResolved": true,
+    "consentArtifactPinned": true,
+    "schemaPrivacyPinned": true,
+    "proposedSchemaPinned": true,
+    "recruitmentConsentPlanPinned": true,
+    "retentionAndDeletionDefined": true
+  },
+  "intentionalPreActivationLocks": {
+    "activeSchemaMustRemainVersion1": true,
+    "schemaActivationAuthorized": false,
+    "productionExporterModificationAuthorized": false,
+    "poolingRuntimeModificationAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "consentPageActivationAuthorized": false,
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "populationNormClaimAllowedNow": false
+  },
+  "interpretation": "A READY result means only that the frozen design prerequisites are present and a separate activation authorization may be considered. It is not collection authority and cannot change any runtime or product governance state."
+}

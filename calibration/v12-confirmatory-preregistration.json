@@ -1,0 +1,101 @@
+{
+  "version": "CIL-V12-CONFIRMATORY-PREREG-2026.09.1",
+  "status": "preregistered-design-execution-locked",
+  "purpose": "Prospectively freeze the Calibration v12 confirmatory design after development method selection, without executing confirmatory seeds or changing product IQ/norm governance.",
+  "authority": {
+    "basisMainSha": "4f15e7ad4b294e34c0d4c5156ba2ddc9918e9371",
+    "developmentExecutionCommit": "6b90d4855eac8ed37ff14f435470a4615184cae0",
+    "developmentWorkflowRunId": 35320435949,
+    "selectedMethodFreezeBlobSha": "e53c6a2418edef9399b524da57bb129a703cb85a",
+    "developmentResultBlobSha": "ebbd3aa66f1484bca7063d4576b45e3c955cf7c6",
+    "v12ProtocolBlobSha": "686775476ed8c8c910ad08ac371cedde191de3c9",
+    "selectedMethodImplementationBlobSha": "82d63707bb413ebc2cb1e4b0173283127e0c98ef"
+  },
+  "historicalBoundary": {
+    "v11Verdict": "failed-confirmatory",
+    "mayReinterpretV11": false,
+    "mayUseLegacyAccidentalV12RunForInference": false,
+    "legacyAccidentalV12RunId": 35318989805
+  },
+  "selectedMethod": {
+    "id": "domain-loo-eap-fixed-theta",
+    "matchingModel": "unidimensional-2PL-EAP-within-target-domain",
+    "matchingResponses": "six other domain items; target item excluded",
+    "difExecution": "lordif::rundif with externally fixed theta",
+    "purificationFeedback": false,
+    "runnerUpFallbackAllowed": false
+  },
+  "design": {
+    "replicatesPerPanel": 5,
+    "participantsPerReplicate": 1200,
+    "domains": 6,
+    "itemsPerDomain": 7,
+    "totalTargetItemsPerReplicate": 42,
+    "cleanPanel": {
+      "panel": "pipeline",
+      "itemDiscriminationMultiplier": 2,
+      "implantedAgeDif": false,
+      "seedPrefix": "cil-v12-confirm-clean",
+      "reservedSeeds": [
+        "cil-v12-confirm-clean-r01",
+        "cil-v12-confirm-clean-r02",
+        "cil-v12-confirm-clean-r03",
+        "cil-v12-confirm-clean-r04",
+        "cil-v12-confirm-clean-r05"
+      ]
+    },
+    "implantedDifPanel": {
+      "basis": "Calibration v9 recovery-panel truth",
+      "implantedAgeDifPerDomain": 1,
+      "implantedAgeDifEffect": 0.7,
+      "seedPrefix": "cil-v12-confirm-implanted",
+      "reservedSeeds": [
+        "cil-v12-confirm-implanted-r01",
+        "cil-v12-confirm-implanted-r02",
+        "cil-v12-confirm-implanted-r03",
+        "cil-v12-confirm-implanted-r04",
+        "cil-v12-confirm-implanted-r05"
+      ]
+    }
+  },
+  "fixedDifSettings": {
+    "criterion": "Chisqr",
+    "alpha": 0.01,
+    "pseudoR2": "McFadden",
+    "referenceMaterialDeltaR2": 0.02
+  },
+  "acceptance": {
+    "everyCleanReplicateMaximumDifFlagRate": 0.1,
+    "minimumAggregateImplantedDifSensitivity": 0.7,
+    "allTenReplicatesMustComplete": true,
+    "selectedMethodMayNotChangeAfterExecutionStarts": true,
+    "runnerUpFallbackAllowed": false,
+    "postExecutionThresholdChangesAllowed": false,
+    "partialRunInferenceAllowed": false
+  },
+  "executionLock": {
+    "executionAuthorized": false,
+    "confirmatorySeedsConsumed": false,
+    "executionRunnerIncludedInThisPreregistration": false,
+    "executionWorkflowIncludedInThisPreregistration": false,
+    "separateExecutionAuthorizationRequired": true,
+    "resultsMayNotBeInspectedBeforeAllReplicatesComplete": true
+  },
+  "amendmentPolicy": {
+    "silentAmendmentsAllowed": false,
+    "anyChangeToSelectedMethodRequiresNewPreregistrationVersion": true,
+    "anyChangeToThresholdsRequiresNewPreregistrationVersion": true,
+    "anyChangeToReservedSeedsRequiresNewPreregistrationVersion": true,
+    "anyChangeToPanelOrSampleSizeRequiresNewPreregistrationVersion": true
+  },
+  "governance": {
+    "syntheticOnly": true,
+    "containsRealParticipants": false,
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "requiresHumanPsychometricReviewForAnyFutureUnlock": true
+  },
+  "interpretation": "A future confirmatory pass would validate the preregistered target-independent DIF matching method under synthetic known-truth conditions only. It would not repair v11, establish real-user fairness, create population norms, or unlock IQ reporting."
+}

@@ -1,0 +1,47 @@
+name: Calibration v13 — Taiwan Target Population Freeze
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_TARGET_POPULATION.md'
+      - 'calibration/v13-target-population-amendment.json'
+      - 'tests/calibration-v13-taiwan-target-population-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-target-population.yml'
+  push:
+    branches:
+      - research/calibration-v13-tw-target-population-freeze-20260918
+
+permissions:
+  contents: read
+
+jobs:
+  validate-taiwan-target-population:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate frozen target population and exact authority pins
+        run: |
+          node --check tests/calibration-v13-taiwan-target-population-validation.js
+          node tests/calibration-v13-taiwan-target-population-validation.js
+
+      - name: Prove collection remains locked after target freeze
+        run: |
+          node - <<'NODE'
+          const a = require('./calibration/v13-target-population-amendment.json');
+          if (a.targetPopulation.complete !== true) process.exit(1);
+          if (a.weightingPlan.methodFrozen !== true) process.exit(1);
+          if (a.privacyAndSchemaBoundary.currentResponseSchemaHasRequiredWeightingFields !== false) process.exit(1);
+          if (a.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (a.executionLock.participantDataAccessAuthorized !== false) process.exit(1);
+          if (a.executionLock.phaseBCollectionAuthorized !== false) process.exit(1);
+          if (a.executionLock.executionWorkflowIncluded !== false) process.exit(1);
+          if (a.governance.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 Taiwan target freeze / collection lock PASS');
+          NODE

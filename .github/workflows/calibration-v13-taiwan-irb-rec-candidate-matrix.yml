@@ -1,0 +1,47 @@
+name: Calibration v13 — Taiwan IRB REC Candidate Matrix
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_IRB_REC_CANDIDATE_MATRIX.md'
+      - 'calibration/v13-taiwan-irb-rec-candidate-matrix.json'
+      - 'tests/calibration-v13-taiwan-irb-rec-candidate-matrix-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-irb-rec-candidate-matrix.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-irb-rec-candidate-matrix-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-irb-rec-candidate-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate candidate matrix
+        run: |
+          node --check tests/calibration-v13-taiwan-irb-rec-candidate-matrix-validation.js
+          node tests/calibration-v13-taiwan-irb-rec-candidate-matrix-validation.js
+
+      - name: Prove no board selection or submission activation
+        run: |
+          node - <<'NODE'
+          const m = require('./calibration/v13-taiwan-irb-rec-candidate-matrix.json');
+          if (m.selectionPolicy.rankingAllowed !== false) process.exit(1);
+          if (m.selectionPolicy.automaticSelectionAllowed !== false) process.exit(1);
+          if (m.selectionPolicy.selectedBoard !== null) process.exit(1);
+          if (m.executionLock.boardSelectionAuthorized !== false) process.exit(1);
+          if (m.executionLock.externalBoardContactAuthorized !== false) process.exit(1);
+          if (m.executionLock.submissionToExternalBoardAuthorized !== false) process.exit(1);
+          if (m.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (m.governance.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 Taiwan IRB/REC candidate discovery lock PASS');
+          NODE

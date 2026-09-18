@@ -1,0 +1,199 @@
+{
+  "version": "CIL-V13-TW-IRB-REC-CANDIDATE-MATRIX-2026.09.1",
+  "status": "candidate-discovery-complete-selection-not-frozen",
+  "purpose": "Document evidence-backed Taiwan IRB/REC candidate routes and unresolved intake questions without ranking, selecting, contacting, or submitting to any review board.",
+  "authority": {
+    "basisMainSha": "bfa42b8434dc8c66f6475f615b31959d469bc75c",
+    "submissionAdministrationBlobSha": "f33e87adb6cfddd9b471c6c48913d1ba29a09fcc"
+  },
+  "officialQualifiedDirectory": {
+    "agency": "Ministry of Health and Welfare, Department of Medical Affairs",
+    "directoryUrl": "https://dep.mohw.gov.tw/DOMA/lp-3131-106.html",
+    "verifiedOn": "2026-09-19",
+    "directoryPageLastUpdated": "2026-09-15",
+    "annualNoticeUsed": "114年度人體研究倫理審查委員會暨受試者保護查核合格名單",
+    "annualNoticeUrl": "https://dep.mohw.gov.tw/doma/cp-3131-84962-106.html",
+    "annualNoticePdfUrl": "https://www.mohw.gov.tw/dl-98466-797e7a10-ecda-4e39-a563-784afcc4b4d5.html"
+  },
+  "candidates": [
+    {
+      "id": "tmu-jirb-c",
+      "name": "臺北醫學大學暨附屬醫院聯合人體研究倫理委員會 C",
+      "city": "新北市",
+      "qualifiedValidity": {
+        "from": "2026-01-01",
+        "through": "2031-12-31",
+        "source": "MOHW 114 annual qualified list"
+      },
+      "externalRouteEvidence": {
+        "status": "delegated-review-language-found",
+        "sourceUrl": "https://ohr.tmu.edu.tw/upload/news_files/1728878479%E8%87%BA%E5%8C%97%E9%86%AB%E5%AD%B8%E5%A4%A7%E5%AD%B8%E6%9A%A8%E9%99%84%E5%B1%AC%E9%86%AB%E9%99%A2%E8%81%AF%E5%90%88%E4%BA%BA%E9%AB%94%E7%A0%94%E7%A9%B6%E5%80%AB%E7%90%86%E5%A7%94%E5%93%A1%E6%9C%83%E5%AF%A9%E6%9F%A5%E8%B2%BB%E6%94%B6%E8%B2%BB%E8%A6%81%E9%BB%9E%281130924%E4%BF%AE%E6%AD%A3%E5%85%AC%E5%91%8A%29.pdf",
+        "evidence": "Fee rules explicitly include delegated-review plans and define submitters broadly to include PIs, companies, foundations, associations, schools, and medical institutions.",
+        "unaffiliatedIndividualAcceptanceVerified": false
+      },
+      "onlineBehavioralPsychometricScopeVerified": false,
+      "fees": {
+        "currentProjectSpecificFeeVerified": false
+      },
+      "followUpRequired": [
+        "confirm whether an unaffiliated investigator may submit directly",
+        "confirm whether online nonclinical psychometric research is accepted",
+        "confirm exact review category and fee for this project",
+        "confirm required institutional authorization if applicant is unaffiliated"
+      ],
+      "selected": false
+    },
+    {
+      "id": "new-taipei-city-hospital-irb",
+      "name": "新北市立聯合醫院人體研究倫理審查委員會",
+      "city": "新北市",
+      "qualifiedValidity": {
+        "from": "2026-01-01",
+        "through": "2031-12-31",
+        "source": "MOHW 114 annual qualified list"
+      },
+      "externalRouteEvidence": {
+        "status": "not-yet-verified",
+        "unaffiliatedIndividualAcceptanceVerified": false
+      },
+      "onlineBehavioralPsychometricScopeVerified": false,
+      "fees": {
+        "currentProjectSpecificFeeVerified": false
+      },
+      "followUpRequired": [
+        "confirm whether external or unaffiliated submissions are accepted",
+        "confirm online psychometric study scope",
+        "confirm submission process and fees"
+      ],
+      "selected": false
+    },
+    {
+      "id": "landseed-irb",
+      "name": "聯新國際醫院人體試驗委員會",
+      "city": "桃園市",
+      "qualifiedValidity": {
+        "from": "2026-01-01",
+        "through": "2031-12-31",
+        "source": "MOHW 114 annual qualified list"
+      },
+      "externalRouteEvidence": {
+        "status": "external-research-route-documented",
+        "sourceUrl": "https://www.landseedhospital.com.tw/tw/Teach_medical/medical/%E4%BA%BA%E9%AB%94%E8%A9%A6%E9%A9%97%E5%A7%94%E5%93%A1%E6%9C%83/%E9%80%81%E5%AF%A9%E9%A0%88%E7%9F%A5%E8%BF%BD%E8%B9%A4%E4%BF%AE%E6%AD%A3%E6%A1%88",
+        "evidence": "Published fee tables distinguish external research from internal research; new-submission guidance also requires study-site consent documentation when recruitment occurs outside the hospital.",
+        "unaffiliatedIndividualAcceptanceVerified": false
+      },
+      "onlineBehavioralPsychometricScopeVerified": false,
+      "fees": {
+        "currentProjectSpecificFeeVerified": false
+      },
+      "followUpRequired": [
+        "confirm whether unaffiliated applicant without hospital sponsor is accepted",
+        "confirm whether study-site authorization is needed for a public web recruitment model",
+        "confirm current new-application fee and review category",
+        "confirm training-hour requirements"
+      ],
+      "selected": false
+    },
+    {
+      "id": "vghtc-irb2",
+      "name": "臺中榮民總醫院第二人體研究倫理審查委員會",
+      "city": "臺中市",
+      "qualifiedValidity": {
+        "from": "2026-01-01",
+        "through": "2031-12-31",
+        "source": "MOHW 114 annual qualified list"
+      },
+      "externalRouteEvidence": {
+        "status": "not-yet-verified",
+        "contactPageUrl": "https://www.vghtc.gov.tw/CP/7526",
+        "unaffiliatedIndividualAcceptanceVerified": false
+      },
+      "onlineBehavioralPsychometricScopeVerified": false,
+      "fees": {
+        "currentProjectSpecificFeeVerified": false
+      },
+      "followUpRequired": [
+        "confirm external or unaffiliated intake route",
+        "confirm online psychometric study scope",
+        "confirm review category, training requirements, and fees"
+      ],
+      "selected": false
+    },
+    {
+      "id": "ptvgh-irb",
+      "name": "屏東榮民總醫院人體研究倫理審查委員會",
+      "city": "屏東縣",
+      "qualifiedValidity": {
+        "from": "2025-12-24",
+        "through": "2026-12-31",
+        "source": "MOHW 114 annual qualified list",
+        "shorterValidityWarning": true
+      },
+      "externalRouteEvidence": {
+        "status": "external-delegated-review-route-documented",
+        "sourceUrl": "https://org.ptvgh.gov.tw/irb/cp.aspx?n=25475D91CB732052",
+        "evidence": "The board publishes a separate external delegated-review fee route and online submission process.",
+        "unaffiliatedIndividualAcceptanceVerified": false
+      },
+      "onlineBehavioralPsychometricScopeVerified": false,
+      "fees": {
+        "currentProjectSpecificFeeVerified": false,
+        "generalExternalFeeScheduleSource": "https://wwwfs.vghks.gov.tw/Download.ashx?n=5a%2Bp5p%2Bl6LK755So5pS26LK75qiZ5rqW6KGodjIuMC3moLjlrprniYgucGRm&u=LzAwMS9WZ2hrc1VwbG9hZEZpbGVzLzQ4Ni9ja2ZpbGUvMjE0Njc4M2ItMTc2Ni00MjZjLWFhNTEtZGRmOWQ1Yzc4MmUzLnBkZg%3D%3D"
+      },
+      "followUpRequired": [
+        "reconfirm qualified validity immediately before any submission because current listed term ends 2026-12-31",
+        "confirm whether unaffiliated applicant may use external delegated-review route",
+        "confirm online psychometric scope and required department/supervisor signatures",
+        "confirm exact fee category"
+      ],
+      "selected": false
+    }
+  ],
+  "nonCandidateObservations": [
+    {
+      "name": "國立中正大學人類研究倫理中心",
+      "status": "external-intake-temporarily-paused",
+      "sourceUrl": "https://rec.ccu.edu.tw/",
+      "verifiedOn": "2026-09-19",
+      "evidence": "The center currently states that September 2026 new-application capacity is full and external applications are temporarily paused.",
+      "reasonNotInCandidateSet": "Current external intake is not available; current MOHW qualified-list status was not established in this discovery pass."
+    }
+  ],
+  "selectionPolicy": {
+    "rankingAllowed": false,
+    "automaticSelectionAllowed": false,
+    "selectedBoard": null,
+    "selectionRequiresApplicantContext": true,
+    "requiredApplicantContext": [
+      "principalInvestigatorLegalName",
+      "principalInvestigatorTitleOrRole",
+      "researchInstitutionOrUnaffiliatedInvestigatorRoute",
+      "officialResearchContact",
+      "officialDataRightsContact",
+      "fundingSourceOrNoFundingDeclaration",
+      "conflictOfInterestDeclaration"
+    ],
+    "minimumPreSelectionVerifications": [
+      "current-qualified-status",
+      "external-or-unaffiliated-intake-acceptance",
+      "online-behavioral-psychometric-scope",
+      "submission-process",
+      "fees",
+      "training-or-institutional-authorization-requirements"
+    ]
+  },
+  "executionLock": {
+    "boardSelectionAuthorized": false,
+    "externalBoardContactAuthorized": false,
+    "submissionToExternalBoardAuthorized": false,
+    "realParticipantCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "schemaActivationAuthorized": false
+  },
+  "governance": {
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false
+  }
+}

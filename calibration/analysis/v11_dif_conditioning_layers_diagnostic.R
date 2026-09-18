@@ -101,6 +101,39 @@ cor_safe <- function(a, b) {
   suppressWarnings(cor(a[keep], b[keep]))
 }
 
+summarize_age_band_theta_shift <- function(group, initial_theta, sparse_theta) {
+  if (length(initial_theta) != length(group) || length(sparse_theta) != length(group) ||
+      any(!is.finite(initial_theta)) || any(!is.finite(sparse_theta))) {
+    return(list(available = FALSE, maxAbsoluteMeanShiftZ = NA_real_, ageBands = list()))
+  }
+  initial_sd <- sd(initial_theta)
+  sparse_sd <- sd(sparse_theta)
+  if (!is.finite(initial_sd) || initial_sd <= 0 || !is.finite(sparse_sd) || sparse_sd <= 0) {
+    return(list(available = FALSE, maxAbsoluteMeanShiftZ = NA_real_, ageBands = list()))
+  }
+  initial_z <- (initial_theta - mean(initial_theta)) / initial_sd
+  sparse_z <- (sparse_theta - mean(sparse_theta)) / sparse_sd
+  summary <- tibble(
+    ageBand = as.character(group),
+    initialZ = initial_z,
+    sparseZ = sparse_z
+  ) %>%
+    group_by(ageBand) %>%
+    summarize(
+      n = n(),
+      initialMeanZ = mean(initialZ),
+      sparseMeanZ = mean(sparseZ),
+      sparseMinusInitialMeanZ = mean(sparseZ - initialZ),
+      .groups = "drop"
+    )
+  shifts <- abs(summary$sparseMinusInitialMeanZ)
+  list(
+    available = TRUE,
+    maxAbsoluteMeanShiftZ = if (length(shifts)) max(shifts) else 0,
+    ageBands = lapply(seq_len(nrow(summary)), function(i) as.list(summary[i, , drop = FALSE]))
+  )
+}
+
 raw <- independent_sessions(read_calibration(input))
 age <- participant_age_table(raw)
 truth <- read_csv(truth_file, show_col_types = FALSE)
@@ -206,6 +239,7 @@ for (domain_name in domains) {
       pipelineEapVsLordifInitial = cor_safe(pipeline_eap, initial_theta),
       lordifInitialVsSparse = if (all(is.finite(sparse_theta))) cor_safe(initial_theta, sparse_theta) else NA_real_
     ),
+    ageBandPurificationShift = summarize_age_band_theta_shift(group, initial_theta, sparse_theta),
     sources = sources
   )
 }

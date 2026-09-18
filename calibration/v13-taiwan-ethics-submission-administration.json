@@ -1,0 +1,92 @@
+{
+  "version": "CIL-V13-TW-ETHICS-SUBMISSION-ADMIN-2026.09.1",
+  "status": "submission-administration-prepared-not-submission-ready",
+  "purpose": "Prepare non-identifying submission administration fields, qualified-review-board selection rules, and fail-closed external decision intake requirements without selecting a board, submitting an application, or changing ethics/collection status.",
+  "authority": {
+    "basisMainSha": "ebc9ef1d4cde220436b7788e224d17746d822918",
+    "ethicsApplicabilityPacketBlobSha": "dc43c9a40cdc85ce143b52724b3c26fb7769b023",
+    "ethicsDeterminationRequestBlobSha": "55208c2d3ff7bb410a44076999eaf2d8e62a1f2d"
+  },
+  "officialBoardDirectory": {
+    "authority": "Ministry of Health and Welfare, Department of Medical Affairs",
+    "directoryUrl": "https://dep.mohw.gov.tw/DOMA/lp-3131-106.html",
+    "verifiedOn": "2026-09-19",
+    "directoryPageLastUpdated": "2026-09-15",
+    "selectionMustUseCurrentQualifiedStatus": true,
+    "selectedBoard": null,
+    "selectionFrozen": false
+  },
+  "boardSelectionCriteria": [
+    "currently-listed-or-currently-valid-qualified-review-board",
+    "accepts-the-applicant-institution-or-unaffiliated-investigator-route",
+    "scope-compatible-with-online-behavioral-or-psychometric-human-research",
+    "published-submission-process-available",
+    "fees-and-contractual-requirements-reviewed-before-selection",
+    "no-unresolved-conflict-of-interest"
+  ],
+  "boardRankingAllowed": false,
+  "submissionAdministration": {
+    "principalInvestigatorLegalName": null,
+    "principalInvestigatorTitleOrRole": null,
+    "researchInstitutionOrUnaffiliatedInvestigatorRoute": null,
+    "selectedQualifiedIrborRec": null,
+    "officialResearchContact": null,
+    "officialDataRightsContact": null,
+    "fundingSourceOrNoFundingDeclaration": null,
+    "conflictOfInterestDeclaration": null,
+    "submissionPortalOrMethod": null,
+    "submissionFeeReviewed": false,
+    "institutionalAuthorizationIfRequired": null,
+    "submissionReady": false
+  },
+  "submissionPacketPaths": [
+    "calibration/V13_TAIWAN_ETHICS_APPLICABILITY_PACKET.md",
+    "calibration/V13_TAIWAN_ETHICS_DETERMINATION_REQUEST_ZH_HANT_TW.md",
+    "calibration/V13_TAIWAN_PARTICIPANT_CONSENT_ZH_HANT_TW.md"
+  ],
+  "decisionIntake": {
+    "templatePath": "calibration/v13-taiwan-ethics-decision-intake.template.json",
+    "allowedResolvedStatuses": [
+      "documented-approved",
+      "documented-exempt",
+      "documented-not-requiring-irb-rec"
+    ],
+    "externalDocumentRequiredForResolvedStatus": true,
+    "requiredEvidenceFieldsForResolvedStatus": [
+      "reviewBoard",
+      "referenceNumber",
+      "decisionDate",
+      "decisionDocumentSha256",
+      "decisionDocumentLocalRecordReference"
+    ],
+    "decisionDocumentMayBeCommittedToPublicGit": false,
+    "participantDataMayBeAttachedToDecisionRecord": false,
+    "repositoryMayNotSelfGenerateResolvedDetermination": true
+  },
+  "currentEthicsState": {
+    "status": "unset",
+    "reviewCategory": null,
+    "reviewBoard": null,
+    "referenceNumber": null
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "consentPageActivationAuthorized": false,
+    "schemaActivationAuthorized": false,
+    "submissionToExternalBoardAuthorized": false,
+    "executionWorkflowIncluded": false
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false
+  }
+}

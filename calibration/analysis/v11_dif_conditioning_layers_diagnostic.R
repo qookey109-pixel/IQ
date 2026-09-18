@@ -143,6 +143,39 @@ cor_safe <- function(a, b) {
   suppressWarnings(cor(a[keep], b[keep]))
 }
 
+summarize_age_band_estimation_bias <- function(group, true_theta, estimated_theta) {
+  if (length(true_theta) != length(group) || length(estimated_theta) != length(group) ||
+      any(!is.finite(true_theta)) || any(!is.finite(estimated_theta))) {
+    return(list(available = FALSE, maxAbsoluteMeanBiasZ = NA_real_, ageBands = list()))
+  }
+  true_sd <- sd(true_theta)
+  estimated_sd <- sd(estimated_theta)
+  if (!is.finite(true_sd) || true_sd <= 0 || !is.finite(estimated_sd) || estimated_sd <= 0) {
+    return(list(available = FALSE, maxAbsoluteMeanBiasZ = NA_real_, ageBands = list()))
+  }
+  true_z <- (true_theta - mean(true_theta)) / true_sd
+  estimated_z <- (estimated_theta - mean(estimated_theta)) / estimated_sd
+  summary <- tibble(
+    ageBand = as.character(group),
+    trueZ = true_z,
+    estimatedZ = estimated_z
+  ) %>%
+    group_by(ageBand) %>%
+    summarize(
+      n = n(),
+      trueMeanZ = mean(trueZ),
+      estimatedMeanZ = mean(estimatedZ),
+      meanBiasZ = mean(estimatedZ - trueZ),
+      .groups = "drop"
+    )
+  biases <- abs(summary$meanBiasZ)
+  list(
+    available = TRUE,
+    maxAbsoluteMeanBiasZ = if (length(biases)) max(biases) else 0,
+    ageBands = lapply(seq_len(nrow(summary)), function(i) as.list(summary[i, , drop = FALSE]))
+  )
+}
+
 summarize_age_band_theta_shift <- function(group, initial_theta, sparse_theta) {
   if (length(initial_theta) != length(group) || length(sparse_theta) != length(group) ||
       any(!is.finite(initial_theta)) || any(!is.finite(sparse_theta))) {
@@ -275,6 +308,7 @@ for (domain_name in domains) {
         targetItem = target_item,
         thetaCorrelationWithFullEap = cor_safe(loo_theta, pipeline_eap),
         thetaCorrelationWithTrueTheta = cor_safe(loo_theta, true_theta),
+        ageBandBiasVsTrueTheta = summarize_age_band_estimation_bias(group, true_theta, loo_theta),
         targetDif = extract_target_dif(loo_out, item_ids, target_item)
       )
       target_matching_comparison <- list(
@@ -357,7 +391,7 @@ classification <- if (!all_complete) {
 }
 
 report <- list(
-  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.3",
+  version = "CIL-V11-DIF-CONDITIONING-LAYERS-2026.09.4",
   generatedAt = format(Sys.time(), tz = "UTC", usetz = TRUE),
   analysis = "v11-post-failure-conditioning-layer-isolation",
   method = list(

@@ -7,6 +7,7 @@ on:
       - 'calibration/v12-dif-matching-protocol.json'
       - 'calibration/analysis/v12_dif_matching_compare.R'
       - 'scripts/run-v12-dif-matching-development.js'
+      - 'scripts/aggregate-v12-dif-matching-development.js'
       - 'tests/calibration-v12-dif-matching-*.js'
       - '.github/workflows/calibration-v12-dif-matching-development.yml'
   push:
@@ -33,12 +34,17 @@ jobs:
       - name: Validate protocol and harness
         run: |
           node --check scripts/run-v12-dif-matching-development.js
+          node --check scripts/aggregate-v12-dif-matching-development.js
           node --check tests/calibration-v12-dif-matching-protocol-validation.js
           node --check tests/calibration-v12-dif-matching-development-validation.js
+          node --check tests/calibration-v12-dif-matching-aggregate-validation.js
           node tests/calibration-v12-dif-matching-protocol-validation.js
           node tests/calibration-v12-dif-matching-development-validation.js
+          node tests/calibration-v12-dif-matching-aggregate-validation.js
           node scripts/run-v12-dif-matching-development.js \
             --dry-run \
+            --panel implanted \
+            --replicate-start 1 \
             --replicates 1 \
             --participants 300 \
             --targets-per-domain 1 \
@@ -71,6 +77,8 @@ jobs:
       - name: Run bounded development integration smoke
         run: |
           node scripts/run-v12-dif-matching-development.js \
+            --panel implanted \
+            --replicate-start 1 \
             --replicates 1 \
             --participants 300 \
             --targets-per-domain 1 \
@@ -83,6 +91,7 @@ jobs:
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           if (report.status !== 'complete-smoke') throw new Error('Expected complete-smoke');
           if (report.configuration.selectionEligible !== false) throw new Error('Smoke must not select a method');
+          if (report.configuration.panelScope !== 'implanted') throw new Error('Smoke panel scope drift');
           if (report.selection.selectedMethod !== null) throw new Error('Smoke must not freeze a method');
           if (report.governance.confirmatorySeedsUsed !== false) throw new Error('Confirmatory seeds must remain unused');
           for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
@@ -90,7 +99,6 @@ jobs:
           }
           console.log(JSON.stringify({
             status: report.status,
-            clean: report.aggregate.clean,
             implanted: report.aggregate.implanted,
             selection: report.selection,
             governance: report.governance
@@ -111,11 +119,16 @@ jobs:
           path: \${{ runner.temp }}/v12-smoke-public/v12-dif-matching-development-summary.json
           retention-days: 14
 
-  full-development:
+  full-development-shards:
     needs: validate-and-smoke
     if: \${{ needs.validate-and-smoke.result == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[v12-dev-full]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        panel: [clean, implanted]
+        replicate: [1, 2, 3, 4, 5]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 180
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -143,21 +156,69 @@ jobs:
             any::jsonlite
           cache-version: 1
 
-      - name: Run preregistered full development comparison
+      - name: Run preregistered development shard
         run: |
           node scripts/run-v12-dif-matching-development.js \
-            --replicates 5 \
+            --panel "\${{ matrix.panel }}" \
+            --replicate-start "\${{ matrix.replicate }}" \
+            --replicates 1 \
             --participants 1200 \
             --targets-per-domain 7 \
-            --out "$RUNNER_TEMP/v12-development"
+            --out "$RUNNER_TEMP/v12-shard"
 
-      - name: Validate full development summary
+      - name: Validate shard governance
         run: |
-          node - "$RUNNER_TEMP/v12-development/v12-dif-matching-development-summary.json" <<'NODE'
+          node - "$RUNNER_TEMP/v12-shard/v12-dif-matching-development-summary.json" <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (report.configuration.selectionEligible !== false) throw new Error('Individual shard cannot select a method');
+          if (report.governance.confirmatorySeedsUsed !== false) throw new Error('Confirmatory seeds must remain unused');
+          if (report.governance.confirmatoryExecutionAllowed !== false) throw new Error('Confirmatory execution must remain locked');
+          for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
+            if (report.governance[key] !== false) throw new Error(key + ' must remain false');
+          }
+          NODE
+
+      - name: Upload aggregate-safe development shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-v12-development-\${{ matrix.panel }}-r\${{ matrix.replicate }}
+          path: \${{ runner.temp }}/v12-shard/v12-dif-matching-development-summary.json
+          retention-days: 14
+
+  aggregate-full-development:
+    needs: full-development-shards
+    if: \${{ needs.full-development-shards.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download all development shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: calibration-v12-development-*
+          path: \${{ runner.temp }}/v12-shards
+          merge-multiple: false
+
+      - name: Aggregate preregistered development study
+        run: |
+          node scripts/aggregate-v12-dif-matching-development.js \
+            "$RUNNER_TEMP/v12-shards" \
+            "$RUNNER_TEMP/v12-full/v12-dif-matching-development-summary.json"
+
+      - name: Validate full development governance
+        run: |
+          node - "$RUNNER_TEMP/v12-full/v12-dif-matching-development-summary.json" <<'NODE'
           const fs = require('fs');
           const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           if (report.status !== 'complete-development') throw new Error('Expected complete-development');
-          if (report.configuration.selectionEligible !== true) throw new Error('Full development run must be selection eligible');
+          if (report.configuration.selectionEligible !== true) throw new Error('Aggregated study must be selection eligible');
           if (report.governance.confirmatorySeedsUsed !== false) throw new Error('Confirmatory seeds must remain unused');
           if (report.governance.confirmatoryExecutionAllowed !== false) throw new Error('Confirmatory execution must remain locked');
           for (const key of ['productNormEligible','productIqUnlocked','autoCpiToIq']) {
@@ -171,16 +232,9 @@ jobs:
           }, null, 2));
           NODE
 
-      - name: Enforce aggregate-only full artifact
-        run: |
-          mkdir -p "$RUNNER_TEMP/v12-development-public"
-          cp "$RUNNER_TEMP/v12-development/v12-dif-matching-development-summary.json" "$RUNNER_TEMP/v12-development-public/"
-          test "$(find "$RUNNER_TEMP/v12-development-public" -type f | wc -l)" -eq 1
-          ! grep -R -E 'synthetic-[0-9]{6}|synthetic-session-[0-9]{6}|sourceKey|sessionId' "$RUNNER_TEMP/v12-development-public"
-
       - name: Upload aggregate-only full development result
         uses: actions/upload-artifact@v4
         with:
           name: calibration-v12-dif-matching-development-summary
-          path: \${{ runner.temp }}/v12-development-public/v12-dif-matching-development-summary.json
+          path: \${{ runner.temp }}/v12-full/v12-dif-matching-development-summary.json
           retention-days: 30

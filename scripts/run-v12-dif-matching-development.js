@@ -54,6 +54,8 @@ function parseArgs(argv) {
     replicates: PROTOCOL.development.replicatesPerPanel,
     participants: PROTOCOL.development.participantsPerReplicate,
     targetsPerDomain: 7,
+    panel: 'both',
+    replicateStart: 1,
     outDir: 'calibration/output/v12-dif-matching-development',
     dryRun: false
   };
@@ -62,6 +64,8 @@ function parseArgs(argv) {
     else if (argv[i] === '--replicates') out.replicates = Number(argv[++i]);
     else if (argv[i] === '--participants') out.participants = Number(argv[++i]);
     else if (argv[i] === '--targets-per-domain') out.targetsPerDomain = Number(argv[++i]);
+    else if (argv[i] === '--panel') out.panel = String(argv[++i]);
+    else if (argv[i] === '--replicate-start') out.replicateStart = Number(argv[++i]);
     else if (argv[i] === '--out') out.outDir = String(argv[++i]);
   }
   if (!Number.isInteger(out.replicates) || out.replicates < 1 || out.replicates > 5) {
@@ -73,6 +77,11 @@ function parseArgs(argv) {
   if (!Number.isInteger(out.targetsPerDomain) || out.targetsPerDomain < 1 || out.targetsPerDomain > 7) {
     throw new Error('--targets-per-domain must be 1..7');
   }
+  if (!['both','clean','implanted'].includes(out.panel)) throw new Error('--panel must be both, clean, or implanted');
+  if (!Number.isInteger(out.replicateStart) || out.replicateStart < 1 || out.replicateStart > 5) {
+    throw new Error('--replicate-start must be 1..5');
+  }
+  if (out.replicateStart + out.replicates - 1 > 5) throw new Error('replicate range exceeds preregistered 1..5');
   return out;
 }
 
@@ -192,13 +201,14 @@ function truthCsv(people) {
 
 function makePlan(args) {
   const cfg = Object.assign(parseArgs([]), args || {});
-  const panels = [
+  const allPanels = [
     ['clean', PROTOCOL.development.cleanPanel.seedPrefix],
     ['implanted', PROTOCOL.development.implantedDifPanel.seedPrefix]
   ];
+  const panels = cfg.panel === 'both' ? allPanels : allPanels.filter(function(x) { return x[0] === cfg.panel; });
   const reps = [];
   panels.forEach(function(panel) {
-    for (let r = 1; r <= cfg.replicates; r++) {
+    for (let r = cfg.replicateStart; r < cfg.replicateStart + cfg.replicates; r++) {
       const id = String(r).padStart(2, '0');
       const seed = panel[1] + '-r' + id;
       const root = path.join(cfg.outDir, panel[0], 'replicate-' + id);
@@ -221,8 +231,12 @@ function makePlan(args) {
     participants: cfg.participants,
     replicatesPerPanel: cfg.replicates,
     targetsPerDomain: cfg.targetsPerDomain,
+    panelScope: cfg.panel,
+    replicateStart: cfg.replicateStart,
     outDir: cfg.outDir,
     selectionEligible:
+      cfg.panel === 'both' &&
+      cfg.replicateStart === 1 &&
       cfg.replicates === 5 &&
       cfg.participants === 1200 &&
       cfg.targetsPerDomain === 7,
@@ -329,6 +343,8 @@ function summarize(plan, reports) {
       participantsPerReplicate: plan.participants,
       replicatesPerPanel: plan.replicatesPerPanel,
       targetsPerDomain: plan.targetsPerDomain,
+      panelScope: plan.panelScope,
+      replicateStart: plan.replicateStart,
       selectionEligible: plan.selectionEligible,
       developmentSeedPrefixes: {
         clean: PROTOCOL.development.cleanPanel.seedPrefix,

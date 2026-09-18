@@ -1,0 +1,46 @@
+name: Calibration v13 — Target Population Amendment Preparation
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TARGET_POPULATION_AMENDMENT_PREP.md'
+      - 'calibration/v13-target-population-amendment.proposed.json'
+      - 'tests/calibration-v13-target-population-amendment-prep-validation.js'
+      - '.github/workflows/calibration-v13-target-population-amendment-prep.yml'
+  push:
+    branches:
+      - research/calibration-v13-target-population-amendment-prep-20260918
+
+permissions:
+  contents: read
+
+jobs:
+  validate-target-population-prep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate incomplete amendment and exact authority pins
+        run: |
+          node --check tests/calibration-v13-target-population-amendment-prep-validation.js
+          node tests/calibration-v13-target-population-amendment-prep-validation.js
+
+      - name: Prove collection remains locked
+        run: |
+          node - <<'NODE'
+          const p = require('./calibration/v13-target-population-amendment.proposed.json');
+          if (p.targetPopulation.complete !== false) process.exit(1);
+          if (p.weightingPlan.methodFrozen !== false) process.exit(1);
+          if (p.privacyAndEthics.additionalDemographicsCollectionAuthorized !== false) process.exit(1);
+          if (p.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (p.executionLock.participantDataAccessAuthorized !== false) process.exit(1);
+          if (p.executionLock.executionWorkflowIncluded !== false) process.exit(1);
+          if (p.governance.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 target-population collection lock PASS');
+          NODE

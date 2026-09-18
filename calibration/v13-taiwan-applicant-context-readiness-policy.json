@@ -1,0 +1,84 @@
+{
+  "version": "CIL-V13-TW-APPLICANT-CONTEXT-READINESS-2026.09.1",
+  "status": "applicant-context-intake-defined-board-selection-locked",
+  "purpose": "Define the minimum real-world applicant context required before verifying Taiwan IRB/REC intake routes. This policy never selects or ranks a board and never authorizes contact, submission, recruitment, collection, analysis, norming, or IQ unlock.",
+  "authority": {
+    "basisMainSha": "6d45aa4fea44efdb3dd5359474d1bbbd10b6784f",
+    "submissionAdministrationBlobSha": "f33e87adb6cfddd9b471c6c48913d1ba29a09fcc",
+    "candidateMatrixBlobSha": "3ca28c98936873e94b29ddd563948ec426e473da"
+  },
+  "allowedPiRoutes": [
+    "institution-affiliated",
+    "unaffiliated-investigator"
+  ],
+  "allowedFundingDeclarations": [
+    "no-dedicated-funding",
+    "self-funded",
+    "institution-funded",
+    "external-funded"
+  ],
+  "allowedConflictDeclarations": [
+    "none-declared",
+    "declared-see-private-record"
+  ],
+  "readinessStates": {
+    "blocked": "APPLICANT_CONTEXT_INCOMPLETE",
+    "ready": "APPLICANT_CONTEXT_READY_FOR_BOARD_VERIFICATION"
+  },
+  "minimumRequiredFields": [
+    "principalInvestigator.legalName",
+    "principalInvestigator.titleOrRole",
+    "principalInvestigator.route",
+    "contacts.officialResearchContact",
+    "contacts.officialDataRightsContact",
+    "funding.declaration",
+    "conflictOfInterest.declaration"
+  ],
+  "conditionalRequirements": {
+    "institution-affiliated": [
+      "principalInvestigator.institutionLegalName"
+    ],
+    "unaffiliated-investigator": []
+  },
+  "privateOnlyFields": [
+    "principalInvestigator.legalName",
+    "principalInvestigator.institutionLegalName",
+    "principalInvestigator.institutionDepartmentOrUnit",
+    "contacts.officialResearchContact",
+    "contacts.officialDataRightsContact",
+    "funding.funderLegalNameIfApplicable",
+    "conflictOfInterest.privateDetailsRecordReferenceIfApplicable",
+    "training.privateCertificateRecordReference",
+    "institutionalAuthorization.privateAuthorizationRecordReference"
+  ],
+  "postContextVerificationStillRequired": [
+    "current-qualified-status",
+    "external-or-unaffiliated-intake-acceptance",
+    "online-behavioral-psychometric-scope",
+    "submission-process",
+    "fees",
+    "training-requirements",
+    "institutional-authorization-requirements"
+  ],
+  "selectionLock": {
+    "rankingAllowed": false,
+    "automaticSelectionAllowed": false,
+    "boardSelectionAuthorized": false,
+    "externalBoardContactAuthorized": false,
+    "submissionToExternalBoardAuthorized": false
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "schemaActivationAuthorized": false
+  },
+  "governance": {
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "version": "CIL-V13-TW-APPLICANT-CONTEXT-2026.09.1",
+  "status": "template-unfilled",
+  "privacy": {
+    "publicGitStorageAllowedForCompletedRecord": false,
+    "completedRecordMustRemainPrivate": true,
+    "governmentIdRequired": false,
+    "dateOfBirthRequired": false,
+    "homeAddressRequired": false
+  },
+  "principalInvestigator": {
+    "legalName": null,
+    "titleOrRole": null,
+    "route": null,
+    "institutionLegalName": null,
+    "institutionDepartmentOrUnit": null
+  },
+  "contacts": {
+    "officialResearchContact": null,
+    "officialDataRightsContact": null
+  },
+  "funding": {
+    "declaration": null,
+    "funderLegalNameIfApplicable": null
+  },
+  "conflictOfInterest": {
+    "declaration": null,
+    "privateDetailsRecordReferenceIfApplicable": null
+  },
+  "training": {
+    "humanResearchEthicsTrainingStatus": "not-yet-verified",
+    "certificatePublicGitStorageAllowed": false,
+    "privateCertificateRecordReference": null
+  },
+  "institutionalAuthorization": {
+    "requiredStatus": "not-yet-determined",
+    "privateAuthorizationRecordReference": null
+  },
+  "boardSelection": {
+    "selectedBoard": null,
+    "rankingAllowed": false,
+    "automaticSelectionAllowed": false
+  },
+  "submission": {
+    "submissionAuthorized": false,
+    "externalBoardContactAuthorized": false
+  },
+  "collection": {
+    "realParticipantCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "schemaActivationAuthorized": false
+  },
+  "governance": {
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "autoCpiToIq": false
+  }
+}

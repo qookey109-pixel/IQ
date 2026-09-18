@@ -2,6 +2,7 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
 const crypto = require('crypto');
+const { getProductionRuntimeSources, getProductionStyleSources } = require('./runtime-bundle-helper');
 
 const store = {};
 const window = {addEventListener() {}};
@@ -17,10 +18,8 @@ const context = {
 vm.createContext(context);
 // Follow the real page, not a separately maintained list of bank layers.
 const html = fs.readFileSync('index.html', 'utf8');
-const scriptTags = [...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g)];
-assert.strictEqual(scriptTags.length, 43, 'production page must expose the expected deferred runtime surface');
-assert.ok(scriptTags.every(match => /\bdefer\b/.test(match[0])), 'all production scripts must use defer');
-const scriptFiles = scriptTags.map(match => match[1]);
+const scriptFiles = getProductionRuntimeSources(html);
+getProductionStyleSources(html);
 const appIndex = scriptFiles.indexOf('app.js');
 assert.ok(appIndex > 0, 'app.js must remain after the question-bank construction layers');
 for (const file of scriptFiles.slice(0, appIndex)) {

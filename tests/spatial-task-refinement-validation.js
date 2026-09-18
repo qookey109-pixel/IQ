@@ -1,14 +1,13 @@
 const fs=require('fs');
 const vm=require('vm');
 const assert=require('assert');
+const {getProductionRuntimeSources}=require('./runtime-bundle-helper');
 
 const store={},window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;},removeItem(k){delete store[k];}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
-const scriptTags=[...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g)];
-assert.ok(scriptTags.every(match=>/\bdefer\b/.test(match[0])),'all production scripts must use defer');
-const scriptFiles=scriptTags.map(match=>match[1]);
+const scriptFiles=getProductionRuntimeSources(html);
 const appIndex=scriptFiles.indexOf('app.js');
 assert.ok(appIndex>0,'app.js must remain after the question-bank construction layers');
 for(const file of scriptFiles.slice(0,appIndex)){
@@ -87,8 +86,8 @@ assert.ok(css.includes('max-height: 100%'),'visual question card must fit its st
 assert.ok(css.includes('(min-width: 900px) and (max-height: 780px)'),'short desktop windows need an explicit layout rule');
 assert.ok(css.includes('padding-bottom: max'),'safe-area bottom padding must keep final choices reachable');
 
-assert.ok(html.indexOf('spatial-task-refinement.js')>html.indexOf('spatial-reliability.js'));
-assert.ok(html.indexOf('spatial-task-refinement.js')<html.indexOf('presentation-clarity.js'));
+assert.ok(scriptFiles.indexOf('spatial-task-refinement.js')>scriptFiles.indexOf('spatial-reliability.js'));
+assert.ok(scriptFiles.indexOf('spatial-task-refinement.js')<scriptFiles.indexOf('presentation-clarity.js'));
 
 console.log('Spatial Task Refinement v2 PASS');
 console.log('56 path-integration + 56 mirror + 56 scale/translation items are explicit and independently checkable; Safari scroll guards present.');

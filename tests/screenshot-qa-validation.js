@@ -1,16 +1,14 @@
 const fs=require('fs');
 const vm=require('vm');
 const assert=require('assert');
+const {getProductionRuntimeSources}=require('./runtime-bundle-helper');
 
 const store={},window={addEventListener(){}};
 const context={window,document:{getElementById(){return null;}},localStorage:{getItem(k){return store[k]??null;},setItem(k,v){store[k]=v;},removeItem(k){delete store[k];}},console,Math,JSON,Set,Map,Array,Number,String,Object,Date,RegExp};
 vm.createContext(context);
 
 const html=fs.readFileSync('index.html','utf8');
-const scriptTags=[...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g)];
-assert.strictEqual(scriptTags.length,43,'production page must expose the expected deferred runtime surface');
-assert.ok(scriptTags.every(match=>/\bdefer\b/.test(match[0])),'all production scripts must use defer');
-const scriptFiles=scriptTags.map(match=>match[1]);
+const scriptFiles=getProductionRuntimeSources(html);
 const appIndex=scriptFiles.indexOf('app.js');
 assert.ok(appIndex>0,'app.js must remain after the question-bank construction layers');
 for(const file of scriptFiles.slice(0,appIndex)){

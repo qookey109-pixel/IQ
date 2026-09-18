@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const assert = require('assert');
+const { getProductionRuntimeSources } = require('./runtime-bundle-helper');
 const { classifyItem, buildReviewQueue } = require('../calibration/item-review-engine');
 const { parseCsv } = require('../scripts/build-item-review-queue');
 
@@ -12,12 +13,10 @@ const readme = read('calibration/README.md');
 const schema = JSON.parse(read('calibration/schema.json'));
 const policy = JSON.parse(read('calibration/item-review-policy.json'));
 
-const scriptTags = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*><\/script>/g)];
-const scriptFiles = scriptTags.map(match => match[1]);
+const scriptFiles = getProductionRuntimeSources(html);
 const calibrationStudyIndex = scriptFiles.indexOf('calibration-study.js');
 const calibrationReadinessIndex = scriptFiles.indexOf('calibration-readiness.js');
 assert.ok(calibrationStudyIndex >= 0, 'calibration study runtime must be loaded');
-assert.ok(/\bdefer\b/.test(scriptTags[calibrationStudyIndex][0]), 'calibration study runtime must be deferred');
 assert.ok(
   calibrationStudyIndex > calibrationReadinessIndex,
   'calibration study exporter must load after existing readiness recorder'

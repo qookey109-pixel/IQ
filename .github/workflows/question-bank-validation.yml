@@ -82,6 +82,11 @@ jobs:
           node --check tests/visual-readability-validation.js
           node --check tests/pretest-flow-validation.js
           node --check tests/screenshot-qa-validation.js
+          node --check tests/runtime-bundle-helper.js
+          node --check tests/runtime-bundle-validation.js
+
+      - name: Validate Jekyll production bundles
+        run: node tests/runtime-bundle-validation.js
 
       - name: Validate QB5 2,058-item bank and 42-item forms
         run: node tests/question-bank-validation.js

@@ -1,0 +1,50 @@
+name: Calibration v13 — Taiwan Ethics Submission Administration
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_ETHICS_SUBMISSION_ADMINISTRATION.md'
+      - 'calibration/v13-taiwan-ethics-submission-administration.json'
+      - 'calibration/v13-taiwan-ethics-decision-intake.template.json'
+      - 'scripts/check-v13-taiwan-ethics-submission-readiness.js'
+      - 'tests/calibration-v13-taiwan-ethics-submission-administration-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-ethics-submission-administration.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-ethics-submission-admin-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ethics-submission-administration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate submission administration and decision intake
+        run: |
+          node --check scripts/check-v13-taiwan-ethics-submission-readiness.js
+          node --check tests/calibration-v13-taiwan-ethics-submission-administration-validation.js
+          node tests/calibration-v13-taiwan-ethics-submission-administration-validation.js
+
+      - name: Prove no submission, ethics resolution, or collection activation
+        run: |
+          node scripts/check-v13-taiwan-ethics-submission-readiness.js > /tmp/ethics-admin.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/ethics-admin.json', 'utf8'));
+          if (r.submission.status !== 'NOT_SUBMISSION_READY') process.exit(1);
+          if (r.submission.submissionAuthorized !== false) process.exit(1);
+          if (r.submission.collectionAuthorized !== false) process.exit(1);
+          if (r.intakeTemplate.valid !== true) process.exit(1);
+          if (r.intakeTemplate.resolved !== false) process.exit(1);
+          if (r.intakeTemplate.collectionAuthorized !== false) process.exit(1);
+          console.log('v13 Taiwan ethics submission administration lock PASS');
+          NODE

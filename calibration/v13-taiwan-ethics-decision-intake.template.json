@@ -1,0 +1,23 @@
+{
+  "version": "CIL-V13-TW-ETHICS-DECISION-INTAKE-2026.09.1",
+  "status": "unset",
+  "reviewCategory": null,
+  "reviewBoard": null,
+  "referenceNumber": null,
+  "decisionDate": null,
+  "expiryDate": null,
+  "conditions": [],
+  "externalDecisionEvidence": {
+    "received": false,
+    "decisionDocumentSha256": null,
+    "decisionDocumentLocalRecordReference": null,
+    "publicGitCommitAllowed": false
+  },
+  "collectionAuthorization": {
+    "realParticipantCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "schemaActivationAuthorized": false
+  },
+  "note": "Template only. A resolved ethics status requires an external documented determination and does not itself authorize collection."
+}

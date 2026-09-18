@@ -1,2 +1,4 @@
 .visual-review.html
 calibration/output/
+dist/
+.DS_Store

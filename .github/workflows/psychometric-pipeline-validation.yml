@@ -20,9 +20,13 @@ jobs:
           node --check scripts/run-psychometric-pipeline.js
           node --check scripts/build-psychometric-readiness-report.js
           node --check tests/psychometric-pipeline-validation.js
+          node --check tests/calibration-v12-dif-matching-protocol-validation.js
 
       - name: Validate orchestration, report synthesis, item review and IQ lock
         run: node tests/psychometric-pipeline-validation.js
+
+      - name: Validate Calibration v12 prospective protocol
+        run: node tests/calibration-v12-dif-matching-protocol-validation.js
 
       - name: Validate dry-run execution plan
         run: |

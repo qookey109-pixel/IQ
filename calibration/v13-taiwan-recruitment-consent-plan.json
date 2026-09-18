@@ -1,0 +1,138 @@
+{
+  "version": "CIL-V13-TW-RECRUITMENT-CONSENT-PLAN-2026.09.1",
+  "status": "recruitment-consent-plan-frozen-collection-still-locked",
+  "purpose": "Freeze the Taiwan recruitment, consent, anti-duplication, retention, withdrawal, and stop-rule design required before any real-participant collection can be considered.",
+  "authority": {
+    "basisMainSha": "d42f705edc7f3782e1fac5c11ff9273d550c3a03",
+    "targetPopulationAmendmentBlobSha": "8f82950381e42e35f5c2c2e218001783e13dd63c",
+    "schemaPrivacyAmendmentBlobSha": "67ac097fa8c3eb9f9ab7ecf79df5238b9fe3cc2e",
+    "proposedTaiwanSchemaBlobSha": "e2c0e07e71c1f2c1b63abd7db84282a1897d4b9d"
+  },
+  "ethicsGate": {
+    "humanResearchApplicabilityDeterminationRequiredBeforeCollection": true,
+    "irbOrRecReviewRequiredWhenApplicable": true,
+    "approvedOrDocumentedExemptVersionMustBeRecordedBeforeCollection": true,
+    "thisPlanIsNotAnEthicsApproval": true,
+    "collectionMayNotBeginWhileDeterminationStatusIsUnset": true,
+    "determinationStatus": "unset"
+  },
+  "recruitment": {
+    "frameVersion": "CIL-V13-TW-MULTISOURCE-ONLINE-FRAME-2026.09.1",
+    "targetPopulation": "Taiwan household-registered adults age 18-65 who can independently read zh-Hant-TW and complete the browser-based assessment.",
+    "channelClasses": [
+      "general-population-online-panel-or-research-panel",
+      "broad-digital-advertising",
+      "community-and-public-outreach"
+    ],
+    "minimumActiveChannelClasses": 3,
+    "singleChannelMaximumShareOfUnweightedIndependentCohort": 0.60,
+    "probabilitySamplingClaimAllowed": false,
+    "quotaMonitoring": [
+      "ageBand",
+      "macroRegion"
+    ],
+    "sexMarginMonitoringRequired": true,
+    "compensationAuthorized": false,
+    "separateCompensationAmendmentRequiredIfIntroduced": true,
+    "recruitmentCopyMayPromiseIqScore": false,
+    "recruitmentCopyMayPromiseClinicalBenefit": false
+  },
+  "antiDuplication": {
+    "primaryIndependenceUnit": "sourceKey",
+    "atMostOneIndependentParticipantPerSourceKeyPerPhase": true,
+    "crossPhaseIndependentReuseAllowed": false,
+    "oneTimeRecruitmentTokenPlanned": true,
+    "rawRecruitmentTokenStoredInPsychometricDataset": false,
+    "onlySaltedTokenHashMayBeUsedForOperationalDeduplication": true,
+    "tokenHashRetentionDaysAfterRedemption": 30,
+    "ipAddressDeduplicationAllowed": false,
+    "deviceFingerprintingAllowed": false,
+    "accountIdentityDeduplicationAllowed": false,
+    "emailDeduplicationAllowed": false,
+    "residualCrossDeviceDuplicateRiskMustBeReported": true
+  },
+  "consent": {
+    "language": "zh-Hant-TW",
+    "version": "CIL-V13-TW-CONSENT-2026.09.1",
+    "consentFile": "calibration/V13_TAIWAN_PARTICIPANT_CONSENT_ZH_HANT_TW.md",
+    "affirmativeConsentRequired": true,
+    "consentBeforeAnyResearchMetadataOrResponses": true,
+    "minimumAge": 18,
+    "mustDisclose": [
+      "research-purpose",
+      "voluntary-participation",
+      "may-stop-without-penalty",
+      "42-scored-items-plus-optional-anchor-research",
+      "whole-year-age-and-coarse-weighting-metadata",
+      "not-stated-options",
+      "no-name-email-account-ip-dob-or-precise-location",
+      "manual-offline-export-current-authority",
+      "no-automatic-upload",
+      "cpi-is-not-iq",
+      "iq-remains-locked",
+      "data-retention-and-deletion-process",
+      "research-contact-path",
+      "ethics-review-status-before-collection"
+    ],
+    "researchContactPath": "/research-contact",
+    "dataRequestPath": "/research-data-request"
+  },
+  "retentionAndDeletion": {
+    "participantLevelRetentionYearsAfterStudyClosure": 5,
+    "retentionClockStartsAt": "formal-study-closure-date",
+    "rawRecruitmentTokenHashRetentionDaysAfterRedemption": 30,
+    "aggregateOnlyReportsMayBeRetainedIndefinitely": true,
+    "participantLevelRawDataPublicReleaseAllowed": false,
+    "participantLevelRawDataGitCommitAllowed": false,
+    "deletionRequestReference": [
+      "sourceKey",
+      "sessionId"
+    ],
+    "participantMayRequestDeletionUntilRetentionExpiry": true,
+    "deletionRequestMustNotRequireNameEmailAccountOrGovernmentId": true,
+    "deletionSlaCalendarDays": 30,
+    "deletionScope": "all participant-level research records that can be located by the supplied pseudonymous references, except aggregate statistics that no longer contain participant-level records",
+    "retentionChangeAfterCollectionAllowedWithoutAmendment": false
+  },
+  "collectionStopRules": {
+    "stopIfEthicsDeterminationMissingOrExpired": true,
+    "stopIfConsentVersionDrifts": true,
+    "stopIfTargetPopulationBenchmarkExpires": true,
+    "stopIfActiveSchemaDoesNotMatchApprovedSchema": true,
+    "stopIfAutomaticUploadIsIntroducedWithoutSeparateAuthorization": true,
+    "stopIfDirectIdentifierAppearsInResearchExport": true,
+    "stopIfSingleRecruitmentChannelExceedsShareCap": true,
+    "stopIfUnexpectedPrivacyIncidentOccurs": true,
+    "resumeRequiresDocumentedReviewAndVersionedAmendmentWhenApplicable": true
+  },
+  "schemaActivationBoundary": {
+    "proposedSchemaVersion": 2,
+    "activeSchemaVersionAtPlanFreeze": 1,
+    "schemaActivationAuthorized": false,
+    "productionExporterModificationAuthorized": false,
+    "poolingRuntimeModificationAuthorized": false,
+    "collectionFormModificationAuthorized": false,
+    "separateSchemaActivationAuthorizationRequired": true
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "consentPageActivationAuthorized": false,
+    "executionWorkflowIncluded": false,
+    "separateCollectionAuthorizationRequired": true
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "populationNormClaimAllowedNow": false
+  },
+  "interpretation": "Recruitment, consent, anti-duplication, retention, deletion, and stop rules are prospectively specified. This plan is not ethics approval and does not activate the proposed schema or authorize recruitment or collection."
+}

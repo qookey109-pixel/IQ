@@ -1,0 +1,49 @@
+name: Calibration v13 — Taiwan Activation Readiness Guard
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_ACTIVATION_READINESS_GUARD.md'
+      - 'calibration/v13-taiwan-activation-readiness-policy.json'
+      - 'scripts/check-v13-taiwan-activation-readiness.js'
+      - 'tests/calibration-v13-taiwan-activation-readiness-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-activation-readiness.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-activation-readiness-guard-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-activation-readiness-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate guard semantics and frozen snapshot
+        run: |
+          node --check scripts/check-v13-taiwan-activation-readiness.js
+          node --check tests/calibration-v13-taiwan-activation-readiness-validation.js
+          node tests/calibration-v13-taiwan-activation-readiness-validation.js
+
+      - name: Evaluate frozen review snapshot
+        run: |
+          node scripts/check-v13-taiwan-activation-readiness.js --as-of 2026-09-19 > /tmp/v13-readiness.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/v13-readiness.json', 'utf8'));
+          if (r.status !== 'NOT_READY') process.exit(1);
+          if (JSON.stringify(r.blockers) !== JSON.stringify(['ethicsDeterminationResolved'])) process.exit(1);
+          if (r.collectionAuthorized !== false) process.exit(1);
+          if (r.recruitmentLaunchAuthorized !== false) process.exit(1);
+          if (r.schemaActivationAuthorized !== false) process.exit(1);
+          if (r.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 Taiwan frozen readiness snapshot PASS');
+          NODE

@@ -1,0 +1,235 @@
+{
+  "version": "CIL-V13-TW-ETHICS-APPLICABILITY-PACKET-2026.09.1",
+  "status": "prepared-for-formal-determination-ethics-unresolved-collection-locked",
+  "purpose": "Prepare a formal Taiwan human-research ethics/IRB applicability determination packet for the frozen Calibration v13 design without self-declaring exemption, expedited review, approval, or collection authority.",
+  "authority": {
+    "basisMainSha": "2f351680e306de9f784536a6abb70be0d78e4894",
+    "targetPopulationAmendmentBlobSha": "8f82950381e42e35f5c2c2e218001783e13dd63c",
+    "schemaPrivacyAmendmentBlobSha": "67ac097fa8c3eb9f9ab7ecf79df5238b9fe3cc2e",
+    "recruitmentConsentPlanBlobSha": "8c3a63655868273d59ca764dd3c24ba5508890cf",
+    "activationReadinessPolicyBlobSha": "273d09ba28e5b21d96ce5a21b5cde10c5847e0e0",
+    "consentDraftBlobSha": "4511254ba5dd3c8b3c10cf1d2d8fe1d9bdab6290"
+  },
+  "regulatoryBasis": {
+    "jurisdiction": "Taiwan",
+    "primaryLaw": {
+      "name": "Human Subjects Research Act / 人體研究法",
+      "officialUrl": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=L0020176",
+      "relevantArticles": [
+        {
+          "article": 4,
+          "reason": "Defines human-subjects research to include acquisition, investigation, analysis, or use of personal biological, behavioral, physiological, psychological, genetic, medical, or related information."
+        },
+        {
+          "article": 5,
+          "reason": "Requires research-plan ethics review before implementation unless the study falls within an officially announced exemption scope."
+        },
+        {
+          "article": 6,
+          "reason": "Lists required protocol contents including investigator/institution, summary, participants/methods, consent, resources, funding, expected benefits, result ownership/use, and conflicts."
+        },
+        {
+          "article": 9,
+          "reason": "Researchers not affiliated with a research institution may obtain review from a research-institution IRB or an independent IRB."
+        },
+        {
+          "article": 12,
+          "reason": "Requires participant consent in the form and content approved by the review board unless an official waiver applies."
+        },
+        {
+          "article": 14,
+          "reason": "Requires understandable disclosure of institution/funding, purpose/method, investigator/contact, rights/data protection, withdrawal, foreseeable risks/remedies, retention/use, and possible commercial interests."
+        },
+        {
+          "article": 19,
+          "reason": "Addresses destruction of research materials after study end or retention expiry, subject to consent or delinking exceptions."
+        }
+      ]
+    },
+    "officialScopeNotices": {
+      "expeditedReview": {
+        "name": "倫理審查委員會得簡易程序審查之人體研究案件範圍",
+        "officialUrl": "https://www.mohw.gov.tw/dl-16069-71ed79fe-8929-4a85-91b2-56cbafefeb0a.html",
+        "relevance": "Includes some minimal-risk studies of individual/group characteristics or behavior, but applicability is for IRB/REC determination; this project does not self-classify."
+      },
+      "exemption": {
+        "name": "得免倫理審查委員會審查之人體研究案件範圍",
+        "officialUrl": "https://www.mohw.gov.tw/dl-16078-31bb0e95-2407-4323-9bbf-a62b7f8dcee3.html",
+        "relevance": "Contains limited exemption categories. This packet does not assert that the project qualifies and requests formal determination instead."
+      },
+      "qualifiedReviewBoards": {
+        "name": "衛生福利部人體研究倫理審查委員會查核合格名單",
+        "officialUrl": "https://dep.mohw.gov.tw/DOMA/lp-3131-106.html",
+        "relevance": "Use a currently qualified review board or independent board appropriate to the investigator/institution relationship."
+      }
+    }
+  },
+  "workingClassification": {
+    "presumptiveHumanSubjectsResearch": true,
+    "basis": [
+      "prospective recruitment of living adults",
+      "collection of cognitive-test responses",
+      "analysis of psychological/behavioral performance information",
+      "age, sex-for-weighting, macro-region, and household-registration eligibility used for psychometric/fairness/norming analyses"
+    ],
+    "selfDeclaredExempt": false,
+    "selfDeclaredExpedited": false,
+    "requestedDetermination": "IRB/REC to determine review applicability and review category",
+    "expeditedCandidateMayBeDiscussed": true,
+    "reasonNotToSelfClassify": "The study concerns cognitive ability and subgroup fairness/norming analyses; the review board should determine whether expedited or exempt pathways are appropriate."
+  },
+  "studySummary": {
+    "project": "Cognitive IQ Lab — Calibration v13",
+    "productionLanguage": "zh-Hant-TW",
+    "targetPopulation": "Taiwan household-registered adults age 18-65 who can independently read Traditional Chinese and complete the browser-based assessment.",
+    "studyType": "prospective noninterventional online psychometric validation and later representative norming framework",
+    "physicalIntervention": false,
+    "medicalTreatment": false,
+    "clinicalDiagnosis": false,
+    "researchTasks": [
+      "42 scored cognitive items",
+      "optional six-domain anchor block under separate opt-in where applicable",
+      "coarse demographic weighting metadata",
+      "psychometric reliability/IRT/DIF/CFA/linking analyses",
+      "later independent norming cohort only after separate Phase B readiness and authorization"
+    ],
+    "phaseAPlanningFloor": {
+      "minimumIndependentParticipants": 2500,
+      "minimumPerAgeBand": 250
+    },
+    "phaseBPlanningFloor": {
+      "minimumIndependentParticipants": 5000,
+      "minimumPerAgeBand": 500,
+      "mustUseNewIndependentParticipants": true
+    },
+    "probabilitySampleClaimed": false,
+    "populationNormClaimAllowedNow": false
+  },
+  "riskAssessmentForReview": {
+    "projectDesignIntent": "minimal-risk",
+    "irbDeterminedRiskLevel": null,
+    "foreseeableRisks": [
+      "privacy/confidentiality risk from participant-level research records",
+      "psychological discomfort or self-evaluation distress related to cognitive performance",
+      "misinterpretation of CPI as IQ despite explicit disclosure",
+      "fairness/discrimination concerns if subgroup findings are misused or overgeneralized"
+    ],
+    "mitigations": [
+      "no name, email, account ID, phone, date of birth, IP address, precise location, street address, or raw county/city storage",
+      "whole-year age plus coarse session-level weighting fields only",
+      "not-stated option for sex-for-weighting and macro-region",
+      "no inference of refused demographic fields from other signals",
+      "CPI explicitly not presented as IQ",
+      "aggregate-only public reporting",
+      "manual/offline export remains current authority",
+      "no automatic upload",
+      "participant-level raw data prohibited from Git/public artifacts",
+      "withdrawal/deletion path by pseudonymous sourceKey/sessionId",
+      "collection stop rules for privacy incident, schema drift, consent drift, ethics drift, and benchmark expiry"
+    ]
+  },
+  "dataAndPrivacy": {
+    "directIdentifiersCollected": false,
+    "participantLevelFields": [
+      "sourceKey",
+      "sessionId",
+      "ageYears",
+      "ageBand",
+      "householdRegistrationEligibility",
+      "sexForWeighting",
+      "macroRegion",
+      "assessment response rows"
+    ],
+    "prohibitedFields": [
+      "name",
+      "email",
+      "accountId",
+      "phone",
+      "dateOfBirth",
+      "ipAddress",
+      "preciseLocation",
+      "streetAddress",
+      "rawCountyOrCity"
+    ],
+    "automaticUpload": false,
+    "publicParticipantLevelArtifact": false,
+    "gitParticipantLevelData": false,
+    "participantLevelRetentionYearsAfterFormalStudyClosure": 5,
+    "recruitmentTokenHashRetentionDaysAfterRedemption": 30,
+    "deletionRequestSlaCalendarDays": 30
+  },
+  "recruitmentAndConsent": {
+    "channelClasses": [
+      "general-population-online-panel-or-research-panel",
+      "broad-digital-advertising",
+      "community-and-public-outreach"
+    ],
+    "minimumActiveChannelClasses": 3,
+    "singleChannelMaximumShare": 0.60,
+    "compensationAuthorized": false,
+    "consentVersion": "CIL-V13-TW-CONSENT-2026.09.1",
+    "consentLanguage": "zh-Hant-TW",
+    "affirmativeConsentBeforeResearchData": true,
+    "mayStopWithoutPenalty": true,
+    "mayPromiseIqScore": false,
+    "mayPromiseClinicalBenefit": false
+  },
+  "questionsForReviewBoard": [
+    "Does the planned Calibration v13 study fall within the Human Subjects Research Act as human-subjects research?",
+    "If yes, what review category is appropriate: general review, expedited review, exempt-with-certificate, or another pathway?",
+    "Can Phase A validation and later Phase B independent norming be covered under one approved protocol with a preregistered amendment gate, or should Phase B require a separate application/amendment?",
+    "Are the proposed consent disclosures and not-stated demographic options acceptable?",
+    "Is the proposed five-year participant-level retention period acceptable, or should the board require a different period?",
+    "Are pseudonymous sourceKey/sessionId plus a short-lived salted recruitment-token hash acceptable for privacy-preserving duplicate control?",
+    "Does the board require any additional participant contact, injury/remedy, complaint, or data-controller language for this minimal-risk online study?",
+    "Does the board require exclusion or special handling of any protected/vulnerable populations beyond the current adult 18-65 scope?"
+  ],
+  "submissionAdministration": {
+    "submissionReady": false,
+    "unresolvedRequiredFields": [
+      "principalInvestigatorLegalName",
+      "principalInvestigatorTitleOrRole",
+      "researchInstitutionOrUnaffiliatedInvestigatorRoute",
+      "selectedQualifiedIrborRec",
+      "officialResearchContact",
+      "officialDataRightsContact",
+      "fundingSourceOrNoFundingDeclaration",
+      "conflictOfInterestDeclaration",
+      "ethicsDeterminationReferenceNumber",
+      "ethicsDeterminationVersionAndDate"
+    ],
+    "mustNotBeGuessedFromChatOrAccountContext": true
+  },
+  "determination": {
+    "status": "unset",
+    "reviewCategory": null,
+    "reviewBoard": null,
+    "referenceNumber": null,
+    "version": null,
+    "decisionDate": null,
+    "expiryDate": null,
+    "conditions": [],
+    "mayNotBeEditedToApprovedWithoutExternalDocumentedDetermination": true
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "consentPageActivationAuthorized": false,
+    "schemaActivationAuthorized": false,
+    "executionWorkflowIncluded": false,
+    "separateCollectionAuthorizationRequired": true
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "populationNormClaimAllowedNow": false
+  }
+}

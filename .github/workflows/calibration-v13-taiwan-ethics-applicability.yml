@@ -1,0 +1,48 @@
+name: Calibration v13 — Taiwan Ethics Applicability Packet
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_ETHICS_APPLICABILITY_PACKET.md'
+      - 'calibration/V13_TAIWAN_ETHICS_DETERMINATION_REQUEST_ZH_HANT_TW.md'
+      - 'calibration/v13-taiwan-ethics-applicability-packet.json'
+      - 'tests/calibration-v13-taiwan-ethics-applicability-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-ethics-applicability.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-ethics-applicability-packet-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ethics-applicability-packet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate packet and exact authority pins
+        run: |
+          node --check tests/calibration-v13-taiwan-ethics-applicability-validation.js
+          node tests/calibration-v13-taiwan-ethics-applicability-validation.js
+
+      - name: Prove ethics remains unresolved and collection locked
+        run: |
+          node - <<'NODE'
+          const p = require('./calibration/v13-taiwan-ethics-applicability-packet.json');
+          if (p.determination.status !== 'unset') process.exit(1);
+          if (p.workingClassification.selfDeclaredExempt !== false) process.exit(1);
+          if (p.workingClassification.selfDeclaredExpedited !== false) process.exit(1);
+          if (p.submissionAdministration.submissionReady !== false) process.exit(1);
+          if (p.executionLock.realParticipantCollectionAuthorized !== false) process.exit(1);
+          if (p.executionLock.recruitmentLaunchAuthorized !== false) process.exit(1);
+          if (p.executionLock.participantDataAccessAuthorized !== false) process.exit(1);
+          if (p.governance.productIqUnlocked !== false) process.exit(1);
+          console.log('v13 Taiwan ethics unresolved / collection lock PASS');
+          NODE

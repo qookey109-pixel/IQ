@@ -6,9 +6,13 @@ const flow = fs.readFileSync('pretest-flow.js', 'utf8');
 const scoring = fs.readFileSync('scoring-v2.js', 'utf8');
 const assessment = fs.readFileSync('assessment-quality.js', 'utf8');
 
-const appPos = html.indexOf('<script src="app.js"></script>');
-const pretestPos = html.indexOf('<script src="pretest-flow.js"></script>');
-const timingPos = html.indexOf('<script src="timeout-lock.js?v=timing-2.1"></script>');
+const scriptTags = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*><\/script>/g)];
+assert.strictEqual(scriptTags.length, 43, 'production page must expose the expected deferred runtime surface');
+assert.ok(scriptTags.every(match => /\bdefer\b/.test(match[0])), 'all production scripts must use defer');
+const scriptFiles = scriptTags.map(match => match[1]);
+const appPos = scriptFiles.indexOf('app.js');
+const pretestPos = scriptFiles.indexOf('pretest-flow.js');
+const timingPos = scriptFiles.indexOf('timeout-lock.js?v=timing-2.1');
 assert.ok(appPos >= 0 && pretestPos > appPos && timingPos > pretestPos,
   'pretest flow must load after app.js and before timing wrappers');
 

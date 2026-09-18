@@ -1,0 +1,205 @@
+{
+  "version": "CIL-V13-TW-TARGET-POPULATION-AMENDMENT-2026.09.1",
+  "status": "target-population-frozen-collection-still-locked",
+  "purpose": "Freeze the Taiwan Traditional-Chinese adult target population and benchmark/weighting design required by Calibration v13, without authorizing any real-participant collection, participant-data access, analysis, norm estimation, or IQ unlock.",
+  "authority": {
+    "basisMainSha": "6ed8d096fd78ad8d5badee58acec4f78240d822d",
+    "v13ProtocolBlobSha": "7dd6e940e2c188dd7bbbbf91f0df26ad75da2f4f",
+    "targetPopulationPrepBlobSha": "8f2d0c88cbf31d4f25eb0c5bfd7cbea796e30326",
+    "responseSchemaBlobSha": "fab3c9f10b11f640490b77f55f41beab064a338c"
+  },
+  "targetPopulation": {
+    "jurisdiction": "Taiwan",
+    "jurisdictionReference": "Republic of China (Taiwan) household-registration statistical system",
+    "populationDefinition": "Household-registered adults aged 18 through 65 whose registered jurisdiction is Taiwan and who can independently read Traditional Chinese well enough to complete the browser-based Cognitive IQ Lab assessment.",
+    "ageYears": {
+      "minimum": 18,
+      "maximum": 65
+    },
+    "productionLanguageVersion": "zh-Hant-TW",
+    "registeredPopulationRequired": true,
+    "currentPhysicalResidenceRequired": false,
+    "internetCapableAssessmentPopulation": true,
+    "normClaimLimitation": "Any eventual norms apply to the preregistered Taiwan household-registered, Traditional-Chinese online assessment population. They may not be generalized to nonregistered residents, other language versions, minors, adults older than 65, or offline-only populations without separate evidence.",
+    "complete": true
+  },
+  "populationBenchmark": {
+    "primarySourceAgency": "Department of Household Registration, Ministry of the Interior, Taiwan",
+    "primaryDataset": "Current population by sex and age / 現住人口數按性別及年齡分",
+    "officialTableCode": "10122-00-02",
+    "referenceDate": "2026-08-31",
+    "latestReleaseUsed": "2026-09-10",
+    "sourcePortal": "https://www.ris.gov.tw/app/en",
+    "tableSpecification": "https://www.moi.gov.tw/cl.aspx?n=21790",
+    "benchmarkVersion": "MOI-HR-2026-08-31",
+    "refreshRule": {
+      "maximumDaysBetweenBenchmarkReferenceDateAndFirstParticipant": 120,
+      "ifExceeded": "refresh-benchmark-and-amend-version-before-collection"
+    },
+    "secondaryContextSource": {
+      "agency": "Directorate-General of Budget, Accounting and Statistics, Taiwan",
+      "dataset": "2026-01-01 usual resident population statistics",
+      "use": "contextual cross-check only, not weighting authority"
+    }
+  },
+  "benchmarkDimensions": {
+    "primaryMargins": [
+      "ageBand",
+      "sexForWeighting",
+      "macroRegion"
+    ],
+    "ageBands": [
+      "18–24",
+      "25–34",
+      "35–44",
+      "45–54",
+      "55–65"
+    ],
+    "sexForWeightingBenchmarkCategories": [
+      "male",
+      "female"
+    ],
+    "macroRegionMapping": {
+      "north": [
+        "Taipei City",
+        "New Taipei City",
+        "Keelung City",
+        "Taoyuan City",
+        "Hsinchu County",
+        "Hsinchu City",
+        "Yilan County"
+      ],
+      "central": [
+        "Miaoli County",
+        "Taichung City",
+        "Changhua County",
+        "Nantou County",
+        "Yunlin County"
+      ],
+      "south": [
+        "Chiayi County",
+        "Chiayi City",
+        "Tainan City",
+        "Kaohsiung City",
+        "Pingtung County"
+      ],
+      "east": [
+        "Hualien County",
+        "Taitung County"
+      ],
+      "offshore": [
+        "Penghu County",
+        "Kinmen County",
+        "Lienchiang County"
+      ]
+    },
+    "additionalDimensionsAuthorizedInThisAmendment": false,
+    "schemaPrivacyAmendmentRequiredBeforeCollection": true
+  },
+  "samplingFrame": {
+    "reference": "CIL-V13-TW-MULTISOURCE-ONLINE-FRAME-2026.09.1",
+    "design": "nonprobability-multisource-online-recruitment-with-prospective-quota-monitoring-and-calibration-weighting",
+    "probabilitySamplingClaimAllowed": false,
+    "minimumIndependentRecruitmentChannelClasses": 3,
+    "plannedChannelClasses": [
+      "general-population-online-panel-or-research-panel",
+      "broad-digital-advertising",
+      "community-and-public-outreach"
+    ],
+    "singleChannelMaximumShareOfUnweightedIndependentCohort": 0.60,
+    "duplicateControlUnit": "sourceKey",
+    "quotaMonitoring": [
+      "ageBand",
+      "macroRegion"
+    ],
+    "sexMarginMonitoredProspectively": true,
+    "quotaCompletionAloneEstablishesRepresentativeness": false,
+    "coverageLimitationMustBeReported": true
+  },
+  "weightingPlan": {
+    "method": "iterative-proportional-fitting-raking",
+    "baseWeight": 1.0,
+    "benchmarkMargins": [
+      "ageBand",
+      "sexForWeighting",
+      "macroRegion"
+    ],
+    "maximumIterations": 100,
+    "convergenceRule": {
+      "metric": "maximum-absolute-margin-difference",
+      "threshold": 0.005
+    },
+    "weightBounds": {
+      "minimum": 0.33,
+      "maximum": 3.0
+    },
+    "normalization": "normalize-final-weights-to-mean-1",
+    "sensitivityReporting": {
+      "unweightedResultsRequired": true,
+      "untrimmedRakedResultsRequired": true,
+      "boundedRakedResultsRequired": true
+    },
+    "effectiveSampleSize": {
+      "kishEffectiveSampleSizeRequired": true,
+      "designEffectRequired": true,
+      "automaticPassThreshold": null,
+      "humanReviewRequired": true
+    },
+    "postCollectionMethodSelectionAllowed": false,
+    "methodFrozen": true
+  },
+  "phaseBFloors": {
+    "minimumIndependentParticipants": 5000,
+    "minimumPerAgeBand": 500,
+    "minimumMatrixSlotsObserved": 56,
+    "minimumAnchorCompletionRate": 0.80,
+    "minimumAverageFormalItemExposure": 80,
+    "phaseBMustUseNewIndependentParticipantsNotInPhaseA": true,
+    "floorsAloneEstablishRepresentativeness": false
+  },
+  "languageAndVersioning": {
+    "crossLanguagePoolingAllowed": false,
+    "crossJurisdictionPoolingAllowed": false,
+    "bankVersionMustBeFrozenBeforePhaseB": true,
+    "scoringVersionMustBeFrozenBeforePhaseB": true,
+    "measurementModelMustBeFrozenBeforePhaseB": true,
+    "postCollectionPromptAnswerKeyScoringOrModelChangeInvalidatesNormCohort": true
+  },
+  "privacyAndSchemaBoundary": {
+    "currentResponseSchemaHasRequiredWeightingFields": false,
+    "fieldsStillNeededBeforeCollection": [
+      "householdRegistrationEligibility",
+      "sexForWeighting",
+      "macroRegion"
+    ],
+    "directIdentifiersAllowed": false,
+    "preciseAddressAllowed": false,
+    "countyOrCityRawStorageRequired": false,
+    "dateOfBirthAllowed": false,
+    "wholeYearAgeAllowed": true,
+    "automaticUploadAllowed": false,
+    "separateSchemaPrivacyAmendmentRequired": true
+  },
+  "executionLock": {
+    "realParticipantCollectionAuthorized": false,
+    "participantDataAccessAuthorized": false,
+    "externalInstrumentAdministrationAuthorized": false,
+    "phaseAAnalysisAuthorized": false,
+    "phaseBCollectionAuthorized": false,
+    "phaseBNormEstimationAuthorized": false,
+    "backendCollectionAuthorized": false,
+    "executionWorkflowIncluded": false,
+    "separateSchemaPrivacyAmendmentRequired": true,
+    "separateRecruitmentExecutionPlanRequired": true,
+    "separateCollectionAuthorizationRequired": true
+  },
+  "governance": {
+    "autoPublishNorms": false,
+    "autoCpiToIq": false,
+    "productNormEligible": false,
+    "productIqUnlocked": false,
+    "populationNormClaimAllowedNow": false,
+    "requiresHumanPsychometricReview": true
+  },
+  "interpretation": "The Taiwan target population, benchmark authority, benchmark dimensions, recruitment-frame class, and weighting method are prospectively frozen. This does not authorize collection. The current response schema does not yet contain the coarse weighting fields, and the recruitment execution plan is not yet frozen."
+}

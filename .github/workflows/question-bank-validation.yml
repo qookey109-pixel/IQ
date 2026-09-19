@@ -63,6 +63,7 @@ jobs:
           node --check timeout-lock.js
           node --check memory-exposure.js
           node --check scripts/export-qb5.js
+          node --check scripts/visual-audit-42.mjs
           node --check tests/qb5-oracle-validation.js
           node --check tests/form-equivalence-validation.js
           node --check tests/product-42-spec-validation.js
@@ -207,6 +208,18 @@ jobs:
 
       - name: Validate direct 42-item entry with no practice
         run: node tests/pretest-flow-validation.js
+
+      - name: Browser-audit all 42 rendered questions
+        run: node scripts/visual-audit-42.mjs
+
+      - name: Upload 42-item visual audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-audit-42
+          path: artifacts/visual-audit-42/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Validate visual readability against reviewed content baseline
         run: node tests/visual-readability-validation.js

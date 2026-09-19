@@ -60,9 +60,8 @@ assert.ok(assessment.includes('iqEstimateAvailable: false'),'quality metadata mu
 assert.ok(assessment.includes('iqConversionEnabled: false'),'IQ conversion must remain disabled');
 assert.ok(assessment.includes('populationPercentileAvailable: false'),'population percentile must remain unavailable');
 assert.ok(index.includes('id="playfulTitle"'),'public result needs a playful title slot');
-assert.ok(index.includes('id="profileHighlights"'),'public result needs qualitative highlight cards');
-assert.ok(index.includes('id="resultSignature"'),'public result needs a qualitative signature');
 assert.ok(index.includes('id="brainConstellation"'),'public result needs a no-scale six-domain view');
+assert.ok(!index.includes('id="profileHighlights"')&&!index.includes('id="resultSignature"'),'clue cards and signature must stay removed');
 assert.ok(!index.includes('id="copyResultBtn"')&&!index.includes('id="shareResultBtn"'),'public result copy/share actions must stay removed');
 assert.ok(index.includes('publicResultActions')&&index.includes('id="restartBtn"')&&index.includes('id="reviewBtn"'),'public result keeps only the minimal static action row');
 assert.ok(index.includes('沒有分數，只有這次作答的趣味輪廓。'),'public result must state the no-score direction');

@@ -17,17 +17,24 @@ for(const file of scriptFiles.slice(0,appIndex)){
 const bank=window.IQ_QUESTION_BANK;
 assert.strictEqual(bank.length,2058);
 
-// Screenshot QA: matrix items must provide three complete examples before the target row.
+// Screenshot QA: easy/medium matrices show worked examples; hard matrices use
+// compact 3×3 abstract relation surfaces with multiple simultaneous rules.
 const matrices=bank.filter(q=>q.taskFamily==='matrix-difference');
 assert.strictEqual(matrices.length,56);
 for(const q of matrices){
-  assert.strictEqual(q.matrixClarityVersion,'MC-2026.09.1',q.id);
-  assert.strictEqual(q.cells.length,12,`${q.id}: matrix should be 4×3`);
+  assert.strictEqual(q.matrixClarityVersion,'MC-2026.09.2',q.id);
   assert.strictEqual(q.cells.filter(x=>x==='?').length,1,`${q.id}: exactly one missing cell`);
-  assert.strictEqual(q.cells[11],'?',`${q.id}: missing cell should be final cell`);
-  assert.ok(q.q.includes('前三列完整顯示同一個規則'),`${q.id}: three-example wording`);
   assert.strictEqual(String(q.o[q.a]),q.correctContent,`${q.id}: answer binding`);
-  assert.strictEqual(q.matrixClarityData.examples,3,q.id);
+  if(q.difficulty==='hard'){
+    assert.strictEqual(q.cells.length,9,`${q.id}: hard matrix should be 3×3`);
+    assert.strictEqual(q.cells[8],'?',`${q.id}: hard missing cell should be final cell`);
+    assert.ok(['hard-multi-rule','hard-xor-orientation'].includes(q.matrixClarityData?.kind),`${q.id}: hard relation metadata`);
+  }else{
+    assert.strictEqual(q.cells.length,12,`${q.id}: easy/medium matrix should be 4×3`);
+    assert.strictEqual(q.cells[11],'?',`${q.id}: missing cell should be final cell`);
+    assert.ok(q.q.includes('前三列完整顯示同一個規則'),`${q.id}: three-example wording`);
+    assert.strictEqual(q.matrixClarityData.examples,3,q.id);
+  }
 }
 
 // Screenshot QA: speed boundary wording is explicit about first/last positions.

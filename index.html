@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3ecdf">
 <title>Cognitive IQ Lab v6</title>
-<meta name="description" content="精簡單頁式多構面 IQ-style 認知測驗">
-<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc1">
+<meta name="description" content="42 題多構面認知遊戲，完成後獲得今天的大腦趣味稱號。">
+<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc2">
 <!-- IQ_STYLE_SOURCES
 styles.css
 single-screen.css?v=20260914-dial
@@ -16,7 +16,7 @@ heritage-theme.css
 spatial-visual-fix.css
 pretest-flow.css
 -->
-<script src="runtime.bundle.js?v=20260919-rc1" defer></script>
+<script src="runtime.bundle.js?v=20260919-rc2" defer></script>
 <!-- IQ_RUNTIME_SOURCES
 question-bank.js
 qb5-core.js
@@ -94,17 +94,14 @@ single-screen.js
       </div>
     </div>
     <div id="about" class="screenModal hidden" role="dialog" aria-modal="true" aria-label="測驗說明">
-      <button class="screenClose" type="button" aria-label="關閉">×</button><div class="sectionKicker">HOW IT WORKS</div><h3>簡單玩，認真記錄。</h3>
-      <p>開始正式測驗前，先選擇 18–65 歲的實足年齡，再完成 4 題不計分練習。只收集歲數，不收集生日；年齡現階段不會直接替 CPI 加分或扣分。</p>
-      <p>QB5 每次從完整 2,058 題題庫中抽 42 題，每個構面固定 7 題，7 個題型家族各出 1 題，並維持 2 基礎、3 中等、2 進階；同時避開最近 8 份測驗已出現的相同題目。</p>
-      <p><strong>2,058 是實際題庫題數；294 是構念變體數。</strong>QB5 有 42 個題型家族：語文每族 2 個構念，其餘每族 8 個；每個構念固定保留 7 個具體題目版本。變體可包含不同推理規則、操作步驟、視覺結構或認知負荷；數字與自然情境本身不會被灌水計成新的變體。</p>
-      <p>視覺空間 7 個家族共有 392 個題庫項目，全部以圖示作為必要資訊來源，並對路徑、旋轉、鏡射、投影、裁切與縮放做最終一致性驗證；工作記憶同樣保留 392 題，並維持低閱讀負荷設計。</p>
-      <p>一般模式會先滿足固定難度與完整家族覆蓋，再從多個合法候選卷中選擇設計負荷較接近目標的一份。另有可選的校準研究模式，使用 56 槽位 matrix sampling 讓不同受測者的正式 42 題在題庫中更有系統地分散曝光；CPI 計分規則不變。</p>
-      <p>6 個中等難度題目保留為固定研究 Anchor，不進入正式 42 題。可自願加入校準研究：42 題正式測驗完成後再做這 6 題不計分 Anchor，讓不同抽卷能在未來 IRT／常模研究中連到同一量尺。Anchor 不改變 CPI，也不會自動上傳資料。</p>
-      <p>完成測驗後可查看「校準準備度」：只在本機累積匿名 session / item-level 0/1 資料，協助判斷未來研究資料是否足夠；不自動上傳，也不把同一瀏覽器的重複測驗當成獨立受測者。</p>
-      <p><strong>計時：</strong>一般推理題不限時。記憶內容依難度顯示 4／5／6 秒，每題只呈現一次，作答不限時。處理速度題首次顯示後限時 18 秒；離開題目或切換分頁仍持續倒數，時間到即鎖定。限時題提交後不能更改，作答時間記錄到點選答案當下。</p>
-      <p><strong>計分：</strong>基礎／中等／進階題的權重為 1／1.25／1.5，六構面等權平均。處理速度構面由 95% 難度加權正確率與 5% 速度效率組成，答錯不獲得速度分；速度因素對總分最多影響約 0.83 分，因此全部答對也可能未滿 100 分。未作答與超時未答皆不獲得該題分數。</p>
-      <p class="modalFoot">結果顯示的是 0–100 的實驗性 Cognitive Performance Index，會保留原始正確率並對設計難度做透明加權；尚未做人口常模、IRT／CAT 或臨床效度驗證，因此不是正式 IQ 分數。</p>
+      <button class="screenClose" type="button" aria-label="關閉">×</button>
+      <div class="sectionKicker">HOW IT WORKS</div>
+      <h3>42 題，玩出今天的大腦模式。</h3>
+      <p>不用填年齡，也不用先設定任何個人資料。開始前會有 4 題不計分練習，讓你熟悉文字、記憶、空間與限時題的操作。</p>
+      <p>正式測驗從 2,058 題題庫中抽出 42 題，涵蓋語文、推理、空間、記憶、速度與量化；每個題型家族各出一題。</p>
+      <p><strong>計時：</strong>一般推理題不限時。記憶內容依難度顯示 4／5／6 秒，每題只呈現一次；處理速度題首次顯示後限時 18 秒。</p>
+      <p><strong>結果：</strong>完成後不顯示 IQ、CPI、百分比、排名、同齡換算或總分。系統只把這一次的作答輪廓翻成一個有趣主標題、主線索與副線索。</p>
+      <p class="modalFoot">稱號只描述這一次測驗中相對突出的作答方向，不是固定人格、能力等級或任何正式標準；換一份題目，稱號也可能不同。</p>
     </div>
   </section>
 
@@ -116,9 +113,38 @@ single-screen.js
   </section>
 
   <section id="result" class="card screenPanel hidden">
-    <div class="resultHeading"><div><div class="sectionKicker">RESULT · QB-2026.09.5 · rev 5.0</div><h2>你的認知快照</h2></div><div class="resultMicrocopy">不是 IQ 常模，只是一張今天的腦內地圖。</div></div>
-    <div class="resultGrid compactResultGrid"><div class="scoreCard compactScoreCard"><div class="scoreTitle">Cognitive Performance Index</div><div id="indexScore" class="bigScore">100</div><div id="resultDesc" class="resultDesc"></div><p id="resultSummary"></p><div class="tinyDisclaimer">0–100 實驗性表現指數 · 非 IQ 常模</div></div><div class="resultVisuals"><div class="chartGrid compactChartGrid"><div class="chartCard primaryChart"><div class="chartTitle">六構面分布</div><svg id="radarChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="radar chart"></svg></div><div class="chartCard secondaryChart"><div class="chartTitle">答題結構</div><svg id="donutChart" viewBox="0 0 320 280" width="100%" height="260" aria-label="donut chart"></svg></div><div class="chartCard full tertiaryChart"><div class="chartTitle">構面比較</div><svg id="barChart" viewBox="0 0 620 280" width="100%" height="260" aria-label="bar chart"></svg></div></div><div id="metrics" class="metrics compactMetrics"></div></div></div>
-    <div class="resultBottom"><div class="actions compactActions"><button id="restartBtn" class="btn primary">抽新題再測</button><button id="reviewBtn" class="btn secondary">逐題解析</button></div><div class="playfulDisclaimer resultTagline"><strong>不構成任何標準，好玩就好。</strong><span>內容僅供參考；若有出入，以你的想像力為準。</span></div></div><div id="review" class="review screenModal hidden"></div>
+    <div class="resultHeading">
+      <div><div class="sectionKicker">TODAY'S BRAIN MODE · QB-2026.09.5</div><h2>今天你的大腦是……</h2></div>
+      <div class="resultMicrocopy">沒有分數，只有這次作答的趣味輪廓。</div>
+    </div>
+
+    <div class="resultExperience">
+      <article class="playfulResultHero">
+        <div id="resultEmoji" class="playfulEmoji" aria-hidden="true">🧠</div>
+        <div class="playfulCopy">
+          <div class="scoreTitle">TODAY'S TITLE</div>
+          <div id="playfulTitle" class="playfulTitle">正在整理腦內模式…</div>
+          <div id="resultDesc" class="resultDesc">把這次的作答輪廓翻成一句比較好玩的描述。</div>
+          <p id="resultSummary">換一份題目，今天的稱號也可能不同。</p>
+        </div>
+      </article>
+
+      <div id="profileHighlights" class="profileHighlights" aria-label="本次作答特色"></div>
+    </div>
+
+    <div class="internalResultDiagnostics" aria-hidden="true">
+      <div class="scoreCard"><div class="scoreTitle">Internal CPI</div><div id="indexScore" class="bigScore"></div></div>
+      <div id="metrics" class="metrics"></div>
+      <svg id="radarChart" viewBox="0 0 320 280"></svg>
+      <svg id="donutChart" viewBox="0 0 320 280"></svg>
+      <svg id="barChart" viewBox="0 0 620 280"></svg>
+    </div>
+
+    <div class="resultBottom">
+      <div class="actions compactActions"><button id="restartBtn" class="btn primary">抽新題再測</button><button id="reviewBtn" class="btn secondary">逐題解析</button></div>
+      <div class="playfulDisclaimer resultTagline"><strong>不構成任何標準，好玩就好。</strong><span>這是今天的作答模式，不是你的固定標籤。</span></div>
+    </div>
+    <div id="review" class="review screenModal hidden"></div>
   </section>
   <div class="footer">Cognitive IQ Lab · QB v5.0 · 2,058 題 · 294 個構念變體</div>
 </main>

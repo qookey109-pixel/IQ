@@ -26,8 +26,8 @@ function getProductionRuntimeSources(html) {
   assert.ok(/\bdefer\b/.test(tags[0][0]), 'production runtime bundle must use defer');
 
   const sources = readIncludeSources('runtime.bundle.js');
-  assert.strictEqual(sources.length, 44, 'runtime bundle must preserve all 44 source modules');
-  assert.strictEqual(new Set(sources).size, 44, 'runtime bundle source modules must be unique');
+  assert.strictEqual(sources.length, 45, 'runtime bundle must preserve all 45 source modules');
+  assert.strictEqual(new Set(sources).size, 45, 'runtime bundle source modules must be unique');
   return sources;
 }
 

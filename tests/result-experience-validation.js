@@ -8,10 +8,11 @@ const quality = fs.readFileSync('assessment-quality.js','utf8');
 const css = fs.readFileSync('single-screen.css','utf8');
 const readme = fs.readFileSync('README.md','utf8');
 const titleEngine = fs.readFileSync('result-title-engine.js','utf8');
+const replay = fs.readFileSync('replay-history.js','utf8');
 
 for (const id of [
   'resultShareCard','resultSignature','playfulTitle','profileHighlights',
-  'brainConstellation','copyResultBtn','shareResultBtn','shareStatus'
+  'brainConstellation','replayPrompt','recentModes','copyResultBtn','shareResultBtn','shareStatus'
 ]) {
   assert.ok(html.includes(`id="${id}"`), 'missing qualitative result UI id: ' + id);
 }
@@ -25,7 +26,11 @@ for (const marker of [
   'bindResultSharing',
   'publicDomainVisualization: "role-only-no-scale"',
   'resultShareEnabled: true',
-  'shareIncludesNumericScore: false'
+  'shareIncludesNumericScore: false',
+  'replayHistoryEnabled: true',
+  'replayHistoryStoresNumericScores: false',
+  'replayHistoryStoresAnswers: false',
+  'replayHistoryUploadsAutomatically: false'
 ]) {
   assert.ok(quality.includes(marker), 'missing result-experience guard: ' + marker);
 }
@@ -44,6 +49,8 @@ for (const marker of [
   '.brainNodePrimary',
   '.brainNodeSecondary',
   '.shareStatus',
+  '.replayTrail',
+  '.recentModeChip',
   '@keyframes resultCardIn',
   '@media (prefers-reduced-motion: reduce)'
 ]) {
@@ -56,6 +63,10 @@ assert.ok(readme.includes('Result Experience v1（RC-2026.09.19-4）'));
 assert.ok(readme.includes('Combination Title Engine v1（RC-2026.09.19-5）'));
 assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"));
 assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
+assert.ok(replay.includes("MAX_ENTRIES = 4"));
+assert.ok(replay.includes("storesNumericScores: false"));
+assert.ok(replay.includes("storesAnswers: false"));
+assert.ok(replay.includes("uploadsAutomatically: false"));
 assert.ok(readme.includes('不包含任何內部 CPI 或作答分數'));
 
 console.log('Result Experience v1 validation PASS');

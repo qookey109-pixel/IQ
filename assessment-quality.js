@@ -59,6 +59,41 @@ function buildPlayfulResult(domains, stats) {
   return resultTitleEngine().buildProfile(domains, stats);
 }
 
+function replayHistory() {
+  const history = window.IQ_REPLAY_HISTORY;
+  return history && typeof history.record === "function" ? history : null;
+}
+
+function renderReplayTrail(profile) {
+  const holder = $("recentModes");
+  const prompt = $("replayPrompt");
+  const history = replayHistory();
+
+  if (!history) {
+    if (prompt) prompt.textContent = "再抽一份，看看下一次會去哪裡。";
+    if (holder) holder.innerHTML = "";
+    return {available:false, entries:[], previous:null, current:null};
+  }
+
+  const recorded = history.record(profile);
+  if (prompt) prompt.textContent = history.describe(recorded);
+
+  if (holder) {
+    holder.innerHTML = recorded.entries.slice(-3).map((entry, index, rows) => {
+      const current = index === rows.length - 1;
+      return `
+        <span class="recentModeChip${current ? " recentModeChipCurrent" : ""}">
+          <span aria-hidden="true">${entry.emoji || "✨"}</span>
+          <strong>${entry.title}</strong>
+          ${current ? "<em>這次</em>" : ""}
+        </span>
+      `;
+    }).join("");
+  }
+
+  return recorded;
+}
+
 function renderPlayfulHighlights(profile) {
   const holder = $("profileHighlights");
   if (!holder) return;
@@ -244,6 +279,7 @@ finishTest = function () {
   $("resultSummary").textContent = playful.summary;
   renderPlayfulHighlights(playful);
   renderBrainConstellation(domains, playful);
+  const replayRecord = renderReplayTrail(playful);
   const publicShareText = bindResultSharing(playful);
   revealResultExperience();
 
@@ -303,6 +339,8 @@ finishTest = function () {
     publicSignature: playful.signature,
     publicSummary: playful.summary,
     publicShareText,
+    publicReplayHistoryAvailable: Boolean(replayRecord?.available),
+    publicReplayHistoryCount: replayRecord?.entries?.length || 0,
     focusDomains: [playful.primaryDomain, playful.secondaryDomain]
   };
 
@@ -323,11 +361,17 @@ window.IQ_QUALITY_META = {
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
   publicDomainVisualization: "role-only-no-scale",
-  resultExperienceVersion: "1.1",
+  resultExperienceVersion: "1.2",
   titleEngineMode: "deterministic-30-directional-combinations",
   titleCombinationCount: 30,
   resultShareEnabled: true,
   shareIncludesNumericScore: false,
+  replayHistoryEnabled: true,
+  replayHistoryStorage: "local-browser-only",
+  replayHistoryMaxEntries: 4,
+  replayHistoryStoresNumericScores: false,
+  replayHistoryStoresAnswers: false,
+  replayHistoryUploadsAutomatically: false,
   ageInputRequired: false,
   practiceEnabled: false,
   practiceCount: 0,

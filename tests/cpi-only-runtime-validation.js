@@ -10,6 +10,7 @@ const quality = fs.readFileSync('assessment-quality.js', 'utf8');
 const readme = fs.readFileSync('README.md', 'utf8');
 const scoring = fs.readFileSync('scoring-v2.js', 'utf8');
 const titleEngine = fs.readFileSync('result-title-engine.js', 'utf8');
+const replay = fs.readFileSync('replay-history.js', 'utf8');
 
 for (const [file, source] of [['app.js', app], ['timeout-lock.js', timing], ['assessment-quality.js', quality]]) {
   for (const forbidden of [
@@ -35,6 +36,14 @@ assert.ok(titleEngine.includes("const COMBINATIONS = {"), 'qualitative title map
 assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"), 'title engine must expose finite combination count');
 assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
 assert.ok(quality.includes('titleCombinationCount: 30'));
+assert.ok(quality.includes('replayHistoryEnabled: true'));
+assert.ok(quality.includes('replayHistoryStoresNumericScores: false'));
+assert.ok(quality.includes('replayHistoryStoresAnswers: false'));
+assert.ok(quality.includes('replayHistoryUploadsAutomatically: false'));
+assert.ok(replay.includes("MAX_ENTRIES = 4"));
+assert.ok(replay.includes("storesNumericScores: false"));
+assert.ok(replay.includes("storesAnswers: false"));
+assert.ok(replay.includes("uploadsAutomatically: false"));
 
 assert.ok(quality.includes("productMode: 'qualitative-playful'") || quality.includes('productMode: "qualitative-playful"'));
 assert.ok(quality.includes('internalScoringMode: "cpi-only"'));

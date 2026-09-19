@@ -48,6 +48,7 @@ const expectedRuntime = [
   'memory-exposure.js',
   'scoring-v2.js',
   'result-title-engine.js',
+  'replay-history.js',
   'assessment-quality.js',
   'item-analytics.js',
   'item-quality-v2.js',
@@ -85,4 +86,4 @@ assert.ok(!renderedStyles.includes('{% include_relative'), 'rendered styles must
 assert.ok(renderedStyles.length > 1000, 'rendered stylesheet bundle must contain the production styles');
 
 console.log('Runtime bundle validation PASS');
-console.log('Production requests: 44 JS + 6 CSS -> 1 deferred JS bundle + 1 CSS bundle; canonical source modules remain separate.');
+console.log('Production requests: 45 JS + 6 CSS -> 1 deferred JS bundle + 1 CSS bundle; canonical source modules remain separate.');

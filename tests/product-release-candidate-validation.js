@@ -18,9 +18,10 @@ const quality=fs.readFileSync('assessment-quality.js','utf8');
 const form=fs.readFileSync('qb5-42-form.js','utf8');
 const scoring=fs.readFileSync('scoring-v2.js','utf8');
 const titleEngine=fs.readFileSync('result-title-engine.js','utf8');
+const replay=fs.readFileSync('replay-history.js','utf8');
 
-assert.ok(html.includes('styles.bundle.css?v=20260919-rc5'),'RC CSS cache key must be current');
-assert.ok(html.includes('runtime.bundle.js?v=20260919-rc5'),'RC runtime cache key must be current');
+assert.ok(html.includes('styles.bundle.css?v=20260919-rc6'),'RC CSS cache key must be current');
+assert.ok(html.includes('runtime.bundle.js?v=20260919-rc6'),'RC runtime cache key must be current');
 assert.strictEqual((html.match(/<script\b[^>]*\bsrc=/g)||[]).length,1,'release page must request one JS bundle');
 assert.strictEqual((html.match(/<link\b[^>]*\brel="stylesheet"/g)||[]).length,1,'release page must request one CSS bundle');
 assert.ok(!/<script\b[^>]*\bsrc="https?:\/\//i.test(html),'release runtime must not depend on a remote script CDN');
@@ -28,7 +29,7 @@ assert.ok(!/<link\b[^>]*\brel="stylesheet"[^>]*\bhref="https?:\/\//i.test(html),
 
 const runtimeSources=getProductionRuntimeSources(html);
 const styleSources=getProductionStyleSources(html);
-assert.strictEqual(runtimeSources.length,44);
+assert.strictEqual(runtimeSources.length,45);
 assert.strictEqual(styleSources.length,6);
 const renderedRuntime=renderJekyllIncludes('runtime.bundle.js');
 new vm.Script(renderedRuntime,{filename:'runtime.bundle.rc-rendered.js'});
@@ -36,7 +37,7 @@ const renderedStyles=renderJekyllIncludes('styles.bundle.css');
 assert.ok(renderedStyles.length>1000);
 
 for(const marker of [
-  'RC-2026.09.19-5',
+  'RC-2026.09.19-6',
   '2,058 items',
   '42 items = 6 domains × 7 families',
   'Public result: **share-friendly qualitative title card + 30 deterministic directional combination titles**',
@@ -55,7 +56,7 @@ for(const marker of [
   'frozen'
 ]) assert.ok(status.includes(marker),'PRODUCT_STATUS missing authority marker: '+marker);
 
-assert.ok(readme.includes('RC-2026.09.19-5'));
+assert.ok(readme.includes('RC-2026.09.19-6'));
 assert.ok(readme.includes('Product mainline — playful qualitative result'));
 assert.ok(readme.includes('不用填年齡'));
 assert.ok(readme.includes('沒有前置練習題'));
@@ -85,9 +86,15 @@ assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combi
 assert.ok(quality.includes('titleCombinationCount: 30'));
 assert.ok(titleEngine.includes("const COMBINATIONS = {"));
 assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"));
+assert.ok(replay.includes("MAX_ENTRIES = 4"));
+assert.ok(replay.includes("storesNumericScores: false"));
+assert.ok(replay.includes("storesAnswers: false"));
+assert.ok(replay.includes("uploadsAutomatically: false"));
+assert.ok(quality.includes('replayHistoryEnabled: true'));
+assert.ok(html.includes('id="recentModes"'));
 assert.ok(html.includes('id="brainConstellation"'));
 assert.ok(html.includes('id="shareResultBtn"'));
 assert.ok(timing.includes('return timingBaseFinishTest();'));
 
 console.log('Product Release Candidate validation PASS');
-console.log('RC-2026.09.19-5: direct entry, 30 deterministic combination titles, no-score sharing, governance locks, and fallback boundaries are consistent.');
+console.log('RC-2026.09.19-6: direct entry, deterministic titles, local qualitative replay history, no-score sharing, governance locks, and fallback boundaries are consistent.');

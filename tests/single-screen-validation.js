@@ -7,14 +7,16 @@ assert.ok(css.includes('container-type: inline-size'), 'dial must size text agai
 assert.ok(css.includes('font-size: 24cqw'), 'bank count must fit compact and landscape dials');
 const js = fs.readFileSync('single-screen.js', 'utf8');
 
-for (const id of ['start','quiz','result','startBtn','aboutBtn','counter','domain','timer','totalTimer','question','options','prevBtn','skipBtn','indexScore','metrics','reviewBtn']) {
+for (const id of ['start','quiz','result','startBtn','aboutBtn','counter','domain','timer','totalTimer','question','options','prevBtn','skipBtn','playfulTitle','profileHighlights','indexScore','metrics','reviewBtn']) {
   assert.ok(html.includes(`id="${id}"`), `required UI id missing: ${id}`);
 }
 
 assert.ok(html.includes('single-screen.css'), 'single-screen.css must be linked');
 assert.ok(html.includes('single-screen.js'), 'single-screen.js must be loaded');
 assert.ok(html.includes('不構成任何標準，好玩就好。'), 'playful non-standard disclaimer must be visible');
-assert.ok(html.includes('內容僅供參考；若有出入，以你的想像力為準。'), 'reference/imagination tagline must be visible');
+assert.ok(html.includes('這是今天的作答模式，不是你的固定標籤。'), 'attempt-specific playful tagline must be visible');
+assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'), 'result must explicitly avoid a public score');
+assert.ok(css.includes('.internalResultDiagnostics') && css.includes('display: none !important'), 'internal quantitative diagnostics must be hidden');
 
 assert.ok(css.includes('height: 100dvh'), 'viewport stage must use dynamic viewport height');
 assert.ok(css.includes('overflow: hidden'), 'document-level page scrolling should be locked');

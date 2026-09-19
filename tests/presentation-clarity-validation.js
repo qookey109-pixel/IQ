@@ -4,6 +4,7 @@ const assert = require('assert');
 
 const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-finalize.js','answer-position-balance.js','answer-quality.js'];
 const css=fs.readFileSync('heritage-theme.css','utf8');
+const spatialCss=fs.readFileSync('spatial-visual-fix.css','utf8');
 const html=fs.readFileSync('index.html','utf8');
 const store={};
 const window={addEventListener(){}};
@@ -67,6 +68,15 @@ assert.ok(html.indexOf('heritage-theme.css')>html.indexOf('viewport-stability.cs
 assert.strictEqual(html.includes('clarity-theme.css'),false);
 assert.ok(html.indexOf('presentation-clarity.js')>html.indexOf('answer-quality.js'));
 assert.ok(html.indexOf('presentation-clarity.js')<html.indexOf('app.js'));
+
+assert.ok(spatialCss.includes('min-height: clamp(220px, 28dvh, 300px)'),'non-matrix visual holder must not reserve the old oversized 340–420px block');
+assert.ok(spatialCss.includes('width: 100%; max-width: 460px'),'generic spatial wrapper must remain compact on desktop');
+assert.ok(spatialCss.includes('max-width: 360px;')&&spatialCss.includes('max-height: min(29dvh, 280px)'),'simple spatial families need a compact desktop cap');
+assert.ok(spatialCss.includes('family-shortest-grid-path')&&spatialCss.includes('max-width: 420px'),'dense path grids may keep a larger but bounded reading area');
+assert.ok(spatialCss.includes('max-width: 360px; max-height: 280px;'),'tablet/mobile spatial diagrams must use a smaller global cap');
+assert.ok(spatialCss.includes('width: min(100%, 205px, 22dvh)'),'matrix tasks must retain their existing compact 205px cap');
+assert.ok(!spatialCss.includes('max-width: 560px'),'oversized generic spatial wrapper must not return');
+assert.ok(!spatialCss.includes('min-height: clamp(340px, 40dvh, 420px)'),'oversized reserved diagram height must not return');
 
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.version,'3.1-qb5');
 assert.strictEqual(window.IQ_PRESENTATION_CLARITY.spatialTextOnly,false);

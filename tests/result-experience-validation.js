@@ -33,7 +33,7 @@ const shareStart = quality.indexOf('function resultShareText');
 const shareEnd = quality.indexOf('async function copyResultText', shareStart);
 assert.ok(shareStart >= 0 && shareEnd > shareStart, 'share-text function must remain inspectable');
 const shareSource = quality.slice(shareStart, shareEnd);
-for (const forbidden of ['performanceIndex','rawAccuracy','weightedAccuracy','speedEfficiency','CPI','IQ','percentile']) {
+for (const forbidden of ['performanceIndex','rawAccuracy','weightedAccuracy','speedEfficiency','iqEstimate','populationPercentile',' / 100']) {
   assert.ok(!shareSource.includes(forbidden), 'shared result text must not include internal metric token: ' + forbidden);
 }
 

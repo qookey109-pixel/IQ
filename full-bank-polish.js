@@ -51,7 +51,9 @@
   }
 
   function rebuildHardMultiRuleMatrix(q,n){
-    const phase=mod(n,6);
+    // Use a 24-state phase so all 18 hard concrete surfaces remain distinct while
+    // each individual attribute still cycles through a small inferable state space.
+    const phase=mod(n,24);
     const cell=(r,col)=>hardMatrixToken({
       shapeIndex:r+col+phase,
       filled:mod(r+col+phase,2)===1,

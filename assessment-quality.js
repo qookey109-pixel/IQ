@@ -69,9 +69,9 @@ function renderPlayfulHighlights(profile) {
       <p>今天最常先站到前面的解題方向。</p>
     </article>
     <article class="profileHighlight">
-      <span>副線索</span>
+      <span>${profile.coLead ? "並列主線" : "副線索"}</span>
       <strong>${profile.secondaryDomain}</strong>
-      <p>主線需要確認時，常接手補位的方向。</p>
+      <p>${profile.coLead ? "這次和另一條主線幾乎同時亮起來。" : "主線需要確認時，常接手補位的方向。"}</p>
     </article>
     <article class="profileHighlight profileHighlightWide">
       <span>今天的玩法</span>
@@ -89,9 +89,9 @@ function renderBrainConstellation(domains, profile) {
     const domainProfile = playfulDomainProfile(domain);
     const isPrimary = domain === profile.primaryDomain;
     const isSecondary = domain === profile.secondaryDomain && !isPrimary;
-    const role = isPrimary ? "主線" : (isSecondary ? "副線" : "");
+    const role = isPrimary ? "主線" : (isSecondary ? (profile.coLead ? "並列" : "副線") : "");
     const className = isPrimary ? "brainNode brainNodePrimary" :
-      (isSecondary ? "brainNode brainNodeSecondary" : "brainNode");
+      (isSecondary ? (profile.coLead ? "brainNode brainNodePrimary" : "brainNode brainNodeSecondary") : "brainNode");
 
     return `
       <div class="${className}" aria-label="${domain}${role ? `，${role}` : ""}">

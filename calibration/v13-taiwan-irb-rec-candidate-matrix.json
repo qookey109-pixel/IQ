@@ -1,10 +1,16 @@
 {
-  "version": "CIL-V13-TW-IRB-REC-CANDIDATE-MATRIX-2026.09.1",
-  "status": "candidate-discovery-complete-selection-not-frozen",
-  "purpose": "Document evidence-backed Taiwan IRB/REC candidate routes and unresolved intake questions without ranking, selecting, contacting, or submitting to any review board.",
+  "version": "CIL-V13-TW-IRB-REC-CANDIDATE-MATRIX-2026.09.2",
+  "status": "candidate-freshness-updated-inquiry-prepared-selection-not-frozen",
+  "purpose": "Maintain a freshness-aware Taiwan IRB/REC candidate set and unresolved intake questions without ranking, selecting, contacting, or submitting to any review board.",
   "authority": {
-    "basisMainSha": "bfa42b8434dc8c66f6475f615b31959d469bc75c",
-    "submissionAdministrationBlobSha": "f33e87adb6cfddd9b471c6c48913d1ba29a09fcc"
+    "basisMainSha": "8817b86b6b31ce10c6058ace8ce89761c4187347",
+    "submissionAdministrationBlobSha": "f33e87adb6cfddd9b471c6c48913d1ba29a09fcc",
+    "applicantContextReadinessPolicyBlobSha": "37ddbb466d12a750924c6876865500232979a86d"
+  },
+  "freshness": {
+    "verifiedOn": "2026-09-19",
+    "availabilityMustBeRecheckedBeforeContact": true,
+    "qualifiedStatusMustBeRecheckedBeforeSubmission": true
   },
   "officialQualifiedDirectory": {
     "agency": "Ministry of Health and Welfare, Department of Medical Affairs",
@@ -12,7 +18,6 @@
     "verifiedOn": "2026-09-19",
     "directoryPageLastUpdated": "2026-09-15",
     "annualNoticeUsed": "114年度人體研究倫理審查委員會暨受試者保護查核合格名單",
-    "annualNoticeUrl": "https://dep.mohw.gov.tw/doma/cp-3131-84962-106.html",
     "annualNoticePdfUrl": "https://www.mohw.gov.tw/dl-98466-797e7a10-ecda-4e39-a563-784afcc4b4d5.html"
   },
   "candidates": [
@@ -25,10 +30,17 @@
         "through": "2031-12-31",
         "source": "MOHW 114 annual qualified list"
       },
+      "availability": {
+        "status": "external-new-intake-paused-for-2026",
+        "availableForNewExternalSubmission": false,
+        "verifiedOn": "2026-09-19",
+        "sourcePublishedDate": "2026-09-10",
+        "sourceUrl": "https://ohr.tmu.edu.tw/zh-Hant/news/883",
+        "evidence": "TMU-JIRB states that 2026 external delegated-review capacity is full and new external cases are temporarily not accepted."
+      },
       "externalRouteEvidence": {
-        "status": "delegated-review-language-found",
-        "sourceUrl": "https://ohr.tmu.edu.tw/upload/news_files/1728878479%E8%87%BA%E5%8C%97%E9%86%AB%E5%AD%B8%E5%A4%A7%E5%AD%B8%E6%9A%A8%E9%99%84%E5%B1%AC%E9%86%AB%E9%99%A2%E8%81%AF%E5%90%88%E4%BA%BA%E9%AB%94%E7%A0%94%E7%A9%B6%E5%80%AB%E7%90%86%E5%A7%94%E5%93%A1%E6%9C%83%E5%AF%A9%E6%9F%A5%E8%B2%BB%E6%94%B6%E8%B2%BB%E8%A6%81%E9%BB%9E%281130924%E4%BF%AE%E6%AD%A3%E5%85%AC%E5%91%8A%29.pdf",
-        "evidence": "Fee rules explicitly include delegated-review plans and define submitters broadly to include PIs, companies, foundations, associations, schools, and medical institutions.",
+        "status": "delegated-review-route-documented-but-currently-paused",
+        "feeSourceUrl": "https://ohr.tmu.edu.tw/zh-Hant/news/367",
         "unaffiliatedIndividualAcceptanceVerified": false
       },
       "onlineBehavioralPsychometricScopeVerified": false,
@@ -36,10 +48,11 @@
         "currentProjectSpecificFeeVerified": false
       },
       "followUpRequired": [
-        "confirm whether an unaffiliated investigator may submit directly",
+        "do not treat as a 2026 immediately available external route",
+        "if considering 2027 or later, recheck external intake rules and capacity",
+        "confirm whether an unaffiliated investigator may submit directly under the then-current policy",
         "confirm whether online nonclinical psychometric research is accepted",
-        "confirm exact review category and fee for this project",
-        "confirm required institutional authorization if applicant is unaffiliated"
+        "confirm exact review category and fee for this project"
       ],
       "selected": false
     },
@@ -52,8 +65,14 @@
         "through": "2031-12-31",
         "source": "MOHW 114 annual qualified list"
       },
+      "availability": {
+        "status": "current-intake-availability-not-yet-verified",
+        "availableForNewExternalSubmission": null,
+        "verifiedOn": "2026-09-19"
+      },
       "externalRouteEvidence": {
-        "status": "not-yet-verified",
+        "status": "external-unaffiliated-route-not-yet-verified",
+        "publicIrbsSiteUrl": "https://ntchlibrary.ntpc.gov.tw/mreweb/IRB-WEB/irb-organization.html",
         "unaffiliatedIndividualAcceptanceVerified": false
       },
       "onlineBehavioralPsychometricScopeVerified": false,
@@ -62,8 +81,9 @@
       },
       "followUpRequired": [
         "confirm whether external or unaffiliated submissions are accepted",
-        "confirm online psychometric study scope",
-        "confirm submission process and fees"
+        "confirm whether online nonclinical psychometric research is accepted",
+        "confirm submission process and current fee",
+        "confirm training and institutional-authorization requirements"
       ],
       "selected": false
     },
@@ -76,10 +96,16 @@
         "through": "2031-12-31",
         "source": "MOHW 114 annual qualified list"
       },
+      "availability": {
+        "status": "external-research-route-documented-intake-confirmation-required",
+        "availableForNewExternalSubmission": null,
+        "verifiedOn": "2026-09-19",
+        "sourceUrl": "https://www.landseedhospital.com.tw/tw/Teach_medical/medical/%E4%BA%BA%E9%AB%94%E8%A9%A6%E9%A9%97%E5%A7%94%E5%93%A1%E6%9C%83/%E9%80%81%E5%AF%A9%E9%A0%88%E7%9F%A5"
+      },
       "externalRouteEvidence": {
         "status": "external-research-route-documented",
         "sourceUrl": "https://www.landseedhospital.com.tw/tw/Teach_medical/medical/%E4%BA%BA%E9%AB%94%E8%A9%A6%E9%A9%97%E5%A7%94%E5%93%A1%E6%9C%83/%E9%80%81%E5%AF%A9%E9%A0%88%E7%9F%A5%E8%BF%BD%E8%B9%A4%E4%BF%AE%E6%AD%A3%E6%A1%88",
-        "evidence": "Published fee tables distinguish external research from internal research; new-submission guidance also requires study-site consent documentation when recruitment occurs outside the hospital.",
+        "evidence": "Published materials distinguish external research from internal research and publish submission/training guidance.",
         "unaffiliatedIndividualAcceptanceVerified": false
       },
       "onlineBehavioralPsychometricScopeVerified": false,
@@ -87,10 +113,11 @@
         "currentProjectSpecificFeeVerified": false
       },
       "followUpRequired": [
-        "confirm whether unaffiliated applicant without hospital sponsor is accepted",
-        "confirm whether study-site authorization is needed for a public web recruitment model",
-        "confirm current new-application fee and review category",
-        "confirm training-hour requirements"
+        "confirm current capacity for a new external case",
+        "confirm whether an unaffiliated applicant without hospital sponsor is accepted",
+        "confirm whether public web recruitment requires study-site authorization",
+        "confirm review category and current fee",
+        "confirm ethics-training-hour requirements"
       ],
       "selected": false
     },
@@ -103,9 +130,15 @@
         "through": "2031-12-31",
         "source": "MOHW 114 annual qualified list"
       },
+      "availability": {
+        "status": "current-intake-availability-not-yet-verified",
+        "availableForNewExternalSubmission": null,
+        "verifiedOn": "2026-09-19"
+      },
       "externalRouteEvidence": {
-        "status": "not-yet-verified",
+        "status": "new-application-contact-public-external-route-unverified",
         "contactPageUrl": "https://www.vghtc.gov.tw/CP/7526",
+        "publicIrbsPageUrl": "https://www.vghtc.gov.tw/CP/2482",
         "unaffiliatedIndividualAcceptanceVerified": false
       },
       "onlineBehavioralPsychometricScopeVerified": false,
@@ -113,9 +146,10 @@
         "currentProjectSpecificFeeVerified": false
       },
       "followUpRequired": [
-        "confirm external or unaffiliated intake route",
-        "confirm online psychometric study scope",
-        "confirm review category, training requirements, and fees"
+        "confirm whether external or unaffiliated intake is accepted",
+        "confirm online nonclinical psychometric study scope",
+        "confirm current capacity",
+        "confirm review category, training requirements, institutional authorization, and fees"
       ],
       "selected": false
     },
@@ -129,22 +163,28 @@
         "source": "MOHW 114 annual qualified list",
         "shorterValidityWarning": true
       },
+      "availability": {
+        "status": "external-delegated-review-route-documented-intake-confirmation-required",
+        "availableForNewExternalSubmission": null,
+        "verifiedOn": "2026-09-19",
+        "sourceUrl": "https://org.ptvgh.gov.tw/irb/cp.aspx?n=25475D91CB732052"
+      },
       "externalRouteEvidence": {
         "status": "external-delegated-review-route-documented",
         "sourceUrl": "https://org.ptvgh.gov.tw/irb/cp.aspx?n=25475D91CB732052",
-        "evidence": "The board publishes a separate external delegated-review fee route and online submission process.",
+        "evidence": "The board publishes a separate external delegated-review fee route and an online submission process.",
         "unaffiliatedIndividualAcceptanceVerified": false
       },
       "onlineBehavioralPsychometricScopeVerified": false,
       "fees": {
-        "currentProjectSpecificFeeVerified": false,
-        "generalExternalFeeScheduleSource": "https://wwwfs.vghks.gov.tw/Download.ashx?n=5a%2Bp5p%2Bl6LK755So5pS26LK75qiZ5rqW6KGodjIuMC3moLjlrprniYgucGRm&u=LzAwMS9WZ2hrc1VwbG9hZEZpbGVzLzQ4Ni9ja2ZpbGUvMjE0Njc4M2ItMTc2Ni00MjZjLWFhNTEtZGRmOWQ1Yzc4MmUzLnBkZg%3D%3D"
+        "currentProjectSpecificFeeVerified": false
       },
       "followUpRequired": [
         "reconfirm qualified validity immediately before any submission because current listed term ends 2026-12-31",
-        "confirm whether unaffiliated applicant may use external delegated-review route",
-        "confirm online psychometric scope and required department/supervisor signatures",
-        "confirm exact fee category"
+        "confirm current intake capacity",
+        "confirm whether an unaffiliated applicant may use the external delegated-review route",
+        "confirm online nonclinical psychometric scope",
+        "confirm department/supervisor signature requirements and exact fee category"
       ],
       "selected": false
     }
@@ -155,8 +195,7 @@
       "status": "external-intake-temporarily-paused",
       "sourceUrl": "https://rec.ccu.edu.tw/",
       "verifiedOn": "2026-09-19",
-      "evidence": "The center currently states that September 2026 new-application capacity is full and external applications are temporarily paused.",
-      "reasonNotInCandidateSet": "Current external intake is not available; current MOHW qualified-list status was not established in this discovery pass."
+      "evidence": "The center currently states that September 2026 new-application capacity is full and external applications are temporarily paused."
     }
   ],
   "selectionPolicy": {
@@ -164,17 +203,10 @@
     "automaticSelectionAllowed": false,
     "selectedBoard": null,
     "selectionRequiresApplicantContext": true,
-    "requiredApplicantContext": [
-      "principalInvestigatorLegalName",
-      "principalInvestigatorTitleOrRole",
-      "researchInstitutionOrUnaffiliatedInvestigatorRoute",
-      "officialResearchContact",
-      "officialDataRightsContact",
-      "fundingSourceOrNoFundingDeclaration",
-      "conflictOfInterestDeclaration"
-    ],
+    "verificationInquiryRequiredBeforeSelection": true,
     "minimumPreSelectionVerifications": [
       "current-qualified-status",
+      "current-intake-capacity",
       "external-or-unaffiliated-intake-acceptance",
       "online-behavioral-psychometric-scope",
       "submission-process",

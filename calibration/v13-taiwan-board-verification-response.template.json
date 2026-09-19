@@ -1,0 +1,62 @@
+{
+  "version": "CIL-V13-TW-BOARD-VERIFICATION-RESPONSE-2026.09.1",
+  "status": "unverified-template",
+  "boardId": null,
+  "verifiedOn": null,
+  "availability": {
+    "acceptingNewExternalSubmissions": null,
+    "evidenceSource": null
+  },
+  "intake": {
+    "unaffiliatedIndividualAccepted": null,
+    "institutionalSponsorRequired": null,
+    "institutionalAuthorizationRequirements": null,
+    "evidenceSource": null
+  },
+  "scope": {
+    "onlineNonclinicalPsychometricStudyAccepted": null,
+    "publicWebRecruitmentAccepted": null,
+    "studySiteAuthorizationRequired": null,
+    "evidenceSource": null
+  },
+  "review": {
+    "applicabilityDeterminationServiceAvailable": null,
+    "suggestedReviewRoute": null,
+    "currentFeeVerified": false,
+    "feeDescription": null,
+    "evidenceSource": null
+  },
+  "training": {
+    "requirementsVerified": false,
+    "description": null,
+    "evidenceSource": null
+  },
+  "submissionProcess": {
+    "currentFormsAndSystemVerified": false,
+    "description": null,
+    "evidenceSource": null
+  },
+  "privacyAndConsent": {
+    "additionalRequirementsVerified": false,
+    "description": null,
+    "evidenceSource": null
+  },
+  "evidence": {
+    "publicOfficialUrls": [],
+    "privateBoardReplyRecordReference": null,
+    "phoneOnlyEvidenceAllowedForFreeze": false
+  },
+  "selection": {
+    "selected": false,
+    "selectionAuthorized": false
+  },
+  "contactAndSubmission": {
+    "contactAuthorized": false,
+    "submissionAuthorized": false
+  },
+  "collection": {
+    "realParticipantCollectionAuthorized": false,
+    "recruitmentLaunchAuthorized": false,
+    "participantDataAccessAuthorized": false
+  }
+}

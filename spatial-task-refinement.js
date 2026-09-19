@@ -27,6 +27,9 @@
     {dx:1,dy:-1,label:'右下方'}
   ];
 
+  const relativePositionUsed=new Set();
+  const relativePositionById=new Map();
+
   function setFourOptions(q,correct,wrong){
     const target=Number.isInteger(q.a)&&q.a>=0&&q.a<4?q.a:0;
     const clean=[],seen=new Set([String(correct)]);
@@ -40,7 +43,7 @@
     q.o=out;q.a=target;q.correctContent=String(correct);
   }
 
-  function relativePositionData(q){
+  function relativePositionData(q,salt=0){
     const match=String(q.id||'').match(/-(\d{3})$/);
     const n=Math.max(0,(match?Number(match[1]):1)-1);
     const variant=Math.max(0,Number(q.constructVariant||1)-1);
@@ -48,8 +51,8 @@
     const dirIndex=(n+variant*3+tier*5)%REL_DIRS.length;
     const dir=REL_DIRS[dirIndex];
     const distance=2+((Math.floor(n/8)+variant+tier)%3);
-    const seedX=Math.floor(n/8)+variant*7+tier*11;
-    const seedY=Math.floor(n/4)+variant*5+tier*13;
+    const seedX=Math.floor(n/8)+variant*7+tier*11+salt*3;
+    const seedY=Math.floor(n/4)+variant*5+tier*13+salt*5;
     const chooseStart=(seed,delta)=>{
       if(delta>0){const span=10-distance;return 1+(seed%span);}
       if(delta<0){const span=10-distance;return distance+1+(seed%span);}
@@ -81,7 +84,17 @@
   }
 
   function refineRelativePosition(q){
-    const data=relativePositionData(q);
+    let data=relativePositionById.get(q.id);
+    if(!data){
+      let salt=0,key='';
+      do{
+        data=relativePositionData(q,salt++);
+        key=JSON.stringify([data.start,data.end,data.direction]);
+      }while(relativePositionUsed.has(key)&&salt<200);
+      if(relativePositionUsed.has(key))throw new Error('spatial refinement: unable to allocate unique relative-position layout for '+q.id);
+      relativePositionUsed.add(key);
+      relativePositionById.set(q.id,data);
+    }
     const correct=data.direction;
     const i=data.directionIndex;
     setFourOptions(q,correct,[

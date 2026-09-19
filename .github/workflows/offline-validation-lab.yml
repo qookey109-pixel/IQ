@@ -2,11 +2,25 @@ name: Offline Validation Lab
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'scripts/normalize-public-dataset.js'
+      - 'scripts/run-offline-validation-lab.js'
+      - 'tests/offline-validation-lab-validation.js'
+      - '.github/workflows/offline-validation-lab.yml'
   push:
     branches:
       - main
       - feature/cognitive-iq-lab-v6
       - feature/calibration-v6-offline-validation-lab
+    paths:
+      - 'calibration/**'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'scripts/normalize-public-dataset.js'
+      - 'scripts/run-offline-validation-lab.js'
+      - 'tests/offline-validation-lab-validation.js'
+      - '.github/workflows/offline-validation-lab.yml'
 
 jobs:
   validate-offline-lab:

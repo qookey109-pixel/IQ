@@ -2,11 +2,21 @@ name: Pooled Calibration Validation
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/pool-calibration-exports.js'
+      - 'tests/pooled-study-validation.js'
+      - '.github/workflows/pooled-study-validation.yml'
   push:
     branches:
       - main
       - feature/cognitive-iq-lab-v6
       - feature/calibration-v4-pooled-study
+    paths:
+      - 'calibration/**'
+      - 'scripts/pool-calibration-exports.js'
+      - 'tests/pooled-study-validation.js'
+      - '.github/workflows/pooled-study-validation.yml'
 
 jobs:
   validate-pooled-calibration:

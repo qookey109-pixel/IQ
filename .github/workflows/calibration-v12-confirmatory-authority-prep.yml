@@ -2,10 +2,22 @@ name: Calibration v12 — Confirmatory Authority Preparation
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-v12-confirmatory.js'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'tests/calibration-v12-confirmatory-authority-prep-validation.js'
+      - '.github/workflows/calibration-v12-confirmatory-authority-prep.yml'
   push:
     branches:
       - main
       - research/calibration-v12-confirmatory-authority-prep-20260918
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-v12-confirmatory.js'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'tests/calibration-v12-confirmatory-authority-prep-validation.js'
+      - '.github/workflows/calibration-v12-confirmatory-authority-prep.yml'
 
 jobs:
   validate-authority-preparation:

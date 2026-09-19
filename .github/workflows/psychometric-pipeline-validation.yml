@@ -2,11 +2,29 @@ name: Psychometric Pipeline Validation
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-psychometric-pipeline.js'
+      - 'scripts/build-psychometric-readiness-report.js'
+      - 'scripts/build-item-review-queue.js'
+      - 'tests/psychometric-pipeline-validation.js'
+      - 'tests/calibration-v12-dif-matching-protocol-validation.js'
+      - 'tests/calibration-v12-confirmatory-preregistration-validation.js'
+      - '.github/workflows/psychometric-pipeline-validation.yml'
   push:
     branches:
       - main
       - feature/cognitive-iq-lab-v6
       - feature/calibration-v5-psychometric-pipeline
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-psychometric-pipeline.js'
+      - 'scripts/build-psychometric-readiness-report.js'
+      - 'scripts/build-item-review-queue.js'
+      - 'tests/psychometric-pipeline-validation.js'
+      - 'tests/calibration-v12-dif-matching-protocol-validation.js'
+      - 'tests/calibration-v12-confirmatory-preregistration-validation.js'
+      - '.github/workflows/psychometric-pipeline-validation.yml'
 
 jobs:
   validate-psychometric-pipeline:

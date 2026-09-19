@@ -1,0 +1,49 @@
+name: Calibration v13 — Taiwan Applicant Context Intake
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/V13_TAIWAN_APPLICANT_CONTEXT_INTAKE.md'
+      - 'calibration/v13-taiwan-applicant-context-intake.template.json'
+      - 'calibration/v13-taiwan-applicant-context-readiness-policy.json'
+      - 'scripts/check-v13-taiwan-applicant-context.js'
+      - 'tests/calibration-v13-taiwan-applicant-context-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-applicant-context.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-applicant-context-intake-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-applicant-context-intake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate applicant-context intake semantics
+        run: |
+          node --check scripts/check-v13-taiwan-applicant-context.js
+          node --check tests/calibration-v13-taiwan-applicant-context-validation.js
+          node tests/calibration-v13-taiwan-applicant-context-validation.js
+
+      - name: Prove public template remains incomplete and execution locked
+        run: |
+          node scripts/check-v13-taiwan-applicant-context.js > /tmp/applicant-context.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/applicant-context.json', 'utf8'));
+          if (r.status !== 'APPLICANT_CONTEXT_INCOMPLETE') process.exit(1);
+          if (r.boardSelected !== false) process.exit(1);
+          if (r.externalBoardContactAuthorized !== false) process.exit(1);
+          if (r.submissionAuthorized !== false) process.exit(1);
+          if (r.collectionAuthorized !== false) process.exit(1);
+          console.log('v13 Taiwan applicant-context public-template lock PASS');
+          NODE

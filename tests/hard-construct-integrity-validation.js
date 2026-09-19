@@ -24,6 +24,7 @@ for(const q of bank.filter(q=>q.taskFamily==='invariant-transfer'&&q.difficulty=
   const nums=(q.q.match(/\d+/g)||[]).map(Number);assert.ok(nums.length>=5);let expectedAns;
   assert.ok(q.q.includes('丁'),`${q.id}: external transfer actor must be explicit`);
   assert.ok(q.q.includes('不再放回'),`${q.id}: removed objects must explicitly leave the counted system`);
+  assert.ok(q.q.includes('之外'),`${q.id}: newly added objects must explicitly come from outside the counted system`);
   if(q.constructVariant===7){const [A,B,,removed,added]=nums;expectedAns=A+B-removed+added;}else{const [A,B,C,,,removed,added]=nums;expectedAns=A+B+C-removed+added;}
   assert.strictEqual(String(expectedAns),answer(q),`${q.id}: internal transfers must cancel; external net change remains`);
 }

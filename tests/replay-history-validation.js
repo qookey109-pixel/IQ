@@ -81,7 +81,7 @@ for (const forbidden of ['performanceIndex','rawAccuracy','answers','"correct"',
 }
 
 assert.strictEqual(H.clear(),true);
-assert.deepStrictEqual(Array.from(H.read()),[]);
+assert.strictEqual(H.read().length,0);
 
 console.log('Replay motivation validation PASS');
 console.log('Local history keeps at most four qualitative title identities; no score, answer, timing, demographic, or upload data is stored.');

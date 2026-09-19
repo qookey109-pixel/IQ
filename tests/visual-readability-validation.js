@@ -35,14 +35,15 @@ const stable = bank.map(q => [
 // provide three complete example rows; scale-drawing items explicitly distinguish
 // scaling-only from scale-then-translate and expose every translation vector;
 // speed-boundary and full-box packing wording is explicit; transfer-system boundaries,
-// one-to-one matching assumptions and reserved-capacity wording are now unambiguous.
+// one-to-one matching assumptions and reserved-capacity wording are now unambiguous;
+// viewpoint-heading instructions use explicit degree values instead of ambiguous "格" counts.
 // Before this baseline
 // is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
 // screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
 // Future presentation-only changes must preserve this reviewed content, answer keys,
 // timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, 'c75be32a0b07be13a93e7900f84d8507bd6fefe139e31f866af75c8a14fbba4f',
+assert.strictEqual(digest, 'a97597a7820cdf52dd01b9c139f5d1a0d27fa1b471eaef96791f85540f7f0948',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

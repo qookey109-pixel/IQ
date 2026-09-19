@@ -31,11 +31,9 @@ assert.ok(negation.every(q=>/邏輯|等價/.test(q.q)),'scope-negation should us
 const transfer=bank.filter(q=>q.taskFamily==='invariant-transfer');
 assert.ok(transfer.every(q=>!q.q.includes('三個容器中共有')),'invariant-transfer should use natural container wording');
 assert.ok(transfer.some(q=>q.q.includes('甲、乙、丙三個容器分別有')));
-const hardExternalTransfer=transfer.filter(q=>q.difficulty==='hard'&&[7,8].includes(Number(q.constructVariant)));
-assert.ok(hardExternalTransfer.every(q=>q.q.includes('丁')),
-  'external add/remove transfer items must name the external actor');
-assert.ok(hardExternalTransfer.every(q=>q.q.includes('不再放回')),
-  'removed objects must be explicitly outside the counted system');
+// Hard-only external add/remove variants are applied later by hard-construct-integrity.js
+// in the production runtime. Their actor/system-boundary wording is guarded in
+// tests/hard-construct-integrity-validation.js, not in this earlier language-stage test.
 
 const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');

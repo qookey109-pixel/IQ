@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-11**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC11 hard-only fluid-matrix change set**  
-Branch base: `a390992fe1a1464a36995e718558da2ec0399601`
+Release candidate: **RC-2026.09.19-12**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC12 complete hard-fluid reasoning change set**  
+Branch base: `edf304eb97daeb4ef90c55f36e1462d863e31609`
 
 ## Active product
 
@@ -95,7 +95,7 @@ RC10 is expected to preserve:
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc11`
+- cache-busted RC assets: `20260919-rc12`
 
 ## Previous maintenance convergence
 
@@ -134,3 +134,12 @@ The playful title system deliberately avoids a public quantitative standard whil
 - Hard variant 8 becomes a 3×3 logical-composition matrix: symbol sets follow XOR while arrow direction follows a second composition rule.
 - The hard items use plausible distractors that each preserve part of the pattern instead of obviously wrong alternatives.
 - The 42-item blueprint remains 2 easy + 3 medium + 2 hard per domain; this change strengthens only the hard matrix surfaces and does not unlock any IQ/norming governance gate.
+
+## RC12 delta
+
+- Completes the hard-only pass across all seven fluid-reasoning families.
+- `machine-composition` hard items now work backward from a final output or infer the correct input through a parity branch instead of doing a forward plug-in calculation.
+- `ordering-constraints` hard items now combine adjacency, exact-position, distance and non-adjacency constraints; each generated instance has one global ordering solution.
+- `code-deduction` hard items now require solving overlapping pair/triple-sum systems by elimination.
+- The RC11 hard matrix upgrade remains intact: four-attribute matrices and XOR+orientation matrices are still hard-only.
+- Easy/medium items, 42-item quotas, Scoring v2, timing, calibration data, and all IQ/norming governance locks remain unchanged.

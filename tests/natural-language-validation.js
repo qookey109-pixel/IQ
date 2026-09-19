@@ -36,10 +36,12 @@ assert.ok(transfer.some(q=>q.q.includes('甲、乙、丙三個容器分別有'))
 // tests/hard-construct-integrity-validation.js, not in this earlier language-stage test.
 
 const averages=bank.filter(q=>q.taskFamily==='quant-average');
+assert.strictEqual(averages.length,144);
+assert.ok(averages.every(q=>!/第 \d+ 次是|新的平均/.test(q.q)),'average stems must avoid ambiguous occurrence/update wording');
+assert.ok(averages.every(q=>String(q.q).length<70),'average stems should stay concise');
 const addObservation=averages.filter(q=>Number(q.constructVariant)===3);
 assert.ok(addObservation.length>0,'expected add-observation average items');
-assert.ok(addObservation.every(q=>/現在再加入第 \d+ 個數 \d+/.test(q.q)),'average update items must explicitly say the new value is added');
-assert.ok(addObservation.every(q=>!/第 \d+ 次是 \d+/.test(q.q)),'average update items must not use ambiguous occurrence wording');
+assert.ok(addObservation.every(q=>/再加入 \d+ 後/.test(q.q)),'average update items must explicitly say the new value is added');
 
 const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');

@@ -1269,9 +1269,7 @@ body {
 
 .resultSide {
   min-height: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 9px;
+  display: block;
 }
 
 .profileHighlights {

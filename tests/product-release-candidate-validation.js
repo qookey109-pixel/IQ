@@ -102,10 +102,14 @@ assert.ok(html.includes('id="quizProgress" class="progress" role="progressbar"')
 assert.ok(html.includes('id="question" class="question" tabindex="-1"'));
 assert.ok(timing.includes('return timingBaseFinishTest();'));
 
-assert.ok(spatialCss.includes('min-height: clamp(220px, 28dvh, 300px)'),'RC spatial holder must stay compact');
-assert.ok(spatialCss.includes('max-width: 360px; max-height: 280px;'),'RC narrow-screen diagrams must stay compact');
+assert.ok(spatialCss.includes('max-height: min(32dvh, 300px)'),'RC spatial holder must stay bounded');
+assert.ok(spatialCss.includes('max-width: 320px; max-height: 240px;'),'RC narrow-screen diagrams must stay compact');
 assert.ok(spatialCss.includes('width: min(100%, 205px, 22dvh)'),'RC matrix cap must remain 205px');
 assert.ok(!spatialCss.includes('max-width: 560px'),'RC must not restore oversized spatial wrappers');
+assert.ok(spatialCss.includes('overflow: hidden'),'RC diagram holder must not spill into answer choices');
+assert.ok(spatialCss.includes('questionText-long'),'RC must scale dense prompts without making all questions small');
+assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)'),'RC footer hint must not collide with navigation buttons');
+
 
 console.log('Product Release Candidate validation PASS');
 console.log('RC-2026.09.19-8: direct entry, real-play wording/layout QA, qualitative hexagon results, replay history, accessibility, governance locks, and fallback boundaries are consistent.');

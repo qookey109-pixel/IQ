@@ -69,12 +69,19 @@ assert.strictEqual(html.includes('clarity-theme.css'),false);
 assert.ok(html.indexOf('presentation-clarity.js')>html.indexOf('answer-quality.js'));
 assert.ok(html.indexOf('presentation-clarity.js')<html.indexOf('app.js'));
 
-assert.ok(spatialCss.includes('min-height: clamp(220px, 28dvh, 300px)'),'non-matrix visual holder must not reserve the old oversized 340–420px block');
-assert.ok(spatialCss.includes('width: 100%; max-width: 460px'),'generic spatial wrapper must remain compact on desktop');
-assert.ok(spatialCss.includes('max-width: 360px;')&&spatialCss.includes('max-height: min(29dvh, 280px)'),'simple spatial families need a compact desktop cap');
+assert.ok(spatialCss.includes('max-height: min(32dvh, 300px)'),'non-matrix visual holder must have a bounded height');
+assert.ok(spatialCss.includes('width: 100%; max-width: 420px'),'generic spatial wrapper must remain compact on desktop');
+assert.ok(spatialCss.includes('max-width: 320px;')&&spatialCss.includes('max-height: min(25dvh, 235px)'),'simple spatial families need a compact desktop cap');
 assert.ok(spatialCss.includes('family-shortest-grid-path')&&spatialCss.includes('max-width: 420px'),'dense path grids may keep a larger but bounded reading area');
-assert.ok(spatialCss.includes('max-width: 360px; max-height: 280px;'),'tablet/mobile spatial diagrams must use a smaller global cap');
+assert.ok(spatialCss.includes('max-width: 320px; max-height: 240px;'),'tablet/mobile spatial diagrams must use a smaller global cap');
 assert.ok(spatialCss.includes('width: min(100%, 205px, 22dvh)'),'matrix tasks must retain their existing compact 205px cap');
+assert.ok(spatialCss.includes('overflow: hidden'),'non-matrix diagram holder must contain the visual instead of overlapping answer rows');
+assert.ok(spatialCss.includes('margin-top: 8px'),'answer choices need breathing room below diagrams');
+assert.ok(spatialCss.includes('questionText-long')&&spatialCss.includes('questionText-very-long'),'dense prompts need length-aware typography');
+assert.ok(spatialCss.includes('white-space: pre-line'),'sentence-level line breaks must render clearly');
+assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)'),'footer navigation and hint must have separate layout columns');
+assert.ok(spatialCss.includes('max-width: 38ch'),'footer hint must wrap before reaching the card edge');
+
 assert.ok(!spatialCss.includes('max-width: 560px'),'oversized generic spatial wrapper must not return');
 assert.ok(!spatialCss.includes('min-height: clamp(340px, 40dvh, 420px)'),'oversized reserved diagram height must not return');
 

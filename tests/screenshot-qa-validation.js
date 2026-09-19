@@ -59,8 +59,14 @@ assert.ok(assessment.includes('iqConversionEnabled: false'),'IQ conversion must 
 assert.ok(assessment.includes('populationPercentileAvailable: false'),'population percentile must remain unavailable');
 assert.ok(index.includes('id="playfulTitle"'),'public result needs a playful title slot');
 assert.ok(index.includes('id="profileHighlights"'),'public result needs qualitative highlight cards');
+assert.ok(index.includes('id="resultSignature"'),'public result needs a qualitative signature');
+assert.ok(index.includes('id="brainConstellation"'),'public result needs a no-scale six-domain view');
+assert.ok(index.includes('id="copyResultBtn"')&&index.includes('id="shareResultBtn"'),'public result needs copy/share actions');
 assert.ok(index.includes('沒有分數，只有這次作答的趣味輪廓。'),'public result must state the no-score direction');
 assert.ok(resultCss.includes('.internalResultDiagnostics')&&resultCss.includes('display: none !important'),'internal quantitative diagnostics must be hidden from the public surface');
+assert.ok(resultCss.includes('.brainNodePrimary')&&resultCss.includes('.brainNodeSecondary'),'public domain view must use role-only styling');
+assert.ok(assessment.includes('shareIncludesNumericScore: false'),'shared result must exclude numeric scores');
+assert.ok(assessment.includes('publicDomainVisualization: "role-only-no-scale"'),'public domain view must remain scale-free');
 
 console.log('Screenshot QA regression validation PASS');
 console.log('Matrix evidence, explicit speed/packing wording, and qualitative public-result integrity are protected.');

@@ -41,12 +41,13 @@ for(const forbidden of ['Math.max(70','Math.min(130','70 + overall * 0.6','index
 }
 assert.ok(timing.includes('const timingBaseFinishTest = finishTest;'));
 assert.ok(timing.includes('return timingBaseFinishTest();'));
-assert.ok(quality.includes('CPI ONLY'));
+assert.ok(quality.includes('publicScoreVisible: false'));
+assert.ok(quality.includes('publicQuantitativeStandard: false'));
 assert.ok(quality.includes('iqConversionEnabled: false'));
 
 // Exercise the fallback chain without assessment-quality.js.
 // Production normally loads assessment-quality later; this proves the lower timing fallback
-// still returns CPI-only output if that final layer does not take over.
+// still returns a non-quantitative public message if that final layer does not take over.
 function element(){
   return {
     textContent:'', innerHTML:'', className:'', disabled:false, onclick:null,

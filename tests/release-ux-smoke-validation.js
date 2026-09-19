@@ -19,7 +19,8 @@ assert.ok(pos('pretest-flow.js') > pos('app.js'));
 assert.ok(pos('timeout-lock.js') > pos('pretest-flow.js'));
 assert.ok(pos('memory-exposure.js') > pos('timeout-lock.js'));
 assert.ok(pos('scoring-v2.js') > pos('memory-exposure.js'));
-assert.ok(pos('assessment-quality.js') > pos('scoring-v2.js'));
+assert.ok(pos('result-title-engine.js') > pos('scoring-v2.js'));
+assert.ok(pos('assessment-quality.js') > pos('result-title-engine.js'));
 assert.ok(pos('navigation-layout-fix.js') > pos('assessment-quality.js'));
 
 assert.ok(pretest.includes('totalQuestions !== 42'),'formal entry must reject non-42 production forms');

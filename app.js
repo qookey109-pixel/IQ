@@ -62,12 +62,15 @@ function startTimer() {
 
 function renderMiniNav() {
   const html = questions.map((q, i) => {
+    const answered = answers[i] !== null;
     const cls = [
       "dot",
       i === currentIndex ? "current" : "",
-      answers[i] !== null ? "done" : ""
+      answered ? "done" : ""
     ].join(" ").trim();
-    return `<button class="${cls}" onclick="jumpTo(${i})">${i+1}</button>`;
+    const state = answered ? "已作答" : "未作答";
+    const current = i === currentIndex ? ' aria-current="step"' : "";
+    return `<button type="button" class="${cls}" aria-label="第 ${i+1} 題，${q.d}，${state}"${current} onclick="jumpTo(${i})">${i+1}</button>`;
   }).join("");
   $("miniNav").innerHTML = html;
 }
@@ -84,8 +87,10 @@ function renderQuestion(animationClass = "") {
   const q = questions[currentIndex];
   $("counter").textContent = `第 ${currentIndex + 1} 題 / ${totalQuestions}`;
   $("domain").textContent = q.d;
-  $("progressBar").style.width = `${(currentIndex / totalQuestions) * 100}%`;
+  $("progressBar").style.width = `${((currentIndex + 1) / totalQuestions) * 100}%`;
   $("progressText").textContent = `${currentIndex + 1} / ${totalQuestions}`;
+  const progress = $("quizProgress");
+  if (progress && typeof progress.setAttribute === "function") progress.setAttribute("aria-valuenow", String(currentIndex + 1));
   $("prevBtn").disabled = currentIndex === 0;
   renderMiniNav();
 
@@ -137,8 +142,8 @@ function renderQuestion(animationClass = "") {
     optionsEl.innerHTML = q.o.map((opt, idx) => {
       const selected = answers[currentIndex] === idx ? "selected" : "";
       return `
-        <button class="option ${selected}" onclick="selectAnswer(${idx})">
-          <span style="opacity:.55;margin-right:8px">${String.fromCharCode(65+idx)}.</span>${opt}
+        <button type="button" class="option ${selected}" aria-pressed="${answers[currentIndex] === idx ? "true" : "false"}" onclick="selectAnswer(${idx})">
+          <span aria-hidden="true" style="opacity:.55;margin-right:8px">${String.fromCharCode(65+idx)}.</span>${opt}
         </button>
       `;
     }).join("");
@@ -166,7 +171,9 @@ function selectAnswer(choice) {
   answers[currentIndex] = choice;
   renderMiniNav();
   document.querySelectorAll(".option").forEach((el, idx) => {
-    el.classList.toggle("selected", idx === choice);
+    const selected = idx === choice;
+    el.classList.toggle("selected", selected);
+    el.setAttribute("aria-pressed", selected ? "true" : "false");
   });
   setTimeout(() => {
     if (currentIndex < totalQuestions - 1) {

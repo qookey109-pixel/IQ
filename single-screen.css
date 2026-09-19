@@ -1772,3 +1772,31 @@ body {
     margin-top: 3px;
   }
 }
+
+
+/* ---------- KEYBOARD / ACCESSIBILITY POLISH ---------- */
+
+:where(.btn, .option, .dot, .screenClose):focus-visible {
+  outline: 3px solid #1f5fae;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.96);
+}
+
+.option[aria-pressed="true"] {
+  border-color: #8daed8;
+}
+
+.dot[aria-current="step"] {
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  :where(.btn, .option, .dot, .screenClose):focus-visible {
+    outline: 2px solid CanvasText;
+  }
+
+  .option[aria-pressed="true"],
+  .dot[aria-current="step"] {
+    border: 2px solid CanvasText;
+  }
+}

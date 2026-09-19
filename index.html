@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f3ecdf">
 <title>Cognitive IQ Lab v6</title>
 <meta name="description" content="42 題多構面認知遊戲，完成後獲得今天的大腦趣味稱號。">
-<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc6">
+<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc7">
 <!-- IQ_STYLE_SOURCES
 styles.css
 single-screen.css?v=20260914-dial
@@ -15,7 +15,7 @@ viewport-stability.css
 heritage-theme.css
 spatial-visual-fix.css
 -->
-<script src="runtime.bundle.js?v=20260919-rc6" defer></script>
+<script src="runtime.bundle.js?v=20260919-rc7" defer></script>
 <!-- IQ_RUNTIME_SOURCES
 question-bank.js
 qb5-core.js
@@ -86,7 +86,7 @@ single-screen.js
         <div class="quickFacts" aria-label="測驗摘要">
           <div><strong>2,058</strong><span>完整題庫題數</span></div><div><strong>42</strong><span>每次抽題</span></div><div><strong>42</strong><span>題型家族</span></div><div><strong>294</strong><span>構念變體</span></div>
         </div>
-        <div class="actions compactActions"><button class="btn primary" id="startBtn">直接開始 42 題</button><button class="btn secondary" id="aboutBtn">怎麼測？</button></div>
+        <div class="actions compactActions"><button type="button" class="btn primary" id="startBtn">直接開始 42 題</button><button type="button" class="btn secondary" id="aboutBtn">怎麼測？</button></div>
         <div class="playfulDisclaimer"><strong>不構成任何標準，好玩就好。</strong><span>內容僅供參考；若有出入，以你的想像力為準。</span></div>
       </div>
       <div class="assessmentDial" aria-label="題庫結構">
@@ -109,9 +109,9 @@ single-screen.js
 
   <section id="quiz" class="card screenPanel hidden">
     <div class="quizTop"><div class="quizIdentity"><div class="quizHeaderTop"><div id="counter" class="counter">第 1 題 / 42</div><div id="domain" class="domainBadge">流體推理</div></div><div class="quizMeta">QB-2026.09.5 · rev 5.0 · 只有標示「限時」的題目會倒數</div></div><div class="timersPanel"><div class="timerWrap"><div id="timerLabel" class="timerLabel">本題時間</div><div id="timer" class="timer untimedTimer">不限時</div></div><div class="timerWrap totalTimeWrap"><div class="timerLabel">總時間</div><div id="totalTimer" class="timer totalTimer">00:00</div></div></div></div>
-    <div class="progressBlock compactProgress"><div class="progressLabel"><span>進度</span><span id="progressText">1 / 42</span></div><div class="progress"><div id="progressBar" class="progressBar"></div></div></div>
-    <div class="navigator compactNavigator" aria-hidden="true"><div id="miniNav" class="miniNav"></div></div>
-    <div class="stage"><div id="questionCard" class="questionCard compactQuestionCard"><div id="visualHolder"></div><div class="questionMetaRow"><div id="questionTimeBadge" class="questionTimeBadge untimed">不限時</div></div><div id="question" class="question"></div><div id="help" class="help"></div><div id="options" class="options"></div><div class="footerActions"><div class="actions" style="margin-top:0"><button id="prevBtn" class="btn secondary">上一題</button><button id="skipBtn" class="btn secondary">下一題</button></div><div class="hint">選答案後自動下一題 · 也可手動前後瀏覽</div></div></div></div>
+    <div class="progressBlock compactProgress"><div class="progressLabel"><span>進度</span><span id="progressText">1 / 42</span></div><div id="quizProgress" class="progress" role="progressbar" aria-label="測驗進度" aria-valuemin="1" aria-valuemax="42" aria-valuenow="1"><div id="progressBar" class="progressBar"></div></div></div>
+    <nav class="navigator compactNavigator" aria-label="題目導覽"><div id="miniNav" class="miniNav"></div></nav>
+    <div class="stage"><div id="questionCard" class="questionCard compactQuestionCard"><div id="visualHolder"></div><div class="questionMetaRow"><div id="questionTimeBadge" class="questionTimeBadge untimed">不限時</div></div><div id="question" class="question" tabindex="-1"></div><div id="help" class="help"></div><div id="options" class="options" role="group" aria-labelledby="question"></div><div class="footerActions"><div class="actions" style="margin-top:0"><button type="button" id="prevBtn" class="btn secondary">上一題</button><button type="button" id="skipBtn" class="btn secondary">下一題</button></div><div class="hint">選答案後自動下一題 · 也可手動前後瀏覽</div></div></div></div>
   </section>
 
   <section id="result" class="card screenPanel hidden">
@@ -165,8 +165,8 @@ single-screen.js
 
     <div class="resultBottom">
       <div class="resultActionGroups">
-        <div class="actions compactActions"><button id="restartBtn" class="btn primary">抽新題再測</button><button id="reviewBtn" class="btn secondary">逐題解析</button></div>
-        <div class="actions compactActions shareActions"><button id="copyResultBtn" class="btn secondary">複製結果</button><button id="shareResultBtn" class="btn secondary">分享結果</button></div>
+        <div class="actions compactActions"><button type="button" id="restartBtn" class="btn primary">抽新題再測</button><button type="button" id="reviewBtn" class="btn secondary">逐題解析</button></div>
+        <div class="actions compactActions shareActions"><button type="button" id="copyResultBtn" class="btn secondary">複製結果</button><button type="button" id="shareResultBtn" class="btn secondary">分享結果</button></div>
       </div>
       <div class="resultFooterNote">
         <div id="shareStatus" class="shareStatus" role="status" aria-live="polite"></div>

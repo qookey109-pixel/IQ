@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-6**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC6 replay-motivation change set**  
-Branch base: `7ad1768b9e5c96376321bec3f039885b7f154610`
+Release candidate: **RC-2026.09.19-7**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC7 accessibility-polish change set**  
+Branch base: `f1cde714e5a46b8de7e8c2030a84b49e83760df4`
 
 ## Active product
 
@@ -18,6 +18,8 @@ Branch base: `7ad1768b9e5c96376321bec3f039885b7f154610`
 - Title selection: **deterministic; identical domain ordering yields identical title**
 - Replay history: **local browser only, last 4 qualitative titles, no scores or answers**
 - Replay comparison: **same-route / changed-route qualitative prompt only**
+- Keyboard access: **named question navigation, pressed/current states, question focus handoff, modal focus containment**
+- Focus visibility: **explicit focus-visible + forced-colors support**
 - Public six-domain view: **role-only constellation (主線／副線), no scale and no numeric values**
 - Public sharing: **copy/share qualitative text only; no internal score is included**
 - Public numeric score: **none**
@@ -63,7 +65,7 @@ Public-result metadata additionally requires:
 
 ## Release-candidate evidence
 
-RC6 is expected to preserve:
+RC7 is expected to preserve:
 
 - 2,058-item / 42-item production validation
 - independent answer oracle and answer-position balance
@@ -80,12 +82,16 @@ RC6 is expected to preserve:
 - replay storage capped at 4 entries and limited to title/emoji/variant/domain identity only
 - replay history stores no CPI, score, accuracy, answers, timing, demographics, or participant identifiers
 - replay history never auto-uploads
+- focusable question navigation is not hidden from assistive technology
+- dynamic answer buttons expose `aria-pressed`; current question exposes `aria-current=step`
+- question changes move focus to the new prompt without scrolling the page
+- modal open/Tab/Escape/close behavior keeps focus contained and restores the opener
 - share text contains no CPI / IQ / percentile / numeric ability output
 - six-domain public visualization is role-only and has no score scale
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc6`
+- cache-busted RC assets: `20260919-rc7`
 
 ## Frozen research lineage
 

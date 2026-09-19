@@ -112,11 +112,21 @@
     card.dataset.visualLayout = "split";
   }
 
+  function focusQuestionPrompt() {
+    const quiz = $("quiz");
+    const question = $("question");
+    if (!quiz || quiz.classList.contains("hidden") || !question) return;
+    requestAnimationFrame(() => {
+      if (!quiz.classList.contains("hidden")) question.focus({ preventScroll: true });
+    });
+  }
+
   const baseRenderQuestionNavigation = renderQuestion;
   renderQuestion = function (animationClass = "") {
     const result = baseRenderQuestionNavigation(animationClass);
     updateForwardControl();
     applyQuestionLayoutClass();
+    focusQuestionPrompt();
     return result;
   };
 

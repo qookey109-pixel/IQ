@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-6** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-7** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -229,3 +229,14 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - 不會自動上傳；資料只存在瀏覽器 localStorage，可隨瀏覽器網站資料一起清除。
 - 結果頁只提示「這次和上次同路線」或「這次換路線了」，不把多次結果解讀成能力趨勢、進步／退步或人格穩定性。
 - 手機版最近模式縮成小型 chip；短畫面會進一步隱藏說明文字，維持 single-screen 結果體驗。
+
+
+### Interaction Accessibility v1（RC-2026.09.19-7）
+
+- 題號導覽不再放在 `aria-hidden` 區塊；每個題號按鈕都會說明題號、構面與已作答／未作答／逾時狀態。
+- 目前題號使用 `aria-current="step"`；答案按鈕使用 `aria-pressed`，選擇後同步更新。
+- 測驗進度提供標準 `progressbar` 語意，範圍固定為 1–42，並隨題目切換更新。
+- 切換到新題目後，鍵盤焦點會移到新題幹，但不強迫畫面跳動。
+- About／逐題解析／QA modal 開啟時會把焦點帶進 modal；Tab 保持在 modal 內，Escape 關閉後回到原本的開啟按鈕。
+- 主要互動按鈕補上清楚的 `:focus-visible` 樣式，並保留 forced-colors／高對比模式可辨識狀態。
+- 不新增快捷鍵、不改答題節奏、不改計時、不改題庫、不改 Scoring v2。

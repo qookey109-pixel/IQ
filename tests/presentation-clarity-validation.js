@@ -77,6 +77,11 @@ assert.ok(spatialCss.includes('max-width: 320px; max-height: 240px;'),'tablet/mo
 assert.ok(spatialCss.includes('width: min(100%, 205px, 22dvh)'),'matrix tasks must retain their existing compact 205px cap');
 assert.ok(spatialCss.includes('overflow: hidden'),'non-matrix diagram holder must contain the visual instead of overlapping answer rows');
 assert.ok(spatialCss.includes('margin-top: 8px'),'answer choices need breathing room below diagrams');
+assert.ok(spatialCss.includes('questionText-long')&&spatialCss.includes('questionText-very-long'),'dense prompts need length-aware typography');
+assert.ok(spatialCss.includes('white-space: pre-line'),'sentence-level line breaks must render clearly');
+assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)'),'footer navigation and hint must have separate layout columns');
+assert.ok(spatialCss.includes('max-width: 38ch'),'footer hint must wrap before reaching the card edge');
+
 assert.ok(!spatialCss.includes('max-width: 560px'),'oversized generic spatial wrapper must not return');
 assert.ok(!spatialCss.includes('min-height: clamp(340px, 40dvh, 420px)'),'oversized reserved diagram height must not return');
 

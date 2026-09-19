@@ -63,11 +63,11 @@
       q.e=`一對一配對的上限由較少的一側決定，所以最多 ${ans} ${cl}。`;
     }else if(v===1){
       const bad=1+mod(n,2),usable=keys-bad,ans=Math.min(locks,usable);
-      q.q=`有 ${locks} 個收納格與 ${keys} ${cl}${product}，其中 ${bad} ${cl}尺寸不合，不能放進任何格；其餘每格最多放 1 ${cl}。最多能放入幾${cl}${product}？`;
+      q.q=`有 ${locks} 個收納格與 ${keys} ${cl}${product}，其中 ${bad} ${cl}尺寸不合，不能放進任何格；其餘每格最多放 1 ${cl}，每${cl}${product}也只能放進 1 格。最多能放入幾${cl}${product}？`;
       q.e=`可放入的只有 ${usable} ${cl}，再受 ${locks} 個格位限制，所以最多 ${ans} ${cl}。`;
     }else if(v===2){
       const a=3+mod(n,4),b=3+mod(n*2,4),ka=2+mod(n,3),kb=2+mod(n+1,3),ans=Math.min(a,ka)+Math.min(b,kb);
-      q.q=`A 型收納格有 ${a} 個、B 型有 ${b} 個；A 型${product}有 ${ka} ${cl}只能放 A 型格，B 型有 ${kb} ${cl}只能放 B 型格。最多能放入幾${cl}？`;
+      q.q=`A 型收納格有 ${a} 個、B 型有 ${b} 個；A 型${product}有 ${ka} ${cl}只能放 A 型格，B 型有 ${kb} ${cl}只能放 B 型格。每格最多放 1 ${cl}，每${cl}${product}也只能放進 1 格。最多能放入幾${cl}？`;
       q.e=`A 型最多 ${Math.min(a,ka)} ${cl}，B 型最多 ${Math.min(b,kb)} ${cl}，合計 ${ans} ${cl}。`;
     }else if(v===3){
       const people=7+mod(n,7),ans=Math.floor(people/2);
@@ -79,7 +79,7 @@
       q.e=`總容量是 ${boxes*cap} ${cl}，與現有 ${items} ${cl}比較後取較小值，所以最多 ${ans} ${cl}。`;
     }else if(v===5){
       const seats=8+mod(n,8),reserved=1+mod(n,3),people=6+mod(n,9),ans=Math.min(people,seats-reserved);
-      q.q=`${group}共有 ${seats} 個座位，其中 ${reserved} 個保留不能使用；有 ${people} 人需要座位。最多能安排幾人入座？`;
+      q.q=`${group}共有 ${seats} 個座位，其中 ${reserved} 個是保留席，不開放給這批需要座位的人；共有 ${people} 人需要座位。最多能安排幾人入座？`;
       q.e=`可用座位有 ${seats-reserved} 個，所以最多安排 ${ans} 人。`;
     }else if(v===6){
       const red=3+mod(n,4),blue=4+mod(n,4),ans=Math.min(red,blue);

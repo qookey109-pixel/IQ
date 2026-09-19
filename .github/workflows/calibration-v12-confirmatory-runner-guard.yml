@@ -2,10 +2,22 @@ name: Calibration v12 — Confirmatory Runner Guard
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-v12-confirmatory.js'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'tests/calibration-v12-confirmatory-runner-guard-validation.js'
+      - '.github/workflows/calibration-v12-confirmatory-runner-guard.yml'
   push:
     branches:
       - main
       - research/calibration-v12-confirmatory-runner-guard-20260918
+    paths:
+      - 'calibration/**'
+      - 'scripts/run-v12-confirmatory.js'
+      - 'scripts/generate-synthetic-calibration.js'
+      - 'tests/calibration-v12-confirmatory-runner-guard-validation.js'
+      - '.github/workflows/calibration-v12-confirmatory-runner-guard.yml'
 
 jobs:
   validate-confirmatory-runner-guard:

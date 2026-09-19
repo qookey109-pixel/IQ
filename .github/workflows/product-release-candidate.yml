@@ -1,0 +1,83 @@
+name: Product — Release Candidate Gate
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'runtime.bundle.js'
+      - 'styles.bundle.css'
+      - 'app.js'
+      - 'pretest-flow.js'
+      - 'timeout-lock.js'
+      - 'memory-exposure.js'
+      - 'scoring-v2.js'
+      - 'assessment-quality.js'
+      - 'navigation-layout-fix.js'
+      - 'single-screen.js'
+      - 'qb5-42-form.js'
+      - 'README.md'
+      - 'PRODUCT_STATUS.md'
+      - 'tests/product-release-candidate-validation.js'
+      - 'tests/runtime-bundle-validation.js'
+      - 'tests/product-42-spec-validation.js'
+      - 'tests/measurement-hardening-validation.js'
+      - 'tests/release-ux-smoke-validation.js'
+      - 'tests/cpi-only-runtime-validation.js'
+      - '.github/workflows/product-release-candidate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'runtime.bundle.js'
+      - 'styles.bundle.css'
+      - 'app.js'
+      - 'pretest-flow.js'
+      - 'timeout-lock.js'
+      - 'memory-exposure.js'
+      - 'scoring-v2.js'
+      - 'assessment-quality.js'
+      - 'navigation-layout-fix.js'
+      - 'single-screen.js'
+      - 'qb5-42-form.js'
+      - 'README.md'
+      - 'PRODUCT_STATUS.md'
+      - 'tests/product-release-candidate-validation.js'
+      - 'tests/runtime-bundle-validation.js'
+      - 'tests/product-42-spec-validation.js'
+      - 'tests/measurement-hardening-validation.js'
+      - 'tests/release-ux-smoke-validation.js'
+      - 'tests/cpi-only-runtime-validation.js'
+      - '.github/workflows/product-release-candidate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  product-release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate focused release candidate
+        run: |
+          node --check tests/product-release-candidate-validation.js
+          node tests/runtime-bundle-validation.js
+          node tests/product-42-spec-validation.js
+          node tests/scoring-v2-validation.js
+          node tests/measurement-hardening-validation.js
+          node tests/timing-runtime-validation.js
+          node tests/release-ux-smoke-validation.js
+          node tests/cpi-only-runtime-validation.js
+          node tests/pretest-flow-validation.js
+          node tests/single-screen-validation.js
+          node tests/matrix-layout-validation.js
+          node tests/navigation-layout-validation.js
+          node tests/compact-final-production-validation.js
+          node tests/product-release-candidate-validation.js

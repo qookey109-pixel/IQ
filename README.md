@@ -2,6 +2,8 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
+> **Product RC：RC-2026.09.19-1** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+
 ## Question Bank v5.0
 
 目前題庫版本：`QB-2026.09.5`，revision：`5.0`，自然語言層：`NL-2026.09.3`。

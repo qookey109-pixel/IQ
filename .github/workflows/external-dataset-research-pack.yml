@@ -2,11 +2,25 @@ name: External Dataset Research Pack
 
 on:
   pull_request:
+    paths:
+      - 'calibration/**'
+      - 'scripts/normalize-icar-sapa.js'
+      - 'scripts/run-external-dataset-research-pack.js'
+      - 'tests/external-dataset-research-pack-validation.js'
+      - '.gitignore'
+      - '.github/workflows/external-dataset-research-pack.yml'
   push:
     branches:
       - main
       - feature/cognitive-iq-lab-v6
       - feature/calibration-v7-external-dataset-research-pack
+    paths:
+      - 'calibration/**'
+      - 'scripts/normalize-icar-sapa.js'
+      - 'scripts/run-external-dataset-research-pack.js'
+      - 'tests/external-dataset-research-pack-validation.js'
+      - '.gitignore'
+      - '.github/workflows/external-dataset-research-pack.yml'
 
 jobs:
   validate-external-dataset-research-pack:

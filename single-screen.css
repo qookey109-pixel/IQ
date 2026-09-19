@@ -1800,3 +1800,118 @@ body {
     border: 2px solid CanvasText;
   }
 }
+
+
+/* ---------- RC8 REAL-PLAY QA ---------- */
+
+.brainConstellation {
+  display: block;
+  min-height: 170px;
+}
+
+.brainHexagonMap {
+  display: block;
+  width: min(100%, 360px);
+  height: 190px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.brainHexGrid {
+  fill: rgba(238,244,252,.55);
+  stroke: #c7d4e4;
+  stroke-width: 1.5;
+}
+
+.brainHexSpoke {
+  stroke: #dbe4ef;
+  stroke-width: 1;
+}
+
+.brainHexNode circle {
+  fill: #cbd6e3;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.brainHexPrimary circle {
+  fill: #315e9f;
+}
+
+.brainHexSecondary circle {
+  fill: #8b70b8;
+}
+
+.brainHexLabel {
+  fill: #52677f;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.brainHexRole {
+  fill: #315e9f;
+  font-size: 8px;
+  font-weight: 950;
+}
+
+.brainHexSecondary .brainHexRole {
+  fill: #7758a6;
+}
+
+.reviewVerdict {
+  margin-top: 7px;
+  font-weight: 900;
+}
+
+.reviewAnswers {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: #52677f;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.reviewAnswers b,
+.reviewExplanation b {
+  color: var(--ink-strong);
+}
+
+.reviewExplanation {
+  margin-top: 5px !important;
+}
+
+@media (max-width: 760px) {
+  .brainConstellation {
+    min-height: 138px;
+  }
+
+  .brainHexagonMap {
+    height: 145px;
+  }
+
+  .brainHexLabel {
+    font-size: 9px;
+  }
+
+  .brainHexRole {
+    font-size: 7px;
+  }
+
+  .reviewAnswers {
+    display: grid;
+    gap: 2px;
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 680px) {
+  .brainConstellation {
+    min-height: 112px;
+  }
+
+  .brainHexagonMap {
+    height: 118px;
+  }
+}

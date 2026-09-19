@@ -22,17 +22,17 @@ for(const q of spatial){
     assert.ok(!/\d+\s*格|四分之一圈/.test(String(d.steps)),`${q.id}: compass operation must not use ambiguous step/count wording`);
     assert.ok(String(q.visual||'').includes('°'),`${q.id}: diagram instruction must visibly show degree values`);
   }else if(q.taskFamily==='stack-hidden'){
-    const g=d.grid;let skyline;if(d.view==='front')skyline=Array.from({length:g[0].length},(_,c)=>Math.max(...g.map(r=>r[c])));else skyline=[...g].reverse().map(r=>Math.max(...r));assert.ok(sameArray(skyline,d.skyline),`${q.id}: skyline`);assert.strictEqual(q.correctContent,skyline.join('–'),`${q.id}: projection answer`);assert.ok(!/外露面/.test(q.q),`${q.id}: no surface-area formula task`);
+    const g=d.grid,total=g.flat().reduce((sum,h)=>sum+h,0);assert.strictEqual(d.kind,'stack-height-count',`${q.id}: stack task kind`);assert.strictEqual(d.total,total,`${q.id}: stored cube total`);assert.strictEqual(Number(q.correctContent),total,`${q.id}: cube-count answer`);assert.ok(!/前方|右側觀看|輪廓/.test(q.q),`${q.id}: viewpoint projection wording removed`);
   }else if(q.taskFamily==='rectangle-cut'){
     const p=perimeter(d.grid);assert.strictEqual(p,d.perimeter,`${q.id}: perimeter`);assert.strictEqual(Number(q.correctContent),p,`${q.id}: perimeter answer`);
   }else if(q.taskFamily==='scale-drawing'){
     const end=[d.w*d.sx+d.tx,d.h*d.sy+d.ty];assert.ok(sameArray(end,d.end),`${q.id}: scale transform`);assert.strictEqual(q.correctContent,`(${end[0]}, ${end[1]})`,`${q.id}: scale answer`);
   }else if(q.taskFamily==='mirror-coordinate'){
-    const [x,y]=d.point,c=d.c;let a;if(v===1)a=[-x,y];else if(v===2)a=[x,-y];else if(v===3)a=[-x,-y];else if(v===4)a=[y,x];else if(v===5)a=[-y,-x];else if(v===6)a=[2*c-x,y];else if(v===7)a=[-x,2*c-y];else a=[-y,-x];assert.ok(sameArray(a,d.answer),`${q.id}: mirror transform`);assert.strictEqual(q.correctContent,`(${a[0]}, ${a[1]})`,`${q.id}: mirror answer`);
+    const [x,y]=d.point;assert.ok(d.mode==='x'||d.mode==='y',`${q.id}: only x/y axis mirrors are allowed`);const a=d.mode==='y'?[-x,y]:[x,-y];assert.ok(sameArray(a,d.answer),`${q.id}: axis mirror transform`);assert.strictEqual(q.correctContent,`(${a[0]}, ${a[1]})`,`${q.id}: mirror answer`);assert.ok(q.q.includes(d.mode==='y'?'y 軸':'x 軸'),`${q.id}: prompt names the mirror axis`);assert.ok(!/y=x|y=−x|x=\d|y=\d|旋轉 180/.test(q.q),`${q.id}: diagonal/offset/rotation mirror variants removed`);
   }else if(q.taskFamily==='shortest-grid-path'){
     const c=bfs(d.size,d.start,d.end,d.blocked),man=Math.abs(d.start[0]-d.end[0])+Math.abs(d.start[1]-d.end[1]);assert.strictEqual(c,d.shortest,`${q.id}: BFS shortest`);assert.strictEqual(Number(q.correctContent),c,`${q.id}: shortest answer`);assert.ok(c>man,`${q.id}: obstacles must force real detour`);assert.ok(d.shortest>d.manhattan,`${q.id}: stored detour proof`);
   }
 }
-const oldWeird=/方位角以正北|整個造型共有多少個外露面|登山客從|棋子從 \(/;assert.ok(spatial.every(q=>!oldWeird.test(String(q.q))), 'old arithmetic/decorative spatial wording must be absent');
+const oldWeird=/方位角以正北|整個造型共有多少個外露面|從圖下方「前方」|從右側觀看，輪廓|對 y=x|對 y=−x|登山客從|棋子從 \(/;assert.ok(spatial.every(q=>!oldWeird.test(String(q.q))), 'retired arithmetic/viewpoint/diagonal-axis wording must be absent');
 const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281]);const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);assert.strictEqual(new Set(bank.map(sig)).size,5124,'final concrete signatures unique');
 console.log('Spatial Reliability Integrity v1 PASS');console.log('1,008 spatial items are diagram-grounded; all final answers independently recomputed; shortest-path obstacles force detours; old screenshot failure modes absent.');

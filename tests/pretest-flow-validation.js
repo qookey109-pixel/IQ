@@ -14,30 +14,30 @@ const timingPos = scriptFiles.indexOf('timeout-lock.js');
 assert.ok(appPos >= 0 && pretestPos > appPos && timingPos > pretestPos,
   'pretest flow must load after app.js and before timing wrappers');
 
-assert.ok(flow.includes("const AGE_MIN = 18"), 'adult pilot minimum age must be 18');
-assert.ok(flow.includes("const AGE_MAX = 65"), 'adult pilot maximum age must be 65');
-assert.ok(flow.includes("dateOfBirthCollected: false"), 'full date of birth must not be collected');
-assert.ok(flow.includes("scoreAdjustedForAge: false"), 'age must not directly adjust score');
-assert.ok(flow.includes("PROFILE_KEY = 'cognitive-iq-lab:participant-profile:v1'"), 'age profile must use local versioned storage');
-assert.ok(flow.includes("practice-verbal-01") && flow.includes("practice-memory-01") && flow.includes("practice-spatial-01") && flow.includes("practice-speed-01"),
+assert.ok(flow.includes("STATE_KEY = 'cognitive-iq-lab:pretest-state:v2'"), 'practice state must use local versioned storage');
+assert.ok(flow.includes('ageInputRequired: false'), 'public flow must not require age');
+assert.ok(flow.includes('demographicInputRequired: false'), 'public flow must not require demographics');
+assert.ok(!flow.includes('ageSelect'), 'age selector must be absent');
+assert.ok(!flow.includes('AGE_MIN') && !flow.includes('AGE_MAX'), 'age-range gate must be absent');
+assert.ok(flow.includes("document.getElementById('startBtn').onclick = showIntroStep"), 'start must go directly to instructions');
+assert.ok(flow.includes("setOnlyVisible('pretestIntro')"), 'instructions must be the first pretest state');
+assert.ok(flow.includes("setOnlyVisible('pretestPractice')"), 'practice must have its own state');
+assert.ok(flow.includes('practice-verbal-01') && flow.includes('practice-memory-01') && flow.includes('practice-spatial-01') && flow.includes('practice-speed-01'),
   'practice must cover verbal, memory, spatial, and speed interactions');
 assert.ok(flow.includes('exposureMs: 4000'), 'memory practice must demonstrate one-time exposure');
 assert.ok(flow.includes('limitSeconds: 18'), 'speed practice must demonstrate the 18-second limit');
-assert.ok(flow.includes("totalQuestions !== 42"), 'formal entry must guard the 42-item production form');
-assert.ok(flow.includes("initState();") && flow.includes("renderQuestion('slide-in-right')"), 'formal entry must initialize the production attempt before rendering question 1');
-assert.ok(flow.includes('練習答案不會寫入正式 42 題成績、CPI、總時間或 item analytics'), 'UI must state practice isolation');
+assert.ok(flow.includes('totalQuestions !== 42'), 'formal entry must guard the 42-item production form');
+assert.ok(flow.includes('initState();') && flow.includes("renderQuestion('slide-in-right')"), 'formal entry must initialize the production attempt');
+assert.ok(flow.includes('練習答案不會寫入正式 42 題結果、總時間或 item analytics'), 'UI must state practice isolation');
+assert.ok(flow.includes('window.IQ_PARTICIPANT_PROFILE = null'), 'public runtime must not synthesize an age profile');
 
-// Age must never enter the score calculation. It may be read later by the result UI only
-// to explain which future norm group would be relevant once real norms exist.
-assert.ok(!/ageYears|ageBand|IQ_PARTICIPANT_PROFILE/.test(scoring), 'Scoring v2 must remain completely age-independent');
-assert.ok(assessment.includes('const performanceIndex = report.performanceIndex;'), 'result must consume the age-independent Scoring v2 result');
-assert.ok(assessment.includes('renderIqCalibrationStatus(performanceIndex);'), 'age context may only be used in the post-score IQ calibration notice');
-assert.ok(assessment.includes('iqEstimate: null'), 'age context must not produce a fabricated IQ estimate');
-assert.ok(assessment.includes("iqStatus: 'not-population-normed'"), 'result must retain the not-normed IQ status');
-assert.ok(assessment.includes('iqRequiresAgeNorms: true'), 'age is reserved for future norming, not current score adjustment');
+assert.ok(!/ageYears|ageBand|IQ_PARTICIPANT_PROFILE/.test(scoring), 'Scoring v2 must remain age-independent');
+assert.ok(assessment.includes('ageInputRequired: false'), 'result quality metadata must keep age input disabled');
+assert.ok(assessment.includes('publicScoreVisible: false'), 'public result must hide quantitative score');
+assert.ok(assessment.includes('publicQuantitativeStandard: false'), 'public result must not claim a quantitative standard');
 
-assert.ok(html.includes('只收集歲數，不收集生日'), 'public instructions must disclose age data minimization');
-assert.ok(html.includes('年齡現階段不會直接替 CPI 加分或扣分'), 'public instructions must disclose no age-based score adjustment');
+assert.ok(html.includes('不用填年齡'), 'public instructions must state that age is not required');
+assert.ok(html.includes('不顯示 IQ、CPI、百分比、排名、同齡換算或總分'), 'public instructions must state the qualitative result boundary');
 
-console.log('Pre-test age/practice flow validation PASS');
-console.log('18–65 whole-year age -> 4 unscored practices -> unchanged 42-item formal assessment; Scoring v2 remains age-independent and age is display-only norming context.');
+console.log('Pre-test age-free practice flow validation PASS');
+console.log('No age input -> optional 4-item practice -> unchanged 42-item formal assessment; public result remains qualitative.');

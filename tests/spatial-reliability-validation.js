@@ -20,6 +20,7 @@ for(const q of spatial){
     assert.ok(q.q.includes('旋轉角度'),`${q.id}: prompt must tell the reader to use explicit rotation angles`);
     assert.ok(String(d.steps).includes('°'),`${q.id}: compass operation must be expressed in degrees`);
     assert.ok(!/\d+\s*格|四分之一圈/.test(String(d.steps)),`${q.id}: compass operation must not use ambiguous step/count wording`);
+    assert.ok(!/每次\s*90°|（共\s*\d+°）/.test(String(d.steps)),`${q.id}: compass degree labels must stay concise`);
     assert.ok(String(q.visual||'').includes('°'),`${q.id}: diagram instruction must visibly show degree values`);
   }else if(q.taskFamily==='stack-hidden'){
     const g=d.grid,total=g.flat().reduce((sum,h)=>sum+h,0);assert.strictEqual(d.kind,'stack-height-count',`${q.id}: stack task kind`);assert.strictEqual(d.total,total,`${q.id}: stored cube total`);assert.strictEqual(Number(q.correctContent),total,`${q.id}: cube-count answer`);assert.ok(!/前方|右側觀看|輪廓/.test(q.q),`${q.id}: viewpoint projection wording removed`);

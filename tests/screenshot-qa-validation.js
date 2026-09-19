@@ -43,14 +43,18 @@ for(const q of packing){
   assert.ok(q.q.includes('剩餘不足一箱不計'),`${q.id}: packing remainder policy must be explicit`);
 }
 
-// Result QA: do not fabricate an IQ number before population norming.
+// Result QA: CPI-only product mode must not fabricate or promise IQ output.
 const assessment=fs.readFileSync('assessment-quality.js','utf8');
-assert.ok(assessment.includes('IQ ESTIMATE'),'result must expose an IQ-specific status area');
-assert.ok(assessment.includes('尚未校準'),'result must say IQ is not calibrated');
+assert.ok(assessment.includes('SCORE STATUS'),'result must expose an explicit score-status area');
+assert.ok(assessment.includes('CPI ONLY'),'result must identify the current product as CPI-only');
 assert.ok(assessment.includes('iqEstimate: null'),'current result must not invent a numeric IQ');
-assert.ok(assessment.includes("iqStatus: 'not-population-normed'"),'result metadata must state the norming limitation');
-assert.ok(assessment.includes('iqEstimateAvailable: false'),'quality metadata must disable IQ estimates before norms');
-assert.ok(assessment.includes('常模完成後，這裡才會顯示 IQ 估計、百分位與信賴區間'),'future IQ output requirements should be explicit');
+assert.ok(assessment.includes("iqStatus: 'not-population-normed'"),'result metadata must retain the norming limitation');
+assert.ok(assessment.includes('iqEstimateAvailable: false'),'quality metadata must disable IQ estimates');
+assert.ok(assessment.includes("productMode: 'cpi-only'"),'quality metadata must freeze CPI-only product mode');
+assert.ok(assessment.includes('iqConversionEnabled: false'),'IQ conversion must remain disabled');
+assert.ok(assessment.includes('populationPercentileAvailable: false'),'population percentile must remain unavailable');
+assert.ok(assessment.includes('不提供 IQ、百分位或同齡排名'),'result copy must state the CPI-only interpretation boundary');
+assert.ok(!assessment.includes('常模完成後，這裡才會顯示 IQ 估計、百分位與信賴區間'),'current product must not promise future IQ output');
 
 console.log('Screenshot QA regression validation PASS');
-console.log('Matrix evidence, explicit speed/packing wording, and honest IQ-result status are protected.');
+console.log('Matrix evidence, explicit speed/packing wording, and CPI-only result integrity are protected.');

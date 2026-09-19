@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f3ecdf">
 <title>Cognitive IQ Lab v6</title>
 <meta name="description" content="42 題多構面認知遊戲，完成後獲得今天的大腦趣味稱號。">
-<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc9">
+<link rel="stylesheet" href="styles.bundle.css?v=20260919-rc10">
 <!-- IQ_STYLE_SOURCES
 styles.css
 single-screen.css?v=20260914-dial
@@ -15,7 +15,7 @@ viewport-stability.css
 heritage-theme.css
 spatial-visual-fix.css
 -->
-<script src="runtime.bundle.js?v=20260919-rc9" defer></script>
+<script src="runtime.bundle.js?v=20260919-rc10" defer></script>
 <!-- IQ_RUNTIME_SOURCES
 question-bank.js
 qb5-core.js
@@ -101,7 +101,7 @@ single-screen.js
       <p>不用填年齡、不用建立個人資料，也沒有前置練習題。按下開始後會直接進入 42 題正式測驗。</p>
       <p>正式測驗從 2,058 題題庫中抽出 42 題，涵蓋語文、推理、空間、記憶、速度與量化；每個構面固定 7 題，每個題型家族各出一題。</p>
       <p><strong>計時：</strong>一般推理題不限時。記憶內容依難度顯示 4／5／6 秒，每題只呈現一次；處理速度題首次顯示後限時 18 秒。</p>
-      <p><strong>結果：</strong>完成後不顯示 IQ、CPI、百分比、排名、同齡換算或總分。系統只把這一次的作答輪廓翻成一個有趣主標題、主線索與副線索。</p>
+      <p><strong>結果：</strong>完成後不顯示 IQ、CPI、百分比、排名、同齡換算或總分。系統只把這一次的作答輪廓翻成一個趣味稱號與六構面圖。</p>
       <p class="researchFootnote">研究補充：可選的校準研究使用 56 槽位 matrix sampling 分散題目曝光；6 個中等難度題目保留為固定研究 Anchor。若你主動加入，可在 42 題正式測驗完成後再做這 6 題不計分 Anchor；研究模式不會改變你的趣味稱號或公開結果。</p>
       <p class="modalFoot">稱號只描述這一次測驗中相對突出的作答方向，不是固定人格、能力等級或任何正式標準；換一份題目，稱號也可能不同。</p>
     </div>
@@ -126,7 +126,6 @@ single-screen.js
         <div class="playfulCopy">
           <div class="resultIdentityRow">
             <div class="scoreTitle">TODAY'S TITLE</div>
-            <div id="resultSignature" class="resultSignature">正在整理腦內路線…</div>
           </div>
           <div id="playfulTitle" class="playfulTitle">正在整理腦內模式…</div>
           <div id="resultDesc" class="resultDesc">把這次的作答輪廓翻成一句比較好玩的描述。</div>
@@ -135,14 +134,13 @@ single-screen.js
       </article>
 
       <div class="resultSide">
-        <div id="profileHighlights" class="profileHighlights" aria-label="本次作答特色"></div>
         <section class="brainConstellationCard" aria-label="六構面相對輪廓">
           <div class="constellationHeading">
             <span>六邊形輪廓</span>
             <strong>這次的六個方向</strong>
           </div>
           <div id="brainConstellation" class="brainConstellation"></div>
-          <p>六個頂點代表六個構面；只標示本次主線與副線，不以距離或長短表示分數。</p>
+          <p>六個頂點代表六個構面；圖形只呈現這次的相對輪廓，不以距離、長短或數字表示分數。</p>
         </section>
       </div>
     </div>

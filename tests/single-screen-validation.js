@@ -18,7 +18,7 @@ assert.ok(html.includes('這是今天的作答模式，不是你的固定標籤�
 assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'), 'result must explicitly avoid a public score');
 assert.ok(css.includes('.internalResultDiagnostics') && css.includes('display: none !important'), 'internal quantitative diagnostics must be hidden');
 assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'result motion must respect reduced-motion preference');
-assert.ok(css.includes('.brainConstellation') && css.includes('.brainNodePrimary'), 'qualitative six-domain view must be styled');
+assert.ok(css.includes('.brainConstellation') && css.includes('.brainHexagonMap') && css.includes('.brainHexPrimary'), 'qualitative six-domain hexagon must be styled');
 assert.ok(css.includes('.replayTrail') && css.includes('.recentModeChip'), 'compact replay trail must be styled');
 
 assert.ok(css.includes('height: 100dvh'), 'viewport stage must use dynamic viewport height');

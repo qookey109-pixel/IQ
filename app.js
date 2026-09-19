@@ -90,7 +90,7 @@ function renderQuestion(animationClass = "") {
   $("progressBar").style.width = `${((currentIndex + 1) / totalQuestions) * 100}%`;
   $("progressText").textContent = `${currentIndex + 1} / ${totalQuestions}`;
   const progress = $("quizProgress");
-  if (progress) progress.setAttribute("aria-valuenow", String(currentIndex + 1));
+  if (progress && typeof progress.setAttribute === "function") progress.setAttribute("aria-valuenow", String(currentIndex + 1));
   $("prevBtn").disabled = currentIndex === 0;
   renderMiniNav();
 

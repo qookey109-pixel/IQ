@@ -18,13 +18,13 @@ for (const id of [
 }
 
 assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'));
-assert.ok(html.includes('只標示這次的主線與副線，不顯示分數、等級或人口排名。'));
+assert.ok(html.includes('六個頂點代表六個構面；只標示本次主線與副線，不以距離或長短表示分數。'));
 
 for (const marker of [
   'renderBrainConstellation',
   'resultShareText',
   'bindResultSharing',
-  'publicDomainVisualization: "role-only-no-scale"',
+  'publicDomainVisualization: "qualitative-hexagon-no-scale"',
   'resultShareEnabled: true',
   'shareIncludesNumericScore: false',
   'replayHistoryEnabled: true',
@@ -46,8 +46,9 @@ for (const forbidden of ['performanceIndex','rawAccuracy','weightedAccuracy','sp
 for (const marker of [
   '.resultSignature',
   '.brainConstellation',
-  '.brainNodePrimary',
-  '.brainNodeSecondary',
+  '.brainHexagonMap',
+  '.brainHexPrimary',
+  '.brainHexSecondary',
   '.shareStatus',
   '.replayTrail',
   '.recentModeChip',
@@ -63,6 +64,11 @@ assert.ok(readme.includes('Result Experience v1（RC-2026.09.19-4）'));
 assert.ok(readme.includes('Combination Title Engine v1（RC-2026.09.19-5）'));
 assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"));
 assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
+assert.ok(quality.includes('const correctAnswer = q.o[q.a]'));
+assert.ok(quality.includes('正確答案：</b>${correctAnswer}'));
+assert.ok(quality.includes('解析：</b>${q.e}'));
+assert.ok(quality.includes('class="brainHexagonMap"'));
+assert.ok(!quality.includes('brainHexValue'), 'qualitative hexagon must not render numeric domain values');
 assert.ok(replay.includes("MAX_ENTRIES = 4"));
 assert.ok(replay.includes("storesNumericScores: false"));
 assert.ok(replay.includes("storesAnswers: false"));
@@ -70,4 +76,4 @@ assert.ok(replay.includes("uploadsAutomatically: false"));
 assert.ok(readme.includes('不包含任何內部 CPI 或作答分數'));
 
 console.log('Result Experience v1 validation PASS');
-console.log('Share-friendly qualitative card, role-only six-domain view, no-score share text, and reduced-motion support are protected.');
+console.log('Share-friendly qualitative card, no-scale six-domain hexagon, explicit answer review, and reduced-motion support are protected.');

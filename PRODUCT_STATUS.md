@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-3**  
-Repository authority: **current `main` after merge; this branch is the proposed RC2 change set**  
-Branch base: `52272ddfd61127ea133fbd5f718b7b528efa9c6a`
+Release candidate: **RC-2026.09.19-4**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC4 result-experience change set**  
+Branch base: `c203cd6dbf110e772a7c3e48e238eb29c92d9a75`
 
 ## Active product
 
@@ -13,7 +13,9 @@ Branch base: `52272ddfd61127ea133fbd5f718b7b528efa9c6a`
 - Task families: **42**
 - Production form: **42 items = 6 domains × 7 families**
 - Difficulty blueprint per domain: **2 easy + 3 medium + 2 hard**
-- Public result: **qualitative playful title + attempt-specific cues**
+- Public result: **share-friendly qualitative title card + attempt-specific cues**
+- Public six-domain view: **role-only constellation (主線／副線), no scale and no numeric values**
+- Public sharing: **copy/share qualitative text only; no internal score is included**
 - Public numeric score: **none**
 - Public age input: **none**
 - Public practice questions: **none**
@@ -57,7 +59,7 @@ Public-result metadata additionally requires:
 
 ## Release-candidate evidence
 
-RC2 is expected to preserve:
+RC4 is expected to preserve:
 
 - 2,058-item / 42-item production validation
 - independent answer oracle and answer-position balance
@@ -67,10 +69,12 @@ RC2 is expected to preserve:
 - timing deadline / timeout regression
 - no pseudo-IQ fallback
 - qualitative-result public-surface guard
+- share text contains no CPI / IQ / percentile / numeric ability output
+- six-domain public visualization is role-only and has no score scale
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc3`
+- cache-busted RC assets: `20260919-rc4`
 
 ## Frozen research lineage
 

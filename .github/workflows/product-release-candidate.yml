@@ -19,6 +19,7 @@ on:
       - 'README.md'
       - 'PRODUCT_STATUS.md'
       - 'tests/product-release-candidate-validation.js'
+      - 'tests/result-experience-validation.js'
       - 'tests/runtime-bundle-validation.js'
       - 'tests/product-42-spec-validation.js'
       - 'tests/measurement-hardening-validation.js'
@@ -70,6 +71,7 @@ jobs:
       - name: Validate focused release candidate
         run: |
           node --check tests/product-release-candidate-validation.js
+          node --check tests/result-experience-validation.js
           node tests/runtime-bundle-validation.js
           node tests/product-42-spec-validation.js
           node tests/scoring-v2-validation.js
@@ -79,6 +81,7 @@ jobs:
           node tests/cpi-only-runtime-validation.js
           node tests/pretest-flow-validation.js
           node tests/single-screen-validation.js
+          node tests/result-experience-validation.js
           node tests/matrix-layout-validation.js
           node tests/navigation-layout-validation.js
           node tests/compact-final-production-validation.js

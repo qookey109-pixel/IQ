@@ -14,13 +14,21 @@ function gitBlobSha(filePath) {
   return crypto.createHash('sha1').update(Buffer.concat([header, content])).digest('hex');
 }
 
-assert.strictEqual(m.version, 'CIL-V13-TW-IRB-REC-CANDIDATE-MATRIX-2026.09.1');
-assert.strictEqual(m.status, 'candidate-discovery-complete-selection-not-frozen');
-assert.strictEqual(m.authority.basisMainSha, 'bfa42b8434dc8c66f6475f615b31959d469bc75c');
+assert.strictEqual(m.version, 'CIL-V13-TW-IRB-REC-CANDIDATE-MATRIX-2026.09.2');
+assert.strictEqual(m.status, 'candidate-freshness-updated-inquiry-prepared-selection-not-frozen');
+assert.strictEqual(m.authority.basisMainSha, '8817b86b6b31ce10c6058ace8ce89761c4187347');
 assert.strictEqual(
   m.authority.submissionAdministrationBlobSha,
   gitBlobSha(path.join(root, 'calibration', 'v13-taiwan-ethics-submission-administration.json'))
 );
+assert.strictEqual(
+  m.authority.applicantContextReadinessPolicyBlobSha,
+  gitBlobSha(path.join(root, 'calibration', 'v13-taiwan-applicant-context-readiness-policy.json'))
+);
+
+assert.strictEqual(m.freshness.verifiedOn, '2026-09-19');
+assert.strictEqual(m.freshness.availabilityMustBeRecheckedBeforeContact, true);
+assert.strictEqual(m.freshness.qualifiedStatusMustBeRecheckedBeforeSubmission, true);
 
 assert.strictEqual(m.candidates.length, 5);
 for (const c of m.candidates) {
@@ -35,6 +43,11 @@ const byId = Object.fromEntries(m.candidates.map(c => [c.id, c]));
 for (const id of ['tmu-jirb-c','new-taipei-city-hospital-irb','landseed-irb','vghtc-irb2','ptvgh-irb']) {
   assert.ok(byId[id], id + ' missing');
 }
+
+assert.strictEqual(byId['tmu-jirb-c'].availability.status, 'external-new-intake-paused-for-2026');
+assert.strictEqual(byId['tmu-jirb-c'].availability.availableForNewExternalSubmission, false);
+assert.strictEqual(byId['tmu-jirb-c'].availability.sourcePublishedDate, '2026-09-10');
+
 assert.strictEqual(byId['ptvgh-irb'].qualifiedValidity.shorterValidityWarning, true);
 assert.strictEqual(byId['ptvgh-irb'].qualifiedValidity.through, '2026-12-31');
 assert.strictEqual(byId['landseed-irb'].externalRouteEvidence.status, 'external-research-route-documented');
@@ -44,6 +57,8 @@ assert.strictEqual(m.selectionPolicy.rankingAllowed, false);
 assert.strictEqual(m.selectionPolicy.automaticSelectionAllowed, false);
 assert.strictEqual(m.selectionPolicy.selectedBoard, null);
 assert.strictEqual(m.selectionPolicy.selectionRequiresApplicantContext, true);
+assert.strictEqual(m.selectionPolicy.verificationInquiryRequiredBeforeSelection, true);
+assert.ok(m.selectionPolicy.minimumPreSelectionVerifications.includes('current-intake-capacity'));
 
 for (const key of [
   'boardSelectionAuthorized',

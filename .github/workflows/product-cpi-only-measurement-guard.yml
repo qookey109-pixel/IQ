@@ -1,0 +1,37 @@
+name: Product — CPI Only Measurement Guard
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'assessment-quality.js'
+      - 'scoring-v2.js'
+      - 'README.md'
+      - 'tests/cpi-only-runtime-validation.js'
+      - '.github/workflows/product-cpi-only-measurement-guard.yml'
+  push:
+    branches:
+      - product/cpi-only-measurement-hardening-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-cpi-only-product:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate CPI-only measurement boundary
+        run: |
+          node --check app.js
+          node --check assessment-quality.js
+          node --check tests/cpi-only-runtime-validation.js
+          node tests/cpi-only-runtime-validation.js
+          node tests/scoring-v2-validation.js

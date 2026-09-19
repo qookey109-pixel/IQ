@@ -63,11 +63,11 @@ function renderIqCalibrationStatus(performanceIndex) {
   const profile = window.IQ_PARTICIPANT_PROFILE || null;
   const ageText = profile?.ageBand ? `你目前選擇的年齡層為 ${profile.ageBand} 歲。` : "";
   panel.innerHTML = `
-    <div style="font-size:12px;font-weight:900;letter-spacing:.08em;opacity:.68">IQ ESTIMATE</div>
-    <div style="font-size:clamp(28px,4vw,48px);font-weight:950;line-height:1.05;margin-top:4px">尚未校準</div>
+    <div style="font-size:12px;font-weight:900;letter-spacing:.08em;opacity:.68">SCORE STATUS</div>
+    <div style="font-size:clamp(28px,4vw,48px);font-weight:950;line-height:1.05;margin-top:4px">CPI ONLY</div>
     <div style="margin-top:8px;font-size:13px;line-height:1.55;opacity:.78">
-      ${ageText}目前尚未建立足夠的同齡常模、信度與效度資料，因此不能把 CPI ${Math.round(performanceIndex)} 任意換算成 IQ。
-      常模完成後，這裡才會顯示 IQ 估計、百分位與信賴區間。
+      ${ageText}目前產品主線只回報 0–100 的 Cognitive Performance Index。
+      這個分數沒有建立人口常模，因此不提供 IQ、百分位或同齡排名。
     </div>`;
 }
 
@@ -112,11 +112,13 @@ finishTest = function () {
   $("resultSummary").textContent =
     `答對 ${correctCount} / ${totalQuestions} 題（原始正確率 ${report.rawAccuracy}%）；目前可回報的 Cognitive Performance Index 為 ${performanceIndex} / 100 · 總測驗時間 ${formatDuration(finalTotalSeconds)}`;
 
-  let desc = "這次是本站題庫下的一次實驗性認知表現快照；IQ 仍需同齡常模後才能估計。";
-  if (performanceIndex >= 85) desc = "這次在本站設計難度下呈現很強的整體表現；目前仍不能直接換算成 IQ。";
-  else if (performanceIndex >= 70) desc = "這次在多個構面呈現穩定、偏強的表現；IQ 仍待常模校準。";
-  else if (performanceIndex >= 55) desc = "這次各構面有強弱差異，可以從分項結果看出主要落差；IQ 仍待常模校準。";
-  else desc = "這次部分構面較吃力，也可能受到疲勞、注意力或時間壓力影響；IQ 仍待常模校準。";
+  const rankedDomains = [...domains].sort((a, b) => stats[b].score - stats[a].score);
+  const highestDomain = rankedDomains[0] || null;
+  const lowestDomain = rankedDomains[rankedDomains.length - 1] || null;
+  let desc = "這次結果只描述本次測驗內部的作答表現，不代表人口中的高低位置。";
+  if (highestDomain && lowestDomain && highestDomain !== lowestDomain) {
+    desc = `本次六構面中，${highestDomain} 的 CPI 分項最高，${lowestDomain} 較低；這是同一份測驗內的相對差異，不代表 IQ、百分位或同齡排名。`;
+  }
   $("resultDesc").textContent = desc;
 
   $("metrics").innerHTML = domains.map(d => {
@@ -182,5 +184,8 @@ window.IQ_QUALITY_META = {
   scoringScale: '0-100-experimental',
   populationNormed: false,
   iqEstimateAvailable: false,
-  iqRequiresAgeNorms: true
+  iqRequiresAgeNorms: true,
+  productMode: 'cpi-only',
+  iqConversionEnabled: false,
+  populationPercentileAvailable: false
 };

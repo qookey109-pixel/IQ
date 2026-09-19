@@ -101,6 +101,16 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 - 快速答錯不會得到速度加分
 - `calibrated: false`
 
+## Product mainline — CPI only（2026-09-19）
+
+目前產品主線聚焦在 **IQ-style 認知測驗體驗與測量品質**，不再把 IRB／真人常模送審當作目前產品開發的前置條件。
+
+- 公開結果只回報 `Cognitive Performance Index (CPI) 0–100`
+- 不提供 IQ 換算、人口百分位、同齡排名或診斷式解讀
+- 結果頁只描述「本次測驗內」的構面差異，不用未校準門檻標記「高／低 IQ」或人口位置
+- `productNormEligible=false`、`productIqUnlocked=false`、`autoCpiToIq=false` 持續維持
+- Calibration v13 / IRB 相關文件保留作研究 lineage，但目前 **freeze**，不阻擋題庫、評分、網站 UX、QA 與效能優化
+
 ## Oracle Validation v1
 
 CI 使用另一套 reference solver，獨立重新計算 5,124 / 5,124 題正解，覆蓋全部 42 families 與 294 semantic templates，再確認 answer-position balancing 後的 `o[a]` 仍等於 oracle answer。

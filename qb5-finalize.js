@@ -55,6 +55,43 @@
     else {q.q=`${group}每組 ${unit} 人，共 ${qty} 組。總共有多少人？`;q.e=`${unit}×${qty}=${unit*qty}。`;}
   }
 
+  function naturalizePairing(q,n,v,t,s){
+    const locks=8+mod(n,8),keys=5+mod(n,6),[product,cl]=products[s],group=groups[s];
+    if(v===0){
+      const ans=Math.min(locks,keys);
+      q.q=`有 ${locks} 個收納格與 ${keys} ${cl}${product}；每格最多放 1 ${cl}，每${cl}${product}也只能放進 1 格。最多能放入幾${cl}${product}？`;
+      q.e=`一對一配對的上限由較少的一側決定，所以最多 ${ans} ${cl}。`;
+    }else if(v===1){
+      const bad=1+mod(n,2),usable=keys-bad,ans=Math.min(locks,usable);
+      q.q=`有 ${locks} 個收納格與 ${keys} ${cl}${product}，其中 ${bad} ${cl}尺寸不合，不能放進任何格；其餘每格最多放 1 ${cl}，每${cl}${product}也只能放進 1 格。最多能放入幾${cl}${product}？`;
+      q.e=`可放入的只有 ${usable} ${cl}，再受 ${locks} 個格位限制，所以最多 ${ans} ${cl}。`;
+    }else if(v===2){
+      const a=3+mod(n,4),b=3+mod(n*2,4),ka=2+mod(n,3),kb=2+mod(n+1,3),ans=Math.min(a,ka)+Math.min(b,kb);
+      q.q=`A 型收納格有 ${a} 個、B 型有 ${b} 個；A 型${product}有 ${ka} ${cl}只能放 A 型格，B 型有 ${kb} ${cl}只能放 B 型格。每格最多放 1 ${cl}，每${cl}${product}也只能放進 1 格。最多能放入幾${cl}？`;
+      q.e=`A 型最多 ${Math.min(a,ka)} ${cl}，B 型最多 ${Math.min(b,kb)} ${cl}，合計 ${ans} ${cl}。`;
+    }else if(v===3){
+      const people=7+mod(n,7),ans=Math.floor(people/2);
+      q.q=`${group}有 ${people} 人要兩兩組隊，每人最多加入一隊。最多能組成幾個完整的兩人隊？`;
+      q.e=`每隊 2 人，所以最多 ⌊${people}/2⌋=${ans} 隊。`;
+    }else if(v===4){
+      const boxes=3+mod(n,4),cap=2+t,items=8+mod(n,8),ans=Math.min(items,boxes*cap);
+      q.q=`有 ${boxes} 個收納盒，每盒最多放 ${cap} ${cl}${product}；共有 ${items} ${cl}${product}，每${cl}只能放一盒。最多能放入幾${cl}？`;
+      q.e=`總容量是 ${boxes*cap} ${cl}，與現有 ${items} ${cl}比較後取較小值，所以最多 ${ans} ${cl}。`;
+    }else if(v===5){
+      const seats=8+mod(n,8),reserved=1+mod(n,3),people=6+mod(n,9),ans=Math.min(people,seats-reserved);
+      q.q=`${group}共有 ${seats} 個座位，其中 ${reserved} 個是保留席，不開放給這批需要座位的人；共有 ${people} 人需要座位。最多能安排幾人入座？`;
+      q.e=`可用座位有 ${seats-reserved} 個，所以最多安排 ${ans} 人。`;
+    }else if(v===6){
+      const red=3+mod(n,4),blue=4+mod(n,4),ans=Math.min(red,blue);
+      q.q=`${group}要組成甲、乙各 1 人的雙人隊。甲組有 ${red} 人、乙組有 ${blue} 人，每人最多加入一隊。最多能組幾隊？`;
+      q.e=`每隊各需要甲、乙 1 人，上限由較少的一組決定，所以最多 ${ans} 隊。`;
+    }else{
+      const jobs=4+mod(n,4),machines=3+mod(n,4),available=machines-1,ans=Math.min(jobs,available),work=group.replace(/組$/,'')+'工作';
+      q.q=`有 ${jobs} 個${work}待處理，現有 ${machines} 台設備，每台同時最多處理 1 個工作，其中 1 台維修中。當下最多可同時處理幾個工作？`;
+      q.e=`可用設備有 ${available} 台，因此最多同時處理 ${ans} 個工作。`;
+    }
+  }
+
   function polishNaturalLanguage(items){
     for(const q of items){
       const n=itemIndex(q),v=variant(q),t=tier(q),s=Math.max(0,Math.min(17,Number(q.surfaceVariant||1)-1));
@@ -83,9 +120,7 @@
       else if(q.taskFamily==='set-overlap'){
         const base=String(q.q).replace(/^在[^，]+的這個案例中，/,'');q.q=`${contexts[s]}的調查：${base}`;
       }
-      else if(q.taskFamily==='pairing-capacity'){
-        const base=String(q.q).replace(/^在[^，]+的這個案例中，/,'');q.q=`${contexts[s]}：${base}`;
-      }
+      else if(q.taskFamily==='pairing-capacity') naturalizePairing(q,n,v,t,s);
     }
   }
   polishNaturalLanguage(bank);

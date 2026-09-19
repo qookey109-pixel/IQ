@@ -66,9 +66,9 @@ assert.ok(index.includes('id="brainConstellation"'),'public result needs a no-sc
 assert.ok(index.includes('id="copyResultBtn"')&&index.includes('id="shareResultBtn"'),'public result needs copy/share actions');
 assert.ok(index.includes('沒有分數，只有這次作答的趣味輪廓。'),'public result must state the no-score direction');
 assert.ok(resultCss.includes('.internalResultDiagnostics')&&resultCss.includes('display: none !important'),'internal quantitative diagnostics must be hidden from the public surface');
-assert.ok(resultCss.includes('.brainNodePrimary')&&resultCss.includes('.brainNodeSecondary'),'public domain view must use role-only styling');
+assert.ok(resultCss.includes('.brainHexagonMap')&&resultCss.includes('.brainHexPrimary')&&resultCss.includes('.brainHexSecondary'),'public domain view must use role-only hexagon styling');
 assert.ok(assessment.includes('shareIncludesNumericScore: false'),'shared result must exclude numeric scores');
-assert.ok(assessment.includes('publicDomainVisualization: "role-only-no-scale"'),'public domain view must remain scale-free');
+assert.ok(assessment.includes('publicDomainVisualization: "qualitative-hexagon-no-scale"'),'public domain hexagon must remain scale-free');
 
 console.log('Screenshot QA regression validation PASS');
-console.log('Matrix evidence, explicit speed/packing wording, and qualitative public-result integrity are protected.');
+console.log('Matrix evidence, explicit speed/packing wording, and qualitative hexagon public-result integrity are protected.');

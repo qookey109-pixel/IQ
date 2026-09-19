@@ -17,6 +17,14 @@ on:
       - 'navigation-layout-fix.js'
       - 'single-screen.js'
       - 'single-screen.css'
+      - 'hard-construct-integrity.js'
+      - 'qb5-finalize.js'
+      - 'matrix-layout-fix.css'
+      - 'spatial-visual-fix.css'
+      - 'docs/question-language-style.md'
+      - 'tests/natural-language-validation.js'
+      - 'tests/hard-construct-integrity-validation.js'
+      - 'tests/matrix-layout-validation.js'
       - 'qb5-42-form.js'
       - 'README.md'
       - 'PRODUCT_STATUS.md'
@@ -49,6 +57,14 @@ on:
       - 'navigation-layout-fix.js'
       - 'single-screen.js'
       - 'single-screen.css'
+      - 'hard-construct-integrity.js'
+      - 'qb5-finalize.js'
+      - 'matrix-layout-fix.css'
+      - 'spatial-visual-fix.css'
+      - 'docs/question-language-style.md'
+      - 'tests/natural-language-validation.js'
+      - 'tests/hard-construct-integrity-validation.js'
+      - 'tests/matrix-layout-validation.js'
       - 'qb5-42-form.js'
       - 'README.md'
       - 'PRODUCT_STATUS.md'
@@ -101,6 +117,8 @@ jobs:
           node tests/result-title-engine-validation.js
           node tests/replay-history-validation.js
           node tests/accessibility-interaction-validation.js
+          node tests/natural-language-validation.js
+          node tests/hard-construct-integrity-validation.js
           node tests/matrix-layout-validation.js
           node tests/navigation-layout-validation.js
           node tests/compact-final-production-validation.js

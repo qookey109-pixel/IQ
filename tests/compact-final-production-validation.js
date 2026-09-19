@@ -52,6 +52,23 @@ assert.deepStrictEqual(bad,[],'final production hygiene must remain clean');
 assert.strictEqual(positions.reduce((a,b)=>a+b,0),2058);
 assert.ok(Math.max(...positions)-Math.min(...positions)<=1,`2,058-item bank answer positions must be near-even: ${positions.join('/')}`);
 
+const pairing=bank.filter(q=>q.taskFamily==='pairing-capacity');
+const pairingV1=pairing.filter(q=>Number(q.constructVariant)===1);
+assert.ok(pairingV1.every(q=>q.q.includes('每格最多放 1')&&q.q.includes('也只能放進 1 格')),
+  'production one-to-one pairing must state both-side uniqueness');
+const pairingV2=pairing.filter(q=>Number(q.constructVariant)===2);
+assert.ok(pairingV2.every(q=>q.q.includes('不能放進任何格')&&q.q.includes('每格最多放 1')&&q.q.includes('也只能放進 1 格')),
+  'production unusable-item pairing must keep distinct one-to-one assumptions explicit');
+const pairingV3=pairing.filter(q=>Number(q.constructVariant)===3);
+assert.ok(pairingV3.every(q=>q.q.includes('只能放 A 型格')&&q.q.includes('只能放 B 型格')&&q.q.includes('每格最多放 1')&&q.q.includes('也只能放進 1 格')),
+  'production typed matching must state type restrictions and both-side uniqueness');
+const pairingV5=pairing.filter(q=>Number(q.constructVariant)===5);
+assert.ok(pairingV5.every(q=>/每.+只能放一盒/.test(q.q)),
+  'production capacity items must state that an object cannot be counted in multiple boxes');
+const pairingV6=pairing.filter(q=>Number(q.constructVariant)===6);
+assert.ok(pairingV6.every(q=>q.q.includes('保留席')&&q.q.includes('不開放給這批需要座位的人')),
+  'production reserved-seat items must state exactly who cannot use reserved capacity');
+
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,392);
 assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')&&q.spatialReliability==='SRI-2026.09.1'));

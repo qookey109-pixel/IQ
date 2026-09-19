@@ -20,21 +20,25 @@
 
   function speedEfficiency(q, answerIndex, elapsedSeconds) {
     if (!isTimed(q) || answerIndex !== q.a) return 0;
+    if (elapsedSeconds == null || elapsedSeconds === '') return 0;
+    const numericSpent = Number(elapsedSeconds);
+    if (!Number.isFinite(numericSpent) || numericSpent < 0) return 0;
     const limit = Number(q.limit);
-    const spent = Math.max(0, Number(elapsedSeconds) || 0);
-    return clamp01(1 - spent / limit);
+    return clamp01(1 - numericSpent / limit);
   }
 
-  function scoreDomain(items, answers, elapsedTimes) {
+  function scoreDomain(items, answers = [], elapsedTimes = []) {
+    const answerList = Array.isArray(answers) ? answers : [];
+    const elapsedList = Array.isArray(elapsedTimes) ? elapsedTimes : [];
     const rows = items.map(({ q, index }) => {
       const weight = itemWeight(q);
-      const correct = answers[index] === q.a;
+      const correct = answerList[index] === q.a;
       return {
         q,
         index,
         weight,
         correct,
-        speedEfficiency: speedEfficiency(q, answers[index], elapsedTimes[index])
+        speedEfficiency: speedEfficiency(q, answerList[index], elapsedList[index])
       };
     });
 
@@ -64,29 +68,32 @@
     };
   }
 
-  function scoreAssessment(questions, answers, elapsedTimes) {
-    const domains = [...new Set(questions.map(q => q.d))];
+  function scoreAssessment(questions = [], answers = [], elapsedTimes = []) {
+    const questionList = Array.isArray(questions) ? questions : [];
+    const answerList = Array.isArray(answers) ? answers : [];
+    const elapsedList = Array.isArray(elapsedTimes) ? elapsedTimes : [];
+    const domains = [...new Set(questionList.map(q => q.d))];
     const domainScores = {};
 
     for (const domain of domains) {
-      const items = questions
+      const items = questionList
         .map((q, index) => ({ q, index }))
         .filter(row => row.q.d === domain);
-      domainScores[domain] = scoreDomain(items, answers, elapsedTimes);
+      domainScores[domain] = scoreDomain(items, answerList, elapsedList);
     }
 
     const values = domains.map(domain => domainScores[domain].score);
     const performanceIndex = values.length ? round1(values.reduce((a, b) => a + b, 0) / values.length) : 0;
-    const rawCorrect = questions.filter((q, i) => answers[i] === q.a).length;
-    const skipped = answers.filter(answer => answer == null).length;
+    const rawCorrect = questionList.filter((q, i) => answerList[i] === q.a).length;
+    const skipped = questionList.filter((_, i) => answerList[i] == null).length;
 
     return {
       version: '2.0',
       scale: '0-100-experimental',
       performanceIndex,
       rawCorrect,
-      rawTotal: questions.length,
-      rawAccuracy: questions.length ? round1(rawCorrect / questions.length * 100) : 0,
+      rawTotal: questionList.length,
+      rawAccuracy: questionList.length ? round1(rawCorrect / questionList.length * 100) : 0,
       skipped,
       domains: domainScores,
       difficultyWeights: { ...DIFFICULTY_WEIGHT },

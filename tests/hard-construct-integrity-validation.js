@@ -21,11 +21,21 @@ for(const q of bank.filter(q=>q.taskFamily==='set-overlap'&&q.difficulty==='hard
   else {const m=q.q.match(/共有 (\d+) 人。(\d+) 人兩項都沒選；選 A 的有 (\d+) 人；兩項都選的有 (\d+) 人/);assert.ok(m);const union=Number(m[1])-Number(m[2]),onlyB=union-Number(m[3]);assert.strictEqual(String(onlyB),answer(q),`${q.id}: neither + overlap inverse`);}
 }
 for(const q of bank.filter(q=>q.taskFamily==='invariant-transfer'&&q.difficulty==='hard')){
-  const nums=(q.q.match(/\d+/g)||[]).map(Number);assert.ok(nums.length>=5);let expectedAns;
+  let expectedAns;
   assert.ok(q.q.includes('丁'),`${q.id}: external transfer actor must be explicit`);
   assert.ok(q.q.includes('不再放回'),`${q.id}: removed objects must explicitly leave the counted system`);
   assert.ok(q.q.includes('之外'),`${q.id}: newly added objects must explicitly come from outside the counted system`);
-  if(q.constructVariant===7){const [A,B,,removed,added]=nums;expectedAns=A+B-removed+added;}else{const [A,B,C,,,removed,added]=nums;expectedAns=A+B+C-removed+added;}
+  if(q.constructVariant===7){
+    const m=q.q.match(/甲盒原有 (\d+) 顆、乙盒原有 (\d+) 顆。甲先把 (\d+) 顆移到乙盒。接著丁從乙盒拿走 (\d+) 顆[\s\S]*另外拿 (\d+) 顆新的/);
+    assert.ok(m,`${q.id}: two-box transfer wording must remain structurally parseable`);
+    const [,A,B,,removed,added]=m.map(Number);
+    expectedAns=A+B-removed+added;
+  }else{
+    const m=q.q.match(/甲、乙、丙三盒原本分別有 (\d+)、(\d+)、(\d+) 顆。甲把 (\d+) 顆移到乙盒，乙再把 (\d+) 顆移到丙盒。之後丁從丙盒拿走 (\d+) 顆[\s\S]*另外拿 (\d+) 顆新的/);
+    assert.ok(m,`${q.id}: three-box transfer wording must remain structurally parseable`);
+    const [,A,B,C,,,removed,added]=m.map(Number);
+    expectedAns=A+B+C-removed+added;
+  }
   assert.strictEqual(String(expectedAns),answer(q),`${q.id}: internal transfers must cancel; external net change remains`);
 }
 for(const q of bank.filter(q=>q.taskFamily==='pairing-capacity'&&q.difficulty==='hard')){

@@ -23,11 +23,14 @@ assert.ok(pos('assessment-quality.js') > pos('scoring-v2.js'));
 assert.ok(pos('navigation-layout-fix.js') > pos('assessment-quality.js'));
 
 assert.ok(pretest.includes('totalQuestions !== 42'),'formal entry must reject non-42 production forms');
-assert.ok(pretest.includes("document.getElementById('startBtn').onclick = showIntroStep"),'start path must enter instructions without age intake');
-assert.ok(pretest.includes("setOnlyVisible('pretestIntro')"),'instructions must be the first pretest state');
-assert.ok(pretest.includes("setOnlyVisible('pretestPractice')"),'practice must have its own release state');
+assert.ok(pretest.includes("mode: 'direct-formal-entry'"),'release path must use direct formal entry');
+assert.ok(pretest.includes('start.onclick = startFormalAssessment'),'start button must enter the 42-item form directly');
+assert.ok(pretest.includes('practiceEnabled: false'),'practice must remain disabled');
+assert.ok(pretest.includes('practiceCount: 0'),'practice count must remain zero');
+assert.ok(!pretest.includes('pretestIntro')&&!pretest.includes('pretestPractice'),'release path must contain no pretest panels');
+assert.ok(!pretest.includes('practice-verbal-01')&&!pretest.includes('practice-memory-01')&&!pretest.includes('practice-spatial-01')&&!pretest.includes('practice-speed-01'),'legacy practice items must be absent');
 assert.ok(!pretest.includes('ageSelect'),'release path must not collect age');
-assert.ok(pretest.includes('window.location.reload()'),'restart must reset the full pretest/form attempt');
+assert.ok(pretest.includes('window.location.reload()'),'restart must reset the full direct-entry attempt');
 
 assert.ok(nav.includes('skipQuestion = nextQuestion'),'forward control must not be a destructive skip');
 assert.ok(!nav.includes('answers[currentIndex] = null'),'forward control must preserve an existing answer');
@@ -99,4 +102,4 @@ assert.ok(c.IQ_LAST_RESULT.performanceIndex>=0&&c.IQ_LAST_RESULT.performanceInde
 assert.ok(String(nodes.get('resultDesc').textContent).includes('公開結果不顯示總分'));
 
 console.log('Release UX smoke validation PASS');
-console.log('Release path order, age-free pretest/form entry, non-destructive navigation, modal close behavior, and non-quantitative timing fallback are protected.');
+console.log('Release path order, direct 42-item entry with no practice, non-destructive navigation, modal close behavior, and non-quantitative timing fallback are protected.');

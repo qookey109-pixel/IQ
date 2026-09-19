@@ -63,8 +63,7 @@ const expectedStyles = [
   'matrix-layout-fix.css',
   'viewport-stability.css',
   'heritage-theme.css',
-  'spatial-visual-fix.css',
-  'pretest-flow.css'
+  'spatial-visual-fix.css'
 ];
 
 const runtimeSources = getProductionRuntimeSources(html);
@@ -85,4 +84,4 @@ assert.ok(!renderedStyles.includes('{% include_relative'), 'rendered styles must
 assert.ok(renderedStyles.length > 1000, 'rendered stylesheet bundle must contain the production styles');
 
 console.log('Runtime bundle validation PASS');
-console.log('Production requests: 43 JS + 7 CSS -> 1 deferred JS bundle + 1 CSS bundle; canonical source modules remain separate.');
+console.log('Production requests: 43 JS + 6 CSS -> 1 deferred JS bundle + 1 CSS bundle; canonical source modules remain separate.');

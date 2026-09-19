@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-2** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-3** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -113,14 +113,14 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 ### Release UX QA（2026-09-19）
 
 - timing layer 不再保留獨立的舊版結果計算器；它只負責 deadline、timeout lock 與總時間，再委派給 CPI-only 結果路徑。
-- CI 會直接檢查 production script order、前測 42 題入口、forward navigation、modal Escape 關閉，以及「沒有 assessment-quality.js 接管時」的 CPI-only fallback。
+- CI 會直接檢查 production script order、首頁直入 42 題正式測驗、無年齡／無練習題入口、forward navigation、modal Escape 關閉，以及「沒有 assessment-quality.js 接管時」的非量化公開 fallback。
 - 這是 release smoke / regression QA；不是聲稱所有實體 Safari／手機型號都已人工驗收。
 
 ## Product mainline — playful qualitative result（2026-09-19）
 
 目前產品主線聚焦在 **42 題認知遊戲／自我探索體驗**，不把 IRB／真人常模送審當作產品使用前置條件。
 
-- 一開始 **不用填年齡**
+- 一開始 **不用填年齡，也沒有前置練習題**；首頁按下開始後直接進入正式 42 題
 - 公開結果 **不顯示 CPI、總分、正確率百分比、IQ、人口百分位、同齡排名或腦齡數字**
 - 公開結果只給「今天的大腦稱號」與本次作答的主線索／副線索，例如規律捕手、空間導航員、文字解碼師等
 - 稱號由同一份測驗內的相對作答輪廓產生，不使用人口常模門檻，不宣稱能力等級或固定人格
@@ -190,3 +190,11 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 因此 CPI 0–100 只保留為內部工程／研究診斷值；RC2 公開介面不顯示這個數字。公開的趣味稱號也不能視為正式 IQ、人口百分位、能力等級、固定人格、教育／就業判斷或診斷結果。
 
 > **不構成任何標準，好玩就好。**
+
+
+### Direct-entry UX（RC-2026.09.19-3）
+
+- 移除原本 4 題不計分練習。
+- 首頁按「直接開始 42 題」後直接進正式測驗，不再有前置步驟。
+- 不收集年齡或人口資料。
+- 正式 42 題、記憶曝光、速度題倒數、內部 Scoring v2 與趣味稱號邏輯均維持不變。

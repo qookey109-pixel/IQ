@@ -1,14 +1,12 @@
-// Cognitive IQ Lab — pre-test age + practice flow.
-// Age is collected as whole years only (18–65), stored locally, and never alters CPI scoring.
+// Cognitive IQ Lab — pre-test practice flow.
+// No age or demographic input is required for the public experience.
 // Practice items are unscored and never enter the 42-item production form, timing, analytics, or results.
 (() => {
   'use strict';
 
-  const PROFILE_KEY = 'cognitive-iq-lab:participant-profile:v1';
-  const FLOW_VERSION = '1.0';
+  const STATE_KEY = 'cognitive-iq-lab:pretest-state:v2';
+  const FLOW_VERSION = '2.0';
   const PRACTICE_VERSION = '1.0';
-  const AGE_MIN = 18;
-  const AGE_MAX = 65;
   let practiceIndex = 0;
   let practiceLocked = false;
   let practiceTimer = null;
@@ -57,49 +55,30 @@
     }
   ];
 
-  function ageBand(age) {
-    const n = Number(age);
-    if (n <= 24) return '18–24';
-    if (n <= 34) return '25–34';
-    if (n <= 44) return '35–44';
-    if (n <= 54) return '45–54';
-    return '55–65';
-  }
-
-  function loadProfile() {
+  function loadState() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
-      if (!parsed || !Number.isInteger(Number(parsed.ageYears))) return null;
-      const age = Number(parsed.ageYears);
-      if (age < AGE_MIN || age > AGE_MAX) return null;
+      const parsed = JSON.parse(localStorage.getItem(STATE_KEY) || 'null');
+      if (!parsed || typeof parsed !== 'object') return null;
       return {
-        schemaVersion: 1,
-        ageYears: age,
-        ageBand: ageBand(age),
+        schemaVersion: 2,
         practiceVersion: parsed.practiceVersion || null,
-        updatedAt: parsed.updatedAt || null,
-        dateOfBirthCollected: false,
-        scoreAdjustedForAge: false
+        updatedAt: parsed.updatedAt || null
       };
     } catch {
       return null;
     }
   }
 
-  function saveProfile(age, practiceVersion = null) {
-    const previous = loadProfile();
-    const profile = {
-      schemaVersion: 1,
-      ageYears: Number(age),
-      ageBand: ageBand(age),
+  function saveState(practiceVersion = null) {
+    const previous = loadState();
+    const state = {
+      schemaVersion: 2,
       practiceVersion: practiceVersion || previous?.practiceVersion || null,
-      updatedAt: new Date().toISOString(),
-      dateOfBirthCollected: false,
-      scoreAdjustedForAge: false
+      updatedAt: new Date().toISOString()
     };
-    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {}
-    window.IQ_PARTICIPANT_PROFILE = profile;
-    return profile;
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch {}
+    window.IQ_PRETEST_STATE = state;
+    return state;
   }
 
   function clearPracticeTimers() {
@@ -109,7 +88,7 @@
   }
 
   function setOnlyVisible(id) {
-    for (const sectionId of ['start','pretestAge','pretestIntro','pretestPractice','quiz','result']) {
+    for (const sectionId of ['start','pretestIntro','pretestPractice','quiz','result']) {
       const el = document.getElementById(sectionId);
       if (el) el.classList.toggle('hidden', sectionId !== id);
     }
@@ -119,39 +98,33 @@
   function buildPanels() {
     const start = document.getElementById('start');
     const quiz = document.getElementById('quiz');
-    if (!start || !quiz || document.getElementById('pretestAge')) return;
-
-    const ageSection = document.createElement('section');
-    ageSection.id = 'pretestAge';
-    ageSection.className = 'card screenPanel hidden pretestPanel';
-    ageSection.innerHTML = `
-      <div class="sectionKicker">STEP 1 · AGE</div>
-      <h2>先選擇你的實足年齡</h2>
-      <p class="pretestLead">目前成人試行範圍為 18–65 歲。只選歲數，不收集生日；年齡不會直接替 CPI 加分或扣分。</p>
-      <label class="ageField" for="ageSelect"><span>實足年齡</span><select id="ageSelect" aria-label="實足年齡"><option value="">請選擇</option></select></label>
-      <div class="pretestNotice"><strong>用途：</strong>只用於本機研究資料分層，以及未來建立同齡常模時的比較。現階段結果仍是 CPI，不是 IQ。</div>
-      <div class="pretestActions"><button id="ageBackBtn" class="btn secondary">返回首頁</button><button id="ageContinueBtn" class="btn primary" disabled>下一步</button></div>`;
+    if (!start || !quiz || document.getElementById('pretestIntro')) return;
 
     const introSection = document.createElement('section');
     introSection.id = 'pretestIntro';
     introSection.className = 'card screenPanel hidden pretestPanel';
     introSection.innerHTML = `
-      <div class="sectionKicker">STEP 2 · INSTRUCTIONS</div>
-      <h2>正式測驗前，先熟悉規則</h2>
+      <div class="sectionKicker">READY?</div>
+      <h2>先熟悉玩法，再開始 42 題</h2>
+      <p class="pretestLead">不用填年齡，也不用建立個人資料。先看一下規則；第一次玩可以做 4 題不計分練習。</p>
       <div class="pretestRuleGrid">
-        <article><strong>42 題正式測驗</strong><span>六構面各 7 題；每個題型家族各出 1 題。</span></article>
-        <article><strong>一般題不限時</strong><span>推理、語文、空間與量化可依自己的節奏作答。</span></article>
-        <article><strong>記憶只看一次</strong><span>依難度顯示 4／5／6 秒；內容消失後作答不限時。</span></article>
-        <article><strong>速度題限時 18 秒</strong><span>首次顯示後連續倒數；離開題目不暫停，提交後固定答案。</span></article>
+        <article><strong>42 題正式測驗</strong><span>六個方向各 7 題；每個題型家族各出 1 題。</span></article>
+        <article><strong>一般題不限時</strong><span>語文、推理、空間與量化可以照自己的節奏作答。</span></article>
+        <article><strong>記憶只看一次</strong><span>依難度顯示 4／5／6 秒；內容消失後再作答。</span></article>
+        <article><strong>速度題限時 18 秒</strong><span>首次顯示後連續倒數；離開題目也不暫停。</span></article>
       </div>
-      <div class="pretestNotice">接下來有 ${practiceItems.length} 題不計分練習。練習答案不會寫入正式 42 題成績、CPI、總時間或 item analytics。</div>
-      <div class="pretestActions"><button id="introBackBtn" class="btn secondary">返回年齡</button><button id="practiceStartBtn" class="btn primary">開始 ${practiceItems.length} 題練習</button><button id="practiceSkipBtn" class="btn ghost hidden">已熟悉，直接開始正式測驗</button></div>`;
+      <div class="pretestNotice">練習答案不會寫入正式 42 題結果、總時間或 item analytics；正式完成後也不會顯示 IQ、CPI、百分比、排名或總分。</div>
+      <div class="pretestActions">
+        <button id="introBackBtn" class="btn secondary">返回首頁</button>
+        <button id="practiceStartBtn" class="btn primary">開始 ${practiceItems.length} 題練習</button>
+        <button id="practiceSkipBtn" class="btn ghost hidden">已熟悉，直接開始正式測驗</button>
+      </div>`;
 
     const practiceSection = document.createElement('section');
     practiceSection.id = 'pretestPractice';
     practiceSection.className = 'card screenPanel hidden pretestPanel';
     practiceSection.innerHTML = `
-      <div class="practiceHeader"><div><div class="sectionKicker">STEP 3 · PRACTICE</div><div id="practiceProgress" class="counter">練習 1 / ${practiceItems.length}</div></div><div id="practiceBadge" class="practiceBadge">不計分</div></div>
+      <div class="practiceHeader"><div><div class="sectionKicker">PRACTICE</div><div id="practiceProgress" class="counter">練習 1 / ${practiceItems.length}</div></div><div id="practiceBadge" class="practiceBadge">不計分</div></div>
       <div id="practiceStimulus" class="practiceStimulus hidden"></div>
       <h2 id="practiceQuestion"></h2>
       <p id="practiceHelp" class="pretestLead"></p>
@@ -159,40 +132,15 @@
       <div id="practiceFeedback" class="practiceFeedback hidden" role="status"></div>
       <div class="pretestActions"><button id="practiceBackBtn" class="btn secondary">返回說明</button><button id="practiceNextBtn" class="btn primary" disabled>下一題</button></div>`;
 
-    start.insertAdjacentElement('afterend', ageSection);
-    ageSection.insertAdjacentElement('afterend', introSection);
+    start.insertAdjacentElement('afterend', introSection);
     introSection.insertAdjacentElement('afterend', practiceSection);
-  }
-
-  function populateAges() {
-    const select = document.getElementById('ageSelect');
-    if (!select || select.options.length > 1) return;
-    for (let age = AGE_MIN; age <= AGE_MAX; age++) {
-      const option = document.createElement('option');
-      option.value = String(age);
-      option.textContent = `${age} 歲`;
-      select.appendChild(option);
-    }
-    const profile = loadProfile();
-    if (profile) select.value = String(profile.ageYears);
-    document.getElementById('ageContinueBtn').disabled = !select.value;
-  }
-
-  function showAgeStep() {
-    clearPracticeTimers();
-    populateAges();
-    const profile = loadProfile();
-    const select = document.getElementById('ageSelect');
-    if (profile && select) select.value = String(profile.ageYears);
-    if (document.getElementById('ageContinueBtn')) document.getElementById('ageContinueBtn').disabled = !select?.value;
-    setOnlyVisible('pretestAge');
   }
 
   function showIntroStep() {
     clearPracticeTimers();
-    const profile = loadProfile();
+    const state = loadState();
     const skip = document.getElementById('practiceSkipBtn');
-    if (skip) skip.classList.toggle('hidden', profile?.practiceVersion !== PRACTICE_VERSION);
+    if (skip) skip.classList.toggle('hidden', state?.practiceVersion !== PRACTICE_VERSION);
     setOnlyVisible('pretestIntro');
   }
 
@@ -222,7 +170,7 @@
 
     const showQuestion = () => {
       question.textContent = item.question;
-      help.textContent = item.limitSeconds ? '這是限時操作示範；答對或答錯都不計入正式成績。' : '選一個答案即可；這些練習不計分。';
+      help.textContent = item.limitSeconds ? '這是限時操作示範；答對或答錯都不計入正式結果。' : '選一個答案即可；這些練習不計分。';
       options.innerHTML = item.options.map((opt, idx) => `<button type="button" class="option practiceOption" data-practice-choice="${idx}"><span style="opacity:.55;margin-right:8px">${String.fromCharCode(65 + idx)}.</span>${opt}</button>`).join('');
       options.querySelectorAll('[data-practice-choice]').forEach(btn => btn.addEventListener('click', () => submitPractice(Number(btn.dataset.practiceChoice))));
       if (item.limitSeconds) startPracticeCountdown(item.limitSeconds);
@@ -315,8 +263,7 @@
       renderPractice();
       return;
     }
-    const profile = loadProfile();
-    if (profile) saveProfile(profile.ageYears, PRACTICE_VERSION);
+    saveState(PRACTICE_VERSION);
     startFormalAssessment();
   }
 
@@ -333,19 +280,8 @@
   }
 
   function bindEvents() {
-    document.getElementById('startBtn').onclick = showAgeStep;
-    document.getElementById('ageSelect')?.addEventListener('change', event => {
-      const age = Number(event.target.value);
-      document.getElementById('ageContinueBtn').disabled = !(Number.isInteger(age) && age >= AGE_MIN && age <= AGE_MAX);
-    });
-    document.getElementById('ageBackBtn')?.addEventListener('click', () => setOnlyVisible('start'));
-    document.getElementById('ageContinueBtn')?.addEventListener('click', () => {
-      const age = Number(document.getElementById('ageSelect')?.value);
-      if (!Number.isInteger(age) || age < AGE_MIN || age > AGE_MAX) return;
-      saveProfile(age);
-      showIntroStep();
-    });
-    document.getElementById('introBackBtn')?.addEventListener('click', showAgeStep);
+    document.getElementById('startBtn').onclick = showIntroStep;
+    document.getElementById('introBackBtn')?.addEventListener('click', () => setOnlyVisible('start'));
     document.getElementById('practiceStartBtn')?.addEventListener('click', beginPractice);
     document.getElementById('practiceSkipBtn')?.addEventListener('click', startFormalAssessment);
     document.getElementById('practiceBackBtn')?.addEventListener('click', showIntroStep);
@@ -361,8 +297,6 @@
       .pretestPanel{max-width:980px;margin-inline:auto;padding:clamp(24px,4vw,44px)}
       .pretestPanel h2{font-size:clamp(30px,5vw,52px);line-height:1.08;margin:10px 0 14px;color:var(--navy)}
       .pretestLead{font-size:18px;line-height:1.7;color:var(--muted);max-width:760px}
-      .ageField{display:grid;gap:10px;max-width:360px;margin:28px 0 20px;font-weight:900;color:var(--navy)}
-      .ageField select{appearance:none;width:100%;font:inherit;font-size:20px;padding:15px 16px;border-radius:16px;border:1px solid var(--line);background:#fff;color:var(--navy);box-shadow:var(--shadow-soft)}
       .pretestNotice{margin:18px 0;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:rgba(255,252,244,.82);line-height:1.65;color:var(--muted)}
       .pretestActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:24px}
       .pretestRuleGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0}
@@ -385,20 +319,19 @@
 
   buildPanels();
   installStyles();
-  populateAges();
   bindEvents();
-  window.IQ_PARTICIPANT_PROFILE = loadProfile();
+  window.IQ_PARTICIPANT_PROFILE = null;
+  window.IQ_PRETEST_STATE = loadState();
   window.IQ_PRETEST_FLOW = {
     version: FLOW_VERSION,
     practiceVersion: PRACTICE_VERSION,
-    profileStorageKey: PROFILE_KEY,
-    ageMin: AGE_MIN,
-    ageMax: AGE_MAX,
+    stateStorageKey: STATE_KEY,
+    ageInputRequired: false,
+    demographicInputRequired: false,
     practiceCount: practiceItems.length,
     practiceItems: practiceItems.map(({id,label,question,options,answer,explanation,exposureMs,limitSeconds}) => ({id,label,question,options:[...options],answer,explanation,exposureMs:exposureMs||null,limitSeconds:limitSeconds||null})),
-    loadProfile,
-    saveProfile,
-    ageBand,
+    loadState,
+    saveState,
     startFormalAssessment
   };
 })();

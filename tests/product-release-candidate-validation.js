@@ -21,8 +21,8 @@ const titleEngine=fs.readFileSync('result-title-engine.js','utf8');
 const replay=fs.readFileSync('replay-history.js','utf8');
 const spatialCss=fs.readFileSync('spatial-visual-fix.css','utf8');
 
-assert.ok(html.includes('styles.bundle.css?v=20260919-rc11'),'RC CSS cache key must be current');
-assert.ok(html.includes('runtime.bundle.js?v=20260919-rc11'),'RC runtime cache key must be current');
+assert.ok(html.includes('styles.bundle.css?v=20260919-rc12'),'RC CSS cache key must be current');
+assert.ok(html.includes('runtime.bundle.js?v=20260919-rc12'),'RC runtime cache key must be current');
 assert.strictEqual((html.match(/<script\b[^>]*\bsrc=/g)||[]).length,1,'release page must request one JS bundle');
 assert.strictEqual((html.match(/<link\b[^>]*\brel="stylesheet"/g)||[]).length,1,'release page must request one CSS bundle');
 assert.ok(!/<script\b[^>]*\bsrc="https?:\/\//i.test(html),'release runtime must not depend on a remote script CDN');
@@ -38,7 +38,7 @@ const renderedStyles=renderJekyllIncludes('styles.bundle.css');
 assert.ok(renderedStyles.length>1000);
 
 for(const marker of [
-  'RC-2026.09.19-11',
+  'RC-2026.09.19-12',
   '2,058 items',
   '42 items = 6 domains × 7 families',
   'Public result: **clean qualitative title card + 30 deterministic directional combination titles**',
@@ -57,7 +57,7 @@ for(const marker of [
   'frozen'
 ]) assert.ok(status.includes(marker),'PRODUCT_STATUS missing authority marker: '+marker);
 
-assert.ok(readme.includes('RC-2026.09.19-11'));
+assert.ok(readme.includes('RC-2026.09.19-12'));
 assert.ok(readme.includes('Product mainline — playful qualitative result'));
 assert.ok(readme.includes('不用填年齡'));
 assert.ok(readme.includes('沒有前置練習題'));
@@ -101,6 +101,12 @@ assert.ok(!html.includes('id="profileHighlights"')&&!html.includes('id="resultSi
 const hardMatrixSource=fs.readFileSync('full-bank-polish.js','utf8');
 assert.ok(hardMatrixSource.includes('hard-multi-rule')&&hardMatrixSource.includes('relations:4'),'RC11 hard matrix must include the four-attribute relation surface');
 assert.ok(hardMatrixSource.includes('hard-xor-orientation')&&hardMatrixSource.includes('XOR'),'RC11 hard matrix must include logical XOR plus orientation composition');
+const hardIntegritySource=fs.readFileSync('hard-construct-integrity.js','utf8');
+assert.ok(hardIntegritySource.includes("HCI-2026.09.2"),'RC12 must use Hard Construct Integrity v2');
+assert.ok(hardIntegritySource.includes('hard-ordering-distance-constraints')&&hardIntegritySource.includes('hard-ordering-block-and-position'),'RC12 hard ordering surfaces must be present');
+assert.ok(hardIntegritySource.includes('hard-code-pair-sum-system')&&hardIntegritySource.includes('hard-code-triple-sum-elimination'),'RC12 hard code-deduction surfaces must be present');
+assert.ok(hardIntegritySource.includes('hard-machine-reverse-two-stage')&&hardIntegritySource.includes('hard-machine-branch-inference'),'RC12 hard machine inference surfaces must be present');
+
 
 assert.ok(!html.includes('id="shareResultBtn"'),'public share button must stay removed');
 assert.ok(html.includes('publicResultActions')&&html.includes('id="restartBtn"')&&html.includes('id="reviewBtn"'),'public result keeps replay and review actions');
@@ -119,4 +125,4 @@ assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)
 
 
 console.log('Product Release Candidate validation PASS');
-console.log('RC-2026.09.19-11: static relative-position spatial tasks, simplified qualitative result, accessibility, governance locks, and fallback boundaries are consistent.');
+console.log('RC-2026.09.19-12: complete hard-fluid reasoning, qualitative result boundaries, accessibility, governance locks, and production fallbacks are consistent.');

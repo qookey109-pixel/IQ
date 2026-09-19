@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-7**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC7 accessibility-polish change set**  
-Branch base: `f1cde714e5a46b8de7e8c2030a84b49e83760df4`
+Release candidate: **RC-2026.09.19-8**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC8 real-play QA change set**  
+Branch base: `e000e5adfb226f36f800d10f01f581e32e7387ea`
 
 ## Active product
 
@@ -20,7 +20,7 @@ Branch base: `f1cde714e5a46b8de7e8c2030a84b49e83760df4`
 - Replay comparison: **same-route / changed-route qualitative prompt only**
 - Keyboard access: **named question navigation, pressed/current states, question focus handoff, modal focus containment**
 - Focus visibility: **explicit focus-visible + forced-colors support**
-- Public six-domain view: **role-only constellation (主線／副線), no scale and no numeric values**
+- Public six-domain view: **qualitative hexagon (主線／副線), no scale and no numeric values**
 - Public sharing: **copy/share qualitative text only; no internal score is included**
 - Public numeric score: **none**
 - Public age input: **none**
@@ -65,7 +65,7 @@ Public-result metadata additionally requires:
 
 ## Release-candidate evidence
 
-RC7 is expected to preserve:
+RC8 is expected to preserve:
 
 - 2,058-item / 42-item production validation
 - independent answer oracle and answer-position balance
@@ -86,18 +86,22 @@ RC7 is expected to preserve:
 - dynamic answer buttons expose `aria-pressed`; current question exposes `aria-current=step`
 - question changes move focus to the new prompt without scrolling the page
 - modal open/Tab/Escape/close behavior keeps focus contained and restores the opener
+- external add/remove transfer items name the external actor and explicitly state when objects leave the counted system
+- pairing-capacity items do not use irrelevant random-place prefixes
+- 4×3 matrix tasks stay compact in the final Safari visual cascade
+- review modal shows **your answer + correct answer + explanation** as separate fields
 - share text contains no CPI / IQ / percentile / numeric ability output
-- six-domain public visualization is role-only and has no score scale
+- six-domain public visualization is a role-only qualitative hexagon with no score scale
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc7`
+- cache-busted RC assets: `20260919-rc8`
 
-## Maintenance convergence
+## Previous maintenance convergence
 
-Status: **CONVERGED — product RC7 stable; maintenance-only changes after this point unless a new product requirement is opened.**
+RC7 was the converged baseline. RC8 was intentionally reopened after real Safari play-through exposed concrete product issues: ambiguous external-transfer wording, decorative place prefixes, oversized matrix presentation, answer-review clarity, and the desired six-domain hexagon result view.
 
-- Product code remains **RC-2026.09.19-7**; this maintenance pass does not change the public feature set.
+- `main` at RC7 remains the formal authority until this RC8 branch is merged.
 - Repository size remains modest; frozen calibration / research evidence is retained for audit and reproducibility rather than deleted.
 - Six frozen research workflows are path-scoped so ordinary product/UI-only changes do not re-run unrelated R/research validation.
 - Product changes continue to be protected by Question Bank Validation, Product Release Candidate Gate, and Product Qualitative Result Guard.

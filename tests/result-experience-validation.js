@@ -11,14 +11,14 @@ const titleEngine = fs.readFileSync('result-title-engine.js','utf8');
 const replay = fs.readFileSync('replay-history.js','utf8');
 
 for (const id of [
-  'resultShareCard','resultSignature','playfulTitle','profileHighlights',
-  'brainConstellation','restartBtn','reviewBtn'
+  'resultShareCard','playfulTitle','brainConstellation','restartBtn','reviewBtn'
 ]) {
   assert.ok(html.includes(`id="${id}"`), 'missing qualitative result UI id: ' + id);
 }
 
 assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'));
-assert.ok(html.includes('六個頂點代表六個構面；只標示本次主線與副線，不以距離或長短表示分數。'));
+assert.ok(html.includes('六個頂點代表六個構面；圖形只呈現這次的相對輪廓，不以距離、長短或數字表示分數。'));
+assert.ok(!html.includes('id="resultSignature"')&&!html.includes('id="profileHighlights"'),'public clue/signature blocks must stay removed');
 assert.ok(!html.includes('id="replayPrompt"')&&!html.includes('id="recentModes"'),'public replay strip must stay removed');
 assert.ok(!html.includes('id="copyResultBtn"')&&!html.includes('id="shareResultBtn"'),'public copy/share controls must stay removed');
 assert.ok(html.includes('publicResultActions'),'result footer must use the minimal public action row');
@@ -48,7 +48,6 @@ for (const forbidden of ['performanceIndex','rawAccuracy','weightedAccuracy','sp
 }
 
 for (const marker of [
-  '.resultSignature',
   '.brainConstellation',
   '.brainHexagonMap',
   '.brainHexPrimary',
@@ -69,6 +68,7 @@ assert.ok(quality.includes('const correctAnswer = q.o[q.a]'));
 assert.ok(quality.includes('正確答案：</b>${correctAnswer}'));
 assert.ok(quality.includes('解析：</b>${q.e}'));
 assert.ok(quality.includes('class="brainHexagonMap"'));
+assert.ok(!quality.includes('class="brainHexRole"'),'hexagon must not print main/secondary role labels');
 assert.ok(!quality.includes('brainHexValue'), 'qualitative hexagon must not render numeric domain values');
 assert.ok(replay.includes("MAX_ENTRIES = 4"));
 assert.ok(replay.includes("storesNumericScores: false"));

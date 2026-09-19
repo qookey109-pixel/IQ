@@ -120,22 +120,40 @@ function renderBrainConstellation(domains, profile) {
   const holder = $("brainConstellation");
   if (!holder) return;
 
-  holder.innerHTML = domains.map(domain => {
-    const domainProfile = playfulDomainProfile(domain);
+  const points = [
+    {x:160,y:35,lx:160,ly:16,anchor:"middle"},
+    {x:225,y:72,lx:270,ly:67,anchor:"middle"},
+    {x:225,y:148,lx:270,ly:166,anchor:"middle"},
+    {x:160,y:185,lx:160,ly:218,anchor:"middle"},
+    {x:95,y:148,lx:50,ly:166,anchor:"middle"},
+    {x:95,y:72,lx:50,ly:67,anchor:"middle"}
+  ];
+  const polygon = points.map(p => `${p.x},${p.y}`).join(" ");
+  const nodes = domains.map((domain,index) => {
+    const p = points[index];
     const isPrimary = domain === profile.primaryDomain;
     const isSecondary = domain === profile.secondaryDomain && !isPrimary;
-    const role = isPrimary ? "主線" : (isSecondary ? (profile.coLead ? "並列" : "副線") : "");
-    const className = isPrimary ? "brainNode brainNodePrimary" :
-      (isSecondary ? (profile.coLead ? "brainNode brainNodePrimary" : "brainNode brainNodeSecondary") : "brainNode");
-
+    const role = isPrimary ? "主線" : (isSecondary ? (profile.coLead ? "並列主線" : "副線") : "");
+    const cls = isPrimary ? "brainHexNode brainHexPrimary" :
+      (isSecondary ? (profile.coLead ? "brainHexNode brainHexPrimary" : "brainHexNode brainHexSecondary") : "brainHexNode");
+    const radius = isPrimary ? 10 : (isSecondary ? 8 : 6);
     return `
-      <div class="${className}" aria-label="${domain}${role ? `，${role}` : ""}">
-        <span class="brainNodeEmoji" aria-hidden="true">${domainProfile.emoji}</span>
-        <strong>${domain}</strong>
-        ${role ? `<em>${role}</em>` : ""}
-      </div>
+      <g class="${cls}" aria-label="${domain}${role ? `，${role}` : ""}">
+        <circle cx="${p.x}" cy="${p.y}" r="${radius}"></circle>
+        <text class="brainHexLabel" x="${p.lx}" y="${p.ly}" text-anchor="${p.anchor}">${domain}</text>
+        ${role ? `<text class="brainHexRole" x="${p.lx}" y="${p.ly + 12}" text-anchor="${p.anchor}">${role}</text>` : ""}
+      </g>
     `;
   }).join("");
+  const spokes = points.map(p => `<line class="brainHexSpoke" x1="160" y1="110" x2="${p.x}" y2="${p.y}"></line>`).join("");
+
+  holder.innerHTML = `
+    <svg class="brainHexagonMap" viewBox="0 0 320 230" role="img" aria-label="六構面定性六邊形。只標示本次主線與副線，不表示分數高低。">
+      <polygon class="brainHexGrid" points="${polygon}"></polygon>
+      ${spokes}
+      ${nodes}
+    </svg>
+  `;
 }
 
 function resultShareText(profile) {
@@ -304,13 +322,18 @@ finishTest = function () {
   $("review").innerHTML = "<h3>逐題解析</h3>" + questions.map((q, i) => {
     const isCorrect = answers[i] === q.a;
     const yourAnswer = answers[i] === null ? "跳過 / 未作答" : q.o[answers[i]];
+    const correctAnswer = q.o[q.a];
     return `
       <div class="reviewItem">
         <strong>${i+1}. [${q.d}] ${q.q}</strong>
-        <div class="${isCorrect ? "ok" : "bad"}" style="margin-top:6px">
-          ${isCorrect ? "✓ 正確" : "✕ 未答對"} · 你的答案：${yourAnswer}
+        <div class="reviewVerdict ${isCorrect ? "ok" : "bad"}">
+          ${isCorrect ? "✓ 正確" : "✕ 未答對"}
         </div>
-        <p>${q.e}</p>
+        <div class="reviewAnswers">
+          <span><b>你的答案：</b>${yourAnswer}</span>
+          <span><b>正確答案：</b>${correctAnswer}</span>
+        </div>
+        <p class="reviewExplanation"><b>解析：</b>${q.e}</p>
       </div>
     `;
   }).join("");
@@ -360,8 +383,8 @@ window.IQ_QUALITY_META = {
   publicResultMode: "qualitative-playful",
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
-  publicDomainVisualization: "role-only-no-scale",
-  resultExperienceVersion: "1.2",
+  publicDomainVisualization: "qualitative-hexagon-no-scale",
+  resultExperienceVersion: "1.3",
   titleEngineMode: "deterministic-30-directional-combinations",
   titleCombinationCount: 30,
   resultShareEnabled: true,

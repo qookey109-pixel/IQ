@@ -17,6 +17,10 @@ for(const q of spatial){
     let [x,y]=d.start;for(const [dx,dy] of d.moves){x+=dx;y+=dy;}assert.ok(sameArray([x,y],d.end),`${q.id}: path endpoint`);assert.strictEqual(q.correctContent,`(${x}, ${y})`,`${q.id}: endpoint answer`);assert.ok(!/向右|向左|向上|向下/.test(q.q),`${q.id}: moves belong in diagram, not prose`);
   }else if(q.taskFamily==='viewpoint-heading'){
     const end=mod(d.start+d.delta,8);assert.strictEqual(end,d.end,`${q.id}: heading index`);assert.strictEqual(q.correctContent,DIRS[end],`${q.id}: heading answer`);assert.ok(!/方位角以正北|最後方位角/.test(q.q),`${q.id}: no arithmetic-angle framing`);
+    assert.ok(q.q.includes('旋轉角度'),`${q.id}: prompt must tell the reader to use explicit rotation angles`);
+    assert.ok(String(d.steps).includes('°'),`${q.id}: compass operation must be expressed in degrees`);
+    assert.ok(!/\d+\s*格|四分之一圈/.test(String(d.steps)),`${q.id}: compass operation must not use ambiguous step/count wording`);
+    assert.ok(String(q.visual||'').includes('°'),`${q.id}: diagram instruction must visibly show degree values`);
   }else if(q.taskFamily==='stack-hidden'){
     const g=d.grid;let skyline;if(d.view==='front')skyline=Array.from({length:g[0].length},(_,c)=>Math.max(...g.map(r=>r[c])));else skyline=[...g].reverse().map(r=>Math.max(...r));assert.ok(sameArray(skyline,d.skyline),`${q.id}: skyline`);assert.strictEqual(q.correctContent,skyline.join('–'),`${q.id}: projection answer`);assert.ok(!/外露面/.test(q.q),`${q.id}: no surface-area formula task`);
   }else if(q.taskFamily==='rectangle-cut'){

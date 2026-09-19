@@ -361,7 +361,7 @@ window.IQ_QUALITY_META = {
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
   publicDomainVisualization: "role-only-no-scale",
-  resultExperienceVersion: "1.1",
+  resultExperienceVersion: "1.2",
   titleEngineMode: "deterministic-30-directional-combinations",
   titleCombinationCount: 30,
   resultShareEnabled: true,

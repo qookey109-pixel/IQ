@@ -17,10 +17,10 @@ for(const q of spatial){
     let [x,y]=d.start;for(const [dx,dy] of d.moves){x+=dx;y+=dy;}assert.ok(sameArray([x,y],d.end),`${q.id}: path endpoint`);assert.strictEqual(q.correctContent,`(${x}, ${y})`,`${q.id}: endpoint answer`);assert.ok(!/向右|向左|向上|向下/.test(q.q),`${q.id}: moves belong in diagram, not prose`);
   }else if(q.taskFamily==='viewpoint-heading'){
     const end=mod(d.start+d.delta,8);assert.strictEqual(end,d.end,`${q.id}: heading index`);assert.strictEqual(q.correctContent,DIRS[end],`${q.id}: heading answer`);assert.ok(!/方位角以正北|最後方位角/.test(q.q),`${q.id}: no arithmetic-angle framing`);
-    assert.ok(q.q.includes('旋轉角度'),`${q.id}: prompt must tell the reader to use explicit rotation angles`);
+    assert.ok(q.q.includes('依圖示旋轉後'),`${q.id}: prompt must stay direct and diagram-led`);
     assert.ok(String(d.steps).includes('°'),`${q.id}: compass operation must be expressed in degrees`);
-    assert.ok(!/\d+\s*格|四分之一圈/.test(String(d.steps)),`${q.id}: compass operation must not use ambiguous step/count wording`);
-    assert.ok(!/每次\s*90°|（共\s*\d+°）/.test(String(d.steps)),`${q.id}: compass degree labels must stay concise`);
+    assert.ok(!/\d+\s*格|四分之一圈|每次\s*90°|（共\s*\d+°）|旋轉到正後方/.test(String(d.steps)),`${q.id}: compass instruction must stay concise`);
+    assert.ok(!/依照圖中的旋轉角度操作後|觀察羅盤/.test(q.q),`${q.id}: verbose compass stem must not return`);
     assert.ok(String(q.visual||'').includes('°'),`${q.id}: diagram instruction must visibly show degree values`);
   }else if(q.taskFamily==='stack-hidden'){
     const g=d.grid,total=g.flat().reduce((sum,h)=>sum+h,0);assert.strictEqual(d.kind,'stack-height-count',`${q.id}: stack task kind`);assert.strictEqual(d.total,total,`${q.id}: stored cube total`);assert.strictEqual(Number(q.correctContent),total,`${q.id}: cube-count answer`);assert.ok(!/前方|右側觀看|輪廓/.test(q.q),`${q.id}: viewpoint projection wording removed`);

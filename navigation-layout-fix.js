@@ -112,6 +112,34 @@
     card.dataset.visualLayout = "split";
   }
 
+  function formatQuestionPrompt() {
+    const card = $("questionCard");
+    const question = $("question");
+    const q = questions[currentIndex];
+    if (!card || !question || !q) return;
+
+    card.classList.remove("questionText-medium", "questionText-long", "questionText-very-long");
+    question.classList.remove("questionSentenceBreaks");
+
+    if (q.type === "memory") return;
+
+    const text = String(q.q || "").trim();
+    const length = Array.from(text).length;
+    if (length >= 120) card.classList.add("questionText-very-long");
+    else if (length >= 78) card.classList.add("questionText-long");
+    else if (length >= 48) card.classList.add("questionText-medium");
+
+    // Long multi-step prompts read more clearly when each complete action starts
+    // on its own visual line. The source question text and answer logic stay unchanged.
+    if (length >= 56 && /[。；]/.test(text)) {
+      const formatted = text.replace(/([。；])\s*/g, "$1\n").replace(/\n+$/g, "");
+      if (formatted !== text) {
+        question.textContent = formatted;
+        question.classList.add("questionSentenceBreaks");
+      }
+    }
+  }
+
   function focusQuestionPrompt() {
     const quiz = $("quiz");
     const question = $("question");
@@ -126,6 +154,7 @@
     const result = baseRenderQuestionNavigation(animationClass);
     updateForwardControl();
     applyQuestionLayoutClass();
+    formatQuestionPrompt();
     focusQuestionPrompt();
     return result;
   };

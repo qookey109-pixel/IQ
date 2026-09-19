@@ -45,11 +45,13 @@ for(const q of packing){
 
 // Result QA: public surface is playful and qualitative while IQ governance stays locked.
 const assessment=fs.readFileSync('assessment-quality.js','utf8');
+const titleEngine=fs.readFileSync('result-title-engine.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const resultCss=fs.readFileSync('single-screen.css','utf8');
-for(const marker of ['文字解碼師','規律捕手','空間導航員','記憶收藏家','閃電掃描員','數字拆解師','多線探索者']){
-  assert.ok(assessment.includes(marker),'result title profile missing: '+marker);
+for(const marker of ['論點拼圖師','結構偵探','腦內製圖師','快閃記錄員','快速估算手']){
+  assert.ok(titleEngine.includes(marker),'combination title missing: '+marker);
 }
+assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"),'title engine must expose its finite combination set');
 assert.ok(assessment.includes('publicScoreVisible: false'),'public score must stay hidden');
 assert.ok(assessment.includes('publicQuantitativeStandard: false'),'public quantitative standard must stay disabled');
 assert.ok(assessment.includes('ageInputRequired: false'),'age input must stay disabled');

@@ -1,4 +1,4 @@
-// Cognitive IQ Lab — Spatial Task Refinement v2
+// Cognitive IQ Lab — Spatial Task Refinement v3
 // Follow-up to SRI v1 for coordinate and transform families reported in real Safari use.
 // Grid displacement is converted into a static S/E relative-position task; no route-following arrows remain in production.
 // Mirror diagrams expose explicit axes/ticks. Scale/translation wording now states every operation.

@@ -3,6 +3,7 @@
 // 2) Scoring v2 remains available internally for engineering consistency.
 // 3) The public result is qualitative: no score, IQ, percentile, rank, or age norm is shown.
 // 4) Playful titles describe only the relative shape of this attempt.
+// 5) Sharing exports only qualitative result text; internal numeric diagnostics stay private to the runtime.
 
 let memoryStimulusSeen = Array(totalQuestions).fill(false);
 
@@ -47,13 +48,13 @@ const PLAYFUL_DOMAIN_PROFILES = {
     emoji: "📚",
     title: "文字解碼師",
     cue: "文字線索",
-    action: "先拆文字裡的關鍵線索"
+    action: "先拆開文字裡的關鍵線索"
   },
   "流體推理": {
     emoji: "🧩",
     title: "規律捕手",
     cue: "規律推理",
-    action: "先找藏在題目裡的規律"
+    action: "先找出藏在題目裡的規律"
   },
   "視覺空間": {
     emoji: "🧭",
@@ -107,22 +108,24 @@ function buildPlayfulResult(domains, stats) {
     return {
       emoji: "✨",
       title: "多線探索者",
+      signature: `多線並行 · ${tiedNames.join(" × ")}`,
       primaryDomain: tiedNames[0] || top,
       secondaryDomain: tiedNames[1] || second,
-      summary: `這次最有存在感的方向不只一個：${tiedNames.join("、")}一起冒出頭。`,
-      strategy: "你這次沒有只靠單一路線解題，而是讓不同線索輪流接手。",
-      description: "這個稱號只描述這一次作答裡相對突出的方向，不是能力等級、固定人格或任何正式標準。"
+      summary: `如果把這次作答畫成一張地圖，${tiedNames.join("、")}幾條路線幾乎一起亮起來。`,
+      strategy: "你今天比較像讓不同線索輪流接手，而不是一路只靠同一種解法。",
+      description: "這次沒有單一路線特別搶戲，反而像幾個思考頻道同時在線。"
     };
   }
 
   return {
     emoji: primary.emoji,
     title: primary.title,
+    signature: `${primary.cue} × ${secondary.cue}`,
     primaryDomain: top,
     secondaryDomain: second,
-    summary: `今天最有存在感的是${primary.cue}；${secondary.cue}也成了很明顯的第二條線索。`,
-    strategy: `${primary.action}，再用${secondary.cue}交叉確認。`,
-    description: "這個稱號只描述這一次作答裡相對突出的方向，不是能力等級、固定人格或任何正式標準。"
+    summary: `如果把這次作答畫成一條路，${primary.cue}走在前面，${secondary.cue}在旁邊補位。`,
+    strategy: `${primary.action}，再讓${secondary.cue}當第二個確認點。`,
+    description: `今天比較像「${primary.title}」模式：先從${primary.cue}切入，再用另一條線索把答案拼完整。`
   };
 }
 
@@ -133,19 +136,136 @@ function renderPlayfulHighlights(profile) {
     <article class="profileHighlight">
       <span>主線索</span>
       <strong>${profile.primaryDomain}</strong>
-      <p>這次作答裡最常站到前面的方向。</p>
+      <p>今天最常先站到前面的解題方向。</p>
     </article>
     <article class="profileHighlight">
       <span>副線索</span>
       <strong>${profile.secondaryDomain}</strong>
-      <p>另一條很有存在感的解題路線。</p>
+      <p>主線需要確認時，常接手補位的方向。</p>
     </article>
     <article class="profileHighlight profileHighlightWide">
       <span>今天的玩法</span>
       <strong>${profile.strategy}</strong>
-      <p>不是固定人格；換一份題目，結果可能會換一種樣子。</p>
+      <p>換一份題目，路線可能會重新排列。</p>
     </article>
   `;
+}
+
+function renderBrainConstellation(domains, profile) {
+  const holder = $("brainConstellation");
+  if (!holder) return;
+
+  holder.innerHTML = domains.map(domain => {
+    const domainProfile = playfulDomainProfile(domain);
+    const isPrimary = domain === profile.primaryDomain;
+    const isSecondary = domain === profile.secondaryDomain && !isPrimary;
+    const role = isPrimary ? "主線" : (isSecondary ? "副線" : "");
+    const className = isPrimary ? "brainNode brainNodePrimary" :
+      (isSecondary ? "brainNode brainNodeSecondary" : "brainNode");
+
+    return `
+      <div class="${className}" aria-label="${domain}${role ? `，${role}` : ""}">
+        <span class="brainNodeEmoji" aria-hidden="true">${domainProfile.emoji}</span>
+        <strong>${domain}</strong>
+        ${role ? `<em>${role}</em>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+function resultShareText(profile) {
+  const pageUrl = (typeof window !== "undefined" && window.location)
+    ? `${window.location.origin || ""}${window.location.pathname || ""}`
+    : "";
+
+  return [
+    `${profile.emoji} 今天我的大腦模式：${profile.title}`,
+    profile.signature,
+    profile.summary,
+    "Cognitive IQ Lab｜42 題認知遊戲",
+    "不構成任何標準，好玩就好。",
+    pageUrl
+  ].filter(Boolean).join("\n");
+}
+
+async function copyResultText(text) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  if (typeof document === "undefined" || !document.body) return false;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const ok = typeof document.execCommand === "function" && document.execCommand("copy");
+  textarea.remove();
+  return Boolean(ok);
+}
+
+function setShareStatus(message) {
+  const status = $("shareStatus");
+  if (!status) return;
+  status.textContent = message || "";
+  if (message) {
+    window.setTimeout?.(() => {
+      if (status.textContent === message) status.textContent = "";
+    }, 2600);
+  }
+}
+
+function bindResultSharing(profile) {
+  const text = resultShareText(profile);
+  const copyButton = $("copyResultBtn");
+  const shareButton = $("shareResultBtn");
+
+  if (copyButton) {
+    copyButton.onclick = async () => {
+      try {
+        const copied = await copyResultText(text);
+        setShareStatus(copied ? "結果文字已複製。" : "這個瀏覽器無法自動複製。");
+      } catch {
+        setShareStatus("這次沒有成功複製，可以直接截圖分享。");
+      }
+    };
+  }
+
+  if (shareButton) {
+    shareButton.onclick = async () => {
+      try {
+        if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+          await navigator.share({
+            title: `Cognitive IQ Lab · ${profile.title}`,
+            text
+          });
+          setShareStatus("分享面板已開啟。");
+          return;
+        }
+
+        const copied = await copyResultText(text);
+        setShareStatus(copied ? "這個瀏覽器沒有分享面板，已改成複製結果。" : "可以直接截圖分享這張結果卡。");
+      } catch (error) {
+        if (error?.name !== "AbortError") setShareStatus("分享沒有完成，可以改用複製或截圖。");
+      }
+    };
+  }
+
+  return text;
+}
+
+function revealResultExperience() {
+  const card = $("resultShareCard");
+  if (!card) return;
+  card.classList.remove("resultReveal");
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(() => card.classList.add("resultReveal"));
+  } else {
+    card.classList.add("resultReveal");
+  }
 }
 
 finishTest = function () {
@@ -186,11 +306,16 @@ finishTest = function () {
 
   const emoji = $("resultEmoji");
   const title = $("playfulTitle");
+  const signature = $("resultSignature");
   if (emoji) emoji.textContent = playful.emoji;
   if (title) title.textContent = playful.title;
+  if (signature) signature.textContent = playful.signature;
   $("resultDesc").textContent = playful.description;
   $("resultSummary").textContent = playful.summary;
   renderPlayfulHighlights(playful);
+  renderBrainConstellation(domains, playful);
+  const publicShareText = bindResultSharing(playful);
+  revealResultExperience();
 
   // Keep quantitative diagnostics available to the internal runtime only.
   // The corresponding DOM is hidden from the public result experience.
@@ -243,6 +368,9 @@ finishTest = function () {
     publicQuantitativeStandard: false,
     playfulTitle: playful.title,
     playfulEmoji: playful.emoji,
+    publicSignature: playful.signature,
+    publicSummary: playful.summary,
+    publicShareText,
     focusDomains: [playful.primaryDomain, playful.secondaryDomain]
   };
 
@@ -262,7 +390,13 @@ window.IQ_QUALITY_META = {
   publicResultMode: "qualitative-playful",
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
+  publicDomainVisualization: "role-only-no-scale",
+  resultExperienceVersion: "1.0",
+  resultShareEnabled: true,
+  shareIncludesNumericScore: false,
   ageInputRequired: false,
+  practiceEnabled: false,
+  practiceCount: 0,
   iqConversionEnabled: false,
   populationPercentileAvailable: false
 };

@@ -24,6 +24,7 @@ on:
       - 'tests/result-experience-validation.js'
       - 'tests/result-title-engine-validation.js'
       - 'tests/replay-history-validation.js'
+      - 'tests/accessibility-interaction-validation.js'
       - 'tests/runtime-bundle-validation.js'
       - 'tests/product-42-spec-validation.js'
       - 'tests/measurement-hardening-validation.js'
@@ -55,6 +56,7 @@ on:
       - 'tests/result-experience-validation.js'
       - 'tests/result-title-engine-validation.js'
       - 'tests/replay-history-validation.js'
+      - 'tests/accessibility-interaction-validation.js'
       - 'tests/runtime-bundle-validation.js'
       - 'tests/product-42-spec-validation.js'
       - 'tests/measurement-hardening-validation.js'
@@ -85,6 +87,7 @@ jobs:
           node --check replay-history.js
           node --check tests/result-title-engine-validation.js
           node --check tests/replay-history-validation.js
+          node --check tests/accessibility-interaction-validation.js
           node tests/runtime-bundle-validation.js
           node tests/product-42-spec-validation.js
           node tests/scoring-v2-validation.js
@@ -97,6 +100,7 @@ jobs:
           node tests/result-experience-validation.js
           node tests/result-title-engine-validation.js
           node tests/replay-history-validation.js
+          node tests/accessibility-interaction-validation.js
           node tests/matrix-layout-validation.js
           node tests/navigation-layout-validation.js
           node tests/compact-final-production-validation.js

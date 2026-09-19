@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-5** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-6** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -219,3 +219,13 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - 選擇規則完全 deterministic；同一組六構面相對排序不會因重整頁面或隨機文案改變稱號。
 - 若前兩構面剛好同分，使用固定構面順序做穩定 tie-break，並在文字簽名標示「雙主線」，不隨機選。
 - 引擎只輸出定性標題、emoji、主／副線與描述句，不輸出 CPI、IQ、百分位、分數或人口標準。
+
+
+### Replay Motivation v1（RC-2026.09.19-6）
+
+- 結果頁會顯示最近幾次「今天的大腦模式」，讓重玩有明確的比較感，而不是只放一個「再測一次」按鈕。
+- 只在目前瀏覽器保存最近 **4 次**定性結果；欄位限定為稱號、emoji、組合 ID、主線構面與副線構面。
+- 不保存 CPI、正確率、答題內容、選項、作答時間、人口資料或任何參與者識別資訊。
+- 不會自動上傳；資料只存在瀏覽器 localStorage，可隨瀏覽器網站資料一起清除。
+- 結果頁只提示「這次和上次同路線」或「這次換路線了」，不把多次結果解讀成能力趨勢、進步／退步或人格穩定性。
+- 手機版最近模式縮成小型 chip；短畫面會進一步隱藏說明文字，維持 single-screen 結果體驗。

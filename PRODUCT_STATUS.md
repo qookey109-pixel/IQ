@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-10**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC10 spatial/result simplification change set**  
-Branch base: `e1ae61470bf1a5c08647c955fa56445c44610099`
+Release candidate: **RC-2026.09.19-11**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC11 hard-only fluid-matrix change set**  
+Branch base: `a390992fe1a1464a36995e718558da2ec0399601`
 
 ## Active product
 
@@ -95,7 +95,7 @@ RC10 is expected to preserve:
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc10`
+- cache-busted RC assets: `20260919-rc11`
 
 ## Previous maintenance convergence
 
@@ -126,3 +126,11 @@ The playful title system deliberately avoids a public quantitative standard whil
 - Public result removes the 主線索／副線索／今天的玩法 cards and the small directional signature badge.
 - The six-domain hexagon keeps the six domain names and qualitative emphasis only; it no longer prints 主線／副線 role text.
 - Scoring, timing, 42-item form structure, calibration data, replay storage schema and all IQ/norming governance locks remain unchanged.
+
+## RC11 delta
+
+- No new easy/medium matrix archetypes are added.
+- Hard `matrix-difference` variant 7 becomes a 3×3 four-attribute matrix: shape, fill, arrow direction and dot count must all be solved together.
+- Hard variant 8 becomes a 3×3 logical-composition matrix: symbol sets follow XOR while arrow direction follows a second composition rule.
+- The hard items use plausible distractors that each preserve part of the pattern instead of obviously wrong alternatives.
+- The 42-item blueprint remains 2 easy + 3 medium + 2 hard per domain; this change strengthens only the hard matrix surfaces and does not unlock any IQ/norming governance gate.

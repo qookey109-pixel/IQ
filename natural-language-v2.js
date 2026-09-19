@@ -106,12 +106,12 @@
 
   function naturalPairing(q){
     const n=itemIndex(q),v=variant(q),t=tier(q),s=surface(q),locks=8+mod(n,8),keys=5+mod(n,6),lock=lockObjects[s];
-    if(v===0)return `${lock}有 ${locks} 把、可用鑰匙有 ${keys} 把，一把鑰匙最多配一把鎖。最多能配成幾組？`;
-    if(v===1){const bad=1+mod(n,2);return `${lock}有 ${locks} 把、鑰匙有 ${keys} 把，其中 ${bad} 把不能開這批鎖。最多能配成幾組？`;}
-    if(v===2){const a=3+mod(n,4),b=3+mod(n*2,4),ka=2+mod(n,3),kb=2+mod(n+1,3);return `A 型${lock} ${a} 把、B 型${lock} ${b} 把；A 型鑰匙 ${ka} 把只能開 A 型，B 型鑰匙 ${kb} 把只能開 B 型。最多能配成幾組？`;}
+    if(v===0)return `${lock}有 ${locks} 把、可用鑰匙有 ${keys} 把。每把鑰匙最多配一把鎖，每把鎖也最多配一把鑰匙。最多能配成幾組？`;
+    if(v===1){const bad=1+mod(n,2);return `${lock}有 ${locks} 把、鑰匙有 ${keys} 把，其中 ${bad} 把不能開這批鎖；其餘鑰匙可各自配到不同的鎖。每把鎖與每把鑰匙都只能用一次。最多能配成幾組？`;}
+    if(v===2){const a=3+mod(n,4),b=3+mod(n*2,4),ka=2+mod(n,3),kb=2+mod(n+1,3);return `A 型${lock} ${a} 把、B 型${lock} ${b} 把；A 型鑰匙 ${ka} 把只能開 A 型，B 型鑰匙 ${kb} 把只能開 B 型。每把鎖與每把鑰匙都只能用一次。最多能配成幾組？`;}
     if(v===3){const people=7+mod(n,7);return `${people} 人兩兩組隊，每人只能加入一隊。最多能組成幾隊？`;}
-    if(v===4){const boxes=3+mod(n,4),cap=2+t,items=8+mod(n,8),[box,item]=boxObjects[s];return `有 ${boxes} 個${box}，每個最多放 ${cap} 件${item}；共有 ${items} 件。最多能放入幾件？`;}
-    if(v===5){const seats=8+mod(n,8),reserved=1+mod(n,3),people=6+mod(n,9);return `${venues[s]}有 ${seats} 個座位，其中 ${reserved} 個保留不用；現場有 ${people} 人。最多能安排幾人入座？`;}
+    if(v===4){const boxes=3+mod(n,4),cap=2+t,items=8+mod(n,8),[box,item]=boxObjects[s];return `有 ${boxes} 個${box}，每個最多放 ${cap} 件${item}；共有 ${items} 件${item}，每件只能放入一個${box}。最多能放入幾件${item}？`;}
+    if(v===5){const seats=8+mod(n,8),reserved=1+mod(n,3),people=6+mod(n,9);return `${venues[s]}有 ${seats} 個座位，其中 ${reserved} 個是保留席，不開放給現場一般觀眾；現場有 ${people} 位一般觀眾。最多能安排幾位一般觀眾入座？`;}
     if(v===6){const red=3+mod(n,4),blue=4+mod(n,4);return `甲組 ${red} 人、乙組 ${blue} 人。每隊要甲、乙各 1 人，每人只能入一隊。最多能組幾隊？`;}
     const jobs=4+mod(n,4),machines=3+mod(n,4);return `${jobs} 個工作要交給 ${machines} 台機器處理，每台同時只能處理 1 個工作，其中 1 台維修中。最多能同時處理幾個工作？`;
   }

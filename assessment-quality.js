@@ -43,90 +43,20 @@ renderQuestion = function (animationClass = "") {
   qualityBaseRenderQuestion(animationClass);
 };
 
-const PLAYFUL_DOMAIN_PROFILES = {
-  "語文理解": {
-    emoji: "📚",
-    title: "文字解碼師",
-    cue: "文字線索",
-    action: "先拆開文字裡的關鍵線索"
-  },
-  "流體推理": {
-    emoji: "🧩",
-    title: "規律捕手",
-    cue: "規律推理",
-    action: "先找出藏在題目裡的規律"
-  },
-  "視覺空間": {
-    emoji: "🧭",
-    title: "空間導航員",
-    cue: "空間結構",
-    action: "先看位置、方向與結構"
-  },
-  "工作記憶": {
-    emoji: "🧠",
-    title: "記憶收藏家",
-    cue: "短期記憶",
-    action: "先抓住剛出現的關鍵資訊"
-  },
-  "處理速度": {
-    emoji: "⚡",
-    title: "閃電掃描員",
-    cue: "快速辨識",
-    action: "先快速掃描差異與相同點"
-  },
-  "量化推理": {
-    emoji: "🔢",
-    title: "數字拆解師",
-    cue: "數字關係",
-    action: "先把數字關係拆成小步驟"
+function resultTitleEngine() {
+  const engine = window.IQ_RESULT_TITLE_ENGINE;
+  if (!engine || typeof engine.buildProfile !== "function") {
+    throw new Error("Qualitative result title engine is required but was not loaded.");
   }
-};
+  return engine;
+}
 
 function playfulDomainProfile(domain) {
-  return PLAYFUL_DOMAIN_PROFILES[domain] || {
-    emoji: "✨",
-    title: "腦內探險家",
-    cue: domain || "多線索",
-    action: "先找出最有用的線索"
-  };
+  return resultTitleEngine().domainProfile(domain);
 }
 
 function buildPlayfulResult(domains, stats) {
-  const ordered = domains
-    .map((domain, index) => ({ domain, index, score: Number(stats[domain]?.score) || 0 }))
-    .sort((a, b) => (b.score - a.score) || (a.index - b.index));
-
-  const top = ordered[0]?.domain || domains[0] || "多線索";
-  const second = ordered[1]?.domain || top;
-  const topScore = ordered[0]?.score ?? 0;
-  const topTies = ordered.filter(row => row.score === topScore);
-  const primary = playfulDomainProfile(top);
-  const secondary = playfulDomainProfile(second);
-
-  if (topTies.length > 1) {
-    const tiedNames = topTies.slice(0, 3).map(row => row.domain);
-    return {
-      emoji: "✨",
-      title: "多線探索者",
-      signature: `多線並行 · ${tiedNames.join(" × ")}`,
-      primaryDomain: tiedNames[0] || top,
-      secondaryDomain: tiedNames[1] || second,
-      summary: `如果把這次作答畫成一張地圖，${tiedNames.join("、")}幾條路線幾乎一起亮起來。`,
-      strategy: "你今天比較像讓不同線索輪流接手，而不是一路只靠同一種解法。",
-      description: "這次沒有單一路線特別搶戲，反而像幾個思考頻道同時在線。"
-    };
-  }
-
-  return {
-    emoji: primary.emoji,
-    title: primary.title,
-    signature: `${primary.cue} × ${secondary.cue}`,
-    primaryDomain: top,
-    secondaryDomain: second,
-    summary: `如果把這次作答畫成一條路，${primary.cue}走在前面，${secondary.cue}在旁邊補位。`,
-    strategy: `${primary.action}，再讓${secondary.cue}當第二個確認點。`,
-    description: `今天比較像「${primary.title}」模式：先從${primary.cue}切入，再用另一條線索把答案拼完整。`
-  };
+  return resultTitleEngine().buildProfile(domains, stats);
 }
 
 function renderPlayfulHighlights(profile) {
@@ -368,6 +298,8 @@ finishTest = function () {
     publicQuantitativeStandard: false,
     playfulTitle: playful.title,
     playfulEmoji: playful.emoji,
+    titleEngineVersion: playful.engineVersion,
+    titleVariantId: playful.variantId,
     publicSignature: playful.signature,
     publicSummary: playful.summary,
     publicShareText,
@@ -391,7 +323,9 @@ window.IQ_QUALITY_META = {
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
   publicDomainVisualization: "role-only-no-scale",
-  resultExperienceVersion: "1.0",
+  resultExperienceVersion: "1.1",
+  titleEngineMode: "deterministic-30-directional-combinations",
+  titleCombinationCount: 30,
   resultShareEnabled: true,
   shareIncludesNumericScore: false,
   ageInputRequired: false,

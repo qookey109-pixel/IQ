@@ -100,7 +100,7 @@ const css=fs.readFileSync('spatial-visual-fix.css','utf8');
 assert.match(css,/\.qb5-spatial-svg/);
 assert.match(css,/grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(340px,\s*1fr\)/,'desktop visual questions must reserve half the content width for diagrams');
 assert.match(css,/grid-column:\s*2;/,'diagram holder should live in the right column on desktop');
-assert.match(css,/max-height:\s*clamp\(340px,\s*40dvh,\s*420px\)/,'desktop spatial diagrams must not be compressed below their readable size');
+assert.match(css,/max-height:\s*clamp\(240px,\s*32dvh,\s*340px\)/,'desktop spatial diagrams must remain readable without dominating the question card');
 assert.match(css,/#visualHolder \.matrixGrid/,'matrix visuals need split-layout sizing too');
 assert.match(css,/@media \(max-width: 899px\)/,'tablet and phone layouts must fall back to stacking');
 assert.match(css,/overflow-y:\s*auto/,'short screens must scroll instead of shrinking the diagrams');

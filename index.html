@@ -143,14 +143,6 @@ single-screen.js
           </div>
           <div id="brainConstellation" class="brainConstellation"></div>
           <p>六個頂點代表六個構面；只標示本次主線與副線，不以距離或長短表示分數。</p>
-          <div class="replayTrail">
-            <div class="replayTrailHead">
-              <span>最近腦內模式</span>
-              <strong id="replayPrompt">再抽一份，看看下一次會去哪裡。</strong>
-            </div>
-            <div id="recentModes" class="recentModes" aria-label="最近幾次腦內模式"></div>
-            <p class="replayPrivacy">這個「最近模式」紀錄只在這台瀏覽器保存最近 4 次定性稱號；本紀錄不含分數或答案，也不會自動上傳。</p>
-          </div>
         </section>
       </div>
     </div>
@@ -165,11 +157,9 @@ single-screen.js
 
     <div class="resultBottom">
       <div class="resultActionGroups">
-        <div class="actions compactActions"><button type="button" id="restartBtn" class="btn primary">抽新題再測</button><button type="button" id="reviewBtn" class="btn secondary">逐題解析</button></div>
-        <div class="actions compactActions shareActions"><button type="button" id="copyResultBtn" class="btn secondary">複製結果</button><button type="button" id="shareResultBtn" class="btn secondary">分享結果</button></div>
+        <div class="actions compactActions publicResultActions"><button type="button" id="restartBtn" class="btn primary">抽新題</button><button type="button" id="reviewBtn" class="btn secondary">逐題解析</button></div>
       </div>
       <div class="resultFooterNote">
-        <div id="shareStatus" class="shareStatus" role="status" aria-live="polite"></div>
         <div class="playfulDisclaimer resultTagline"><strong>不構成任何標準，好玩就好。</strong><span>這是今天的作答模式，不是你的固定標籤。</span></div>
       </div>
     </div>

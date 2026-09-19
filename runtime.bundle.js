@@ -40,6 +40,7 @@ layout: null
 ;{% include_relative memory-exposure.js %}
 ;{% include_relative scoring-v2.js %}
 ;{% include_relative result-title-engine.js %}
+;{% include_relative replay-history.js %}
 ;{% include_relative assessment-quality.js %}
 ;{% include_relative item-analytics.js %}
 ;{% include_relative item-quality-v2.js %}

@@ -93,6 +93,17 @@ RC7 is expected to preserve:
 - Jekyll production bundle render validation
 - cache-busted RC assets: `20260919-rc7`
 
+## Maintenance convergence
+
+Status: **CONVERGED — product RC7 stable; maintenance-only changes after this point unless a new product requirement is opened.**
+
+- Product code remains **RC-2026.09.19-7**; this maintenance pass does not change the public feature set.
+- Repository size remains modest; frozen calibration / research evidence is retained for audit and reproducibility rather than deleted.
+- Six frozen research workflows are path-scoped so ordinary product/UI-only changes do not re-run unrelated R/research validation.
+- Product changes continue to be protected by Question Bank Validation, Product Release Candidate Gate, and Product Qualitative Result Guard.
+- Research workflows still run whenever their calibration files, scripts, tests, or workflow definitions change.
+- No scoring thresholds, governance locks, question content, runtime measurement behavior, title logic, replay storage, or public-result boundaries are changed by this convergence pass.
+
 ## Frozen research lineage
 
 Calibration v13 / IRB / real-participant norming work remains preserved for research lineage but is **frozen** and does not block product development.

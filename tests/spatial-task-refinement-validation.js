@@ -16,39 +16,37 @@ for(const file of scriptFiles.slice(0,appIndex)){
 
 const bank=window.IQ_QUESTION_BANK;
 assert.strictEqual(bank.length,2058);
-assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.version,'STR-2026.09.2');
+assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.version,'STR-2026.09.3');
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.total,168);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.gridDisplacement,56);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.mirrorCoordinate,56);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT?.scaleDrawing,56);
-assert.strictEqual(window.IQ_BANK_META?.spatialTaskRefinement,'STR-2026.09.2');
+assert.strictEqual(window.IQ_BANK_META?.spatialTaskRefinement,'STR-2026.09.3');
 
 const grids=bank.filter(q=>q.taskFamily==='grid-displacement');
 assert.strictEqual(grids.length,56);
+const allowedDirections=new Set(['右方','右上方','上方','左上方','左方','左下方','下方','右下方']);
 for(const q of grids){
   const d=q.spatialIntegrityData;
-  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.2',q.id);
-  assert.strictEqual(d.measurement,'path-integration-from-known-start',q.id);
-  assert.strictEqual(d.endpointCoordinatesShown,false,q.id);
-  assert.strictEqual(d.gridUnit,1,q.id);
-  assert.match(q.q,/起點 S = \(-?\d+, -?\d+\)/,q.id);
-  assert.ok(!q.q.includes('依右側座標圖'),`${q.id}: direct endpoint-reading wording removed`);
-  let [x,y]=d.start;
-  for(const [dx,dy] of d.moves){x+=dx;y+=dy;}
-  assert.deepStrictEqual(Array.from(d.end),[x,y],`${q.id}: endpoint recompute`);
-  assert.strictEqual(q.correctContent,`(${x}, ${y})`,`${q.id}: endpoint answer`);
+  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.3',q.id);
+  assert.strictEqual(d.kind,'relative-position',q.id);
+  assert.strictEqual(d.measurement,'static-relative-position',q.id);
+  assert.ok(allowedDirections.has(d.direction),q.id);
+  assert.strictEqual(q.q,'觀察圖中 S 與 E 的位置。E 位於 S 的哪個方向？',q.id);
+  assert.strictEqual(q.correctContent,d.direction,q.id);
   assert.strictEqual(String(q.o[q.a]),q.correctContent,`${q.id}: answer binding`);
-  assert.ok(q.visual.includes('viewBox="0 0 360 270"'),`${q.id}: non-negative fixed canvas`);
-  assert.ok(q.visual.includes('每格 = 1'),`${q.id}: grid scale disclosed`);
-  assert.ok(q.visual.includes('>S</text>')&&q.visual.includes('>E</text>'),`${q.id}: endpoints visible`);
-  assert.ok(!/>-?\d+<\/text>/.test(q.visual),`${q.id}: endpoint coordinate cannot be read from numeric axis labels`);
+  assert.strictEqual(new Set(q.o.map(String)).size,4,`${q.id}: direction options unique`);
+  assert.ok(q.visual.includes('viewBox="0 0 340 280"'),`${q.id}: fixed relative-position canvas`);
+  assert.ok(q.visual.includes('>S</text>')&&q.visual.includes('>E</text>'),`${q.id}: S/E points visible`);
+  assert.ok(!q.visual.includes('<polygon'),`${q.id}: no arrowheads`);
+  assert.ok(!/箭頭|逐段移動|最後 E 的座標/.test(q.q),`${q.id}: retired route-following wording removed`);
 }
 
 const mirrors=bank.filter(q=>q.taskFamily==='mirror-coordinate');
 assert.strictEqual(mirrors.length,56);
 for(const q of mirrors){
   const d=q.spatialIntegrityData;
-  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.2',q.id);
+  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.3',q.id);
   assert.strictEqual(d.axesLabeled,true,q.id);
   assert.deepStrictEqual(Array.from(d.tickRange),[-8,8],q.id);
   assert.strictEqual(d.tickStep,2,q.id);
@@ -64,7 +62,7 @@ const scales=bank.filter(q=>q.taskFamily==='scale-drawing');
 assert.strictEqual(scales.length,56);
 for(const q of scales){
   const d=q.spatialIntegrityData;
-  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.2',q.id);
+  assert.strictEqual(q.spatialTaskRefinement,'STR-2026.09.3',q.id);
   assert.strictEqual(d.translationExplicit,true,q.id);
   assert.strictEqual(String(q.o[q.a]),q.correctContent,`${q.id}: scale answer binding`);
   const expected=`(${d.w*d.sx+d.tx}, ${d.h*d.sy+d.ty})`;
@@ -89,5 +87,5 @@ assert.ok(css.includes('padding-bottom: max'),'safe-area bottom padding must kee
 assert.ok(scriptFiles.indexOf('spatial-task-refinement.js')>scriptFiles.indexOf('spatial-reliability.js'));
 assert.ok(scriptFiles.indexOf('spatial-task-refinement.js')<scriptFiles.indexOf('presentation-clarity.js'));
 
-console.log('Spatial Task Refinement v2 PASS');
-console.log('56 path-integration + 56 mirror + 56 scale/translation items are explicit and independently checkable; Safari scroll guards present.');
+console.log('Spatial Task Refinement v3 PASS');
+console.log('56 static relative-position + 56 mirror + 56 scale/translation items are explicit and independently checkable; Safari scroll guards present.');

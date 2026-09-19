@@ -62,9 +62,9 @@
     if(v===0){delta=a;desc=`順時針旋轉 ${deg(a)}°`;}
     else if(v===1){delta=-a;desc=`逆時針旋轉 ${deg(a)}°`;}
     else if(v===2){delta=a+1-b;desc=`先順時針旋轉 ${deg(a+1)}°，再逆時針旋轉 ${deg(b)}°`;}
-    else if(v===3){delta=2*a;desc=`順時針旋轉 ${a} 次，每次 90°（共 ${a*90}°）`;}
+    else if(v===3){delta=2*a;desc=`順時針旋轉 ${a*90}°`;}
     else if(v===4){delta=4+(a-1);desc=a===1?'旋轉到正後方（180°）':`先旋轉到正後方（180°），再順時針旋轉 ${deg(a-1)}°`;}
-    else if(v===5){delta=-2*a;desc=`逆時針旋轉 ${a} 次，每次 90°（共 ${a*90}°）`;}
+    else if(v===5){delta=-2*a;desc=`逆時針旋轉 ${a*90}°`;}
     else if(v===6){delta=a+2-b;desc=`先順時針旋轉 ${deg(a+3)}°，再逆時針旋轉 ${deg(b+1)}°`;}
     else {delta=-(a+2)+b;desc=`先逆時針旋轉 ${deg(a+2)}°，再順時針旋轉 ${deg(b)}°`;}
     const end=mod(start+delta,8),correct=DIRS[end],wrong=[DIRS[mod(end+1,8)],DIRS[mod(end-1,8)],DIRS[mod(end+4,8)]];

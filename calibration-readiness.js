@@ -303,12 +303,12 @@
   }
 
   function installUI() {
-    const actions = document.querySelector('#result .actions');
+    const actions = document.querySelector('#result .publicResultActions');
     if (!actions || document.getElementById('calibrationReadinessBtn')) return;
     const button = document.createElement('button');
     button.id = 'calibrationReadinessBtn';
     button.className = 'btn secondary';
-    button.textContent = '校準準備度';
+    button.textContent = '校準';
     actions.appendChild(button);
     const panel = document.createElement('div');
     panel.id = 'calibrationReadinessPanel';

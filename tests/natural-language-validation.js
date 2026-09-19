@@ -52,6 +52,22 @@ const decorativePlaces=['圖書館','車站','展館','劇院','球館','工坊'
 assert.ok(pairing.every(q=>!decorativePlaces.some(place=>q.q.startsWith(place+'：'))),
   'pairing-capacity must not use irrelevant random-place prefixes');
 
+const pairingV1=pairing.filter(q=>Number(q.constructVariant)===1);
+assert.ok(pairingV1.every(q=>q.q.includes('每把鎖也最多配一把鑰匙')),
+  'one-to-one pairing must state the lock-side uniqueness constraint');
+const pairingV2=pairing.filter(q=>Number(q.constructVariant)===2);
+assert.ok(pairingV2.every(q=>q.q.includes('其餘鑰匙可各自配到不同的鎖')&&q.q.includes('每把鎖與每把鑰匙都只能用一次')),
+  'partially unusable-key items must make distinct matching assumptions explicit');
+const pairingV3=pairing.filter(q=>Number(q.constructVariant)===3);
+assert.ok(pairingV3.every(q=>q.q.includes('每把鎖與每把鑰匙都只能用一次')),
+  'typed matching items must state that both sides are single-use');
+const pairingV5=pairing.filter(q=>Number(q.constructVariant)===5);
+assert.ok(pairingV5.every(q=>q.q.includes('每件只能放入一個')),
+  'capacity items must state that an object cannot be counted in multiple containers');
+const pairingV6=pairing.filter(q=>Number(q.constructVariant)===6);
+assert.ok(pairingV6.every(q=>q.q.includes('保留席')&&q.q.includes('不開放給現場一般觀眾')),
+  'reserved-seat items must state exactly who cannot use the reserved seats');
+
 const memUpdate=bank.filter(q=>q.taskFamily==='memory-update');
 assert.ok(memUpdate.every(q=>q.q==='照剛才的順序計算，最後是多少？'));
 const memRelative=bank.filter(q=>q.taskFamily==='memory-relative');

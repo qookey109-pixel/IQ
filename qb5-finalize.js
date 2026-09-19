@@ -115,13 +115,13 @@
 
   function shuffle(xs,random=Math.random){const a=[...xs];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
   function validateForm(form){
-    const out=[];if(form.length!==30)out.push('form must contain 30 items');
+    const out=[];if(form.length!==42)out.push('form must contain 42 items');
     const ids=new Set();
     for(const q of form){if(ids.has(q.id))out.push(`duplicate item: ${q.id}`);ids.add(q.id);}
     for(const d of domains){
-      const group=form.filter(q=>q.d===d);if(group.length!==5)out.push(`domain quota: ${d}`);
-      if(new Set(group.map(q=>q.taskFamily)).size!==5)out.push(`family diversity: ${d}`);
-      for(const [level,count] of Object.entries({easy:2,medium:2,hard:1}))if(group.filter(q=>q.difficulty===level).length!==count)out.push(`difficulty quota: ${d}/${level}`);
+      const group=form.filter(q=>q.d===d);if(group.length!==7)out.push(`domain quota: ${d}`);
+      if(new Set(group.map(q=>q.taskFamily)).size!==7)out.push(`family coverage: ${d}`);
+      for(const [level,count] of Object.entries({easy:2,medium:3,hard:2}))if(group.filter(q=>q.difficulty===level).length!==count)out.push(`difficulty quota: ${d}/${level}`);
     }
     return {ok:!out.length,errors:out};
   }
@@ -129,8 +129,8 @@
   function generateCandidate({history=[],random=Math.random,pool=bank}={}){
     const recent=new Set(history.slice(-8).flat()),selected=[];
     for(const d of shuffle(domains,random)){
-      const families=shuffle([...new Set(pool.filter(q=>q.d===d).map(q=>q.taskFamily))],random).slice(0,5);
-      const tiers=shuffle(['easy','easy','medium','medium','hard'],random);
+      const families=shuffle([...new Set(pool.filter(q=>q.d===d).map(q=>q.taskFamily))],random);if(families.length!==7)throw new Error(`Expected seven task families: ${d}`);
+      const tiers=shuffle(['easy','easy','medium','medium','medium','hard','hard'],random);
       families.forEach((family,i)=>{
         const variants=shuffle([...new Set(pool.filter(q=>q.d===d&&q.taskFamily===family).map(q=>q.semanticKey))],random);
         let candidates=[];
@@ -155,7 +155,7 @@
   }
 
   const historyKey=`cognitive-iq-lab:form-history:${VERSION}`;let history=[];
-  try{const raw=JSON.parse(localStorage.getItem(historyKey)||'[]');if(Array.isArray(raw))history=raw.filter(Array.isArray).slice(-8);}catch{}
+  try{const raw=JSON.parse(localStorage.getItem(historyKey)||'[]');if(Array.isArray(raw))history=raw.filter(form=>Array.isArray(form)&&form.length===42).slice(-8);}catch{}
   const form=selectForm({history});
   try{localStorage.setItem(historyKey,JSON.stringify([...history,form.map(q=>q.id)].slice(-8)));}catch{}
   window.IQ_QUESTIONS=form;
@@ -165,7 +165,7 @@
     formEquivalence:EQ?{version:EQ.version,trials:EQ.trials,principle:EQ.principle}:null
   };
   window.IQ_BANK_META={
-    ...(window.IQ_BANK_META||{}),version:VERSION,revision:REVISION,totalItems:bank.length,selectedItems:30,domains:6,taskFamilies:42,
+    ...(window.IQ_BANK_META||{}),version:VERSION,revision:REVISION,totalItems:bank.length,selectedItems:42,domains:6,taskFamilies:42,
     semanticTemplates:semantics.size,spatialSvgItems:1008,verbalArchetypesPerFamily:2,otherArchetypesPerFamily:8,
     generation:'84-verbal-items-plus-5040-controlled-construct-variants',constructExpansion:'QB5',naturalLanguageRevision:'NL-2026.09.1',
     difficultyPolicy:'tier-specific span, operation count and constraint load',calibrationStatus:'uncalibrated',recentFormAvoidance:8,

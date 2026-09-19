@@ -63,6 +63,7 @@ jobs:
           node --check scripts/export-qb5.js
           node --check tests/qb5-oracle-validation.js
           node --check tests/form-equivalence-validation.js
+          node --check tests/product-42-spec-validation.js
           node --check tests/scoring-v2-validation.js
           node --check tests/calibration-readiness-validation.js
           node --check tests/calibration-toolchain-validation.js
@@ -94,8 +95,11 @@ jobs:
       - name: Independently recompute all QB5 source answers
         run: node tests/qb5-oracle-validation.js
 
-      - name: Validate load-matched source form equivalence
+      - name: Validate load-matched 42-item source form equivalence
         run: node tests/form-equivalence-validation.js
+
+      - name: Guard the single 42-item production specification
+        run: node tests/product-42-spec-validation.js
 
       - name: Validate transparent Scoring v2
         run: node tests/scoring-v2-validation.js

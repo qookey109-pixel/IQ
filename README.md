@@ -16,7 +16,7 @@ Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。�
 - 最近 8 份 form 優先避開相同 item ID
 
 正式載入順序以 `index.html` 為準；`tests/compact-final-production-validation.js` 驗證最終題庫。
-下方提及的 5,124 題／30 題屬於較早的來源集合與抽卷層，保留作為開發與回歸驗證紀錄，不是目前上線數量。
+下方提及的 5,124 題屬於較早的 source-superset；歷史研究文件若提及 30 題 form，皆屬舊版開發紀錄，不是目前 production 規格。
 
 ### 2026-09-14 圖表可讀性更新
 
@@ -83,9 +83,9 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 
 ## Form Equivalence v1
 
-- 固定 6 構面 × 5 題
-- 每構面 2 easy + 2 medium + 1 hard
-- 每構面 5 個不同 family
+- 正式 production form 固定 6 構面 × 7 題 = 42 題
+- 每構面 2 easy + 3 medium + 2 hard
+- 每構面 7 個 family 全部各出 1 題
 - 每題計算 `formLoad`
 - 每次建立 64 份合法候選 form，再選擇六構面設計負荷最接近目標的一份
 
@@ -141,7 +141,7 @@ GitHub Actions 目前驗證：
 - 5,124 / 5,124 independent oracle answers
 - Natural Language v3：zero artificial wrappers、台灣用語、題幹長度 guardrails、5,124 唯一性
 - 1,008 個 Safari-safe spatial SVG intrinsic sizes
-- 30-item form quota / family diversity / 64-candidate form-load matching
+- 42-item form quota / full family coverage / 64-candidate form-load matching
 - A/B/C/D = 1281 / 1281 / 1281 / 1281
 - Scoring v2
 - Calibration Readiness v1 privacy / anti-false-calibration guardrails

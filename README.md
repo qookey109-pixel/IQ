@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-11** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-12** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -278,3 +278,13 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - Hard variant 8：3×3 XOR + 方向合成矩陣；圖形集合採 exclusive-or 邏輯，箭頭另外遵循第二條關係。
 - Easy／medium 的矩陣仍保留三個完整示例列，避免把閱讀歧義誤當難度。
 - 這一輪不改 42 題 blueprint、Scoring v2、計時、校準資料或 IQ／常模治理鎖。
+
+
+### Complete Hard Fluid Reasoning（RC-2026.09.19-12）
+
+- 新題型仍只強化 hard，不新增簡單版。
+- `machine-composition`：hard 題改成由最終輸出反推輸入，或先判斷中間值奇偶後反推正確輸入，不再只是順著公式代入。
+- `ordering-constraints`：hard 題同時使用緊鄰、固定位置、相隔一格、不可相鄰等條件，生成後保證只有一個完整排序符合全部條件。
+- `code-deduction`：hard 題改成重疊二元／三元和式，需要用消去法解出隱藏值或組合值。
+- `matrix-difference` 延續 RC11：四屬性矩陣與 XOR + 方向合成只出現在 hard。
+- 到這一版，流體推理 7 個 task families 都有 hard-specific production surface；不改 easy／medium、42 題 blueprint、Scoring v2、計時、校準或 IQ／常模治理鎖。

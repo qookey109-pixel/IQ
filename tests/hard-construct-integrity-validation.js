@@ -8,13 +8,54 @@ vm.createContext(context);
 const runtime=['question-bank.js','qb5-core.js','qb5-verbal.js','qb5-fluid.js','qb5-spatial.js','qb5-memory.js','qb5-speed.js','qb5-quant.js','qb5-parameter-diversity.js','qb5-ordering-diversity-fix.js','qb5-form-equivalence.js','qb5-finalize.js','natural-language-v2.js','question-language-finalize.js','answer-position-balance.js','answer-quality.js','memory-integrity.js','hard-construct-integrity.js'];
 for(const file of runtime)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const bank=window.IQ_QUESTION_BANK,report=window.IQ_HARD_CONSTRUCT_INTEGRITY;
-assert.strictEqual(bank.length,5124);assert.strictEqual(report?.version,'HCI-2026.09.1');assert.strictEqual(window.IQ_BANK_META?.hardConstructIntegrity,'HCI-2026.09.1');
-const expected={'machine-composition':36,'set-overlap':36,'invariant-transfer':36,'pairing-capacity':36,'speed-parity':36,'speed-order':36,'speed-boundary':36,'speed-missing':36,'quant-remainder':36,'scale-drawing':18,'mirror-coordinate':18};
-assert.strictEqual(report.total,360);for(const [f,n] of Object.entries(expected))assert.strictEqual(report.families[f],n,`${f}: rewritten hard count`);
+assert.strictEqual(bank.length,5124);assert.strictEqual(report?.version,'HCI-2026.09.2');assert.strictEqual(window.IQ_BANK_META?.hardConstructIntegrity,'HCI-2026.09.2');
+const expected={'machine-composition':36,'ordering-constraints':36,'code-deduction':36,'set-overlap':36,'invariant-transfer':36,'pairing-capacity':36,'speed-parity':36,'speed-order':36,'speed-boundary':36,'speed-missing':36,'quant-remainder':36,'scale-drawing':18,'mirror-coordinate':18};
+assert.strictEqual(report.total,432);for(const [f,n] of Object.entries(expected))assert.strictEqual(report.families[f],n,`${f}: rewritten hard count`);
 const answer=q=>String(q.o[q.a]);const wrong=q=>q.o.filter((_,i)=>i!==q.a).map(String);const mod=(n,m)=>((n%m)+m)%m;const dsum=x=>String(Math.abs(Number(x))).split('').reduce((s,d)=>s+Number(d),0);
 
 for(const q of bank.filter(q=>q.taskFamily==='machine-composition'&&q.difficulty==='hard')){
-  assert.ok(/先算|先令/.test(q.q),`${q.id}: hard machine needs staged work`);assert.ok(!/^X = \d+，求/.test(q.q),`${q.id}: no single-expression hard machine`);
+  assert.ok(/已知最後/.test(q.q),`${q.id}: hard machine must require reverse/branch inference`);
+  const x=Number(answer(q));
+  if(q.constructVariant===7){
+    const m=q.q.match(/Y = (\d+)X \+ (\d+).*Z = 2Y − (\d+).*Z = (\d+)/);
+    assert.ok(m,`${q.id}: reverse two-stage wording`);
+    const a=Number(m[1]),b=Number(m[2]),d=Number(m[3]),z=Number(m[4]),y=(z+d)/2;
+    assert.strictEqual((y-b)/a,x,`${q.id}: reverse two-stage answer`);
+  }else{
+    const m=q.q.match(/Y = X \+ (\d+)；若 Y 為偶數，結果為 Y ÷ 2 \+ (\d+)；若 Y 為奇數，結果為 2Y − (\d+)。已知最後結果是 (\d+)/);
+    assert.ok(m,`${q.id}: branch inference wording`);
+    const b=Number(m[1]),d=Number(m[2]),d2=Number(m[3]),z=Number(m[4]);assert.strictEqual(d,d2);
+    const y=x+b,out=y%2===0?y/2+d:2*y-d;
+    assert.strictEqual(out,z,`${q.id}: branch-inference answer`);
+    assert.ok(wrong(q).every(v=>{const xx=Number(v),yy=xx+b;return (yy%2===0?yy/2+d:2*yy-d)!==z;}),`${q.id}: distractors must fail branch output`);
+  }
+}
+
+const permutations=xs=>xs.length<=1?[xs]:xs.flatMap((x,i)=>permutations([...xs.slice(0,i),...xs.slice(i+1)]).map(rest=>[x,...rest]));
+for(const q of bank.filter(q=>q.taskFamily==='ordering-constraints'&&q.difficulty==='hard')){
+  const m=q.q.match(/^([A-Z](?:、[A-Z]){4}) 要排成/);assert.ok(m,`${q.id}: five labels`);
+  const labels=m[1].split('、'),[A,B,C,D,E]=labels,solutions=[];
+  for(const p of permutations(labels)){
+    const pos=Object.fromEntries(p.map((x,i)=>[x,i]));
+    const ok=q.constructVariant===7
+      ? pos[B]===pos[A]+1&&pos[D]===pos[C]+1&&pos[C]===2
+      : pos[A]<pos[B]&&Math.abs(pos[A]-pos[C])===2&&Math.abs(pos[A]-pos[D])!==1&&Math.abs(pos[C]-pos[E])===2;
+    if(ok)solutions.push(p.join(' → '));
+  }
+  assert.deepStrictEqual(solutions,[answer(q)],`${q.id}: hard ordering constraints must have one global solution`);
+  assert.ok(q.constructVariant===7?/緊接.*正中間/.test(q.q):/恰好隔 1 個位置.*不與.*相鄰/.test(q.q),`${q.id}: multi-relation wording`);
+}
+
+for(const q of bank.filter(q=>q.taskFamily==='code-deduction'&&q.difficulty==='hard')){
+  if(q.constructVariant===7){
+    const m=q.q.match(/「山河」=(\d+).*「河風」=(\d+).*「山風」=(\d+)/);assert.ok(m,`${q.id}: pair-sum system`);
+    const ab=Number(m[1]),bc=Number(m[2]),ac=Number(m[3]),wind=(bc+ac-ab)/2;
+    assert.strictEqual(String(wind),answer(q),`${q.id}: pair-sum elimination`);
+  }else{
+    const m=q.q.match(/「山河風」=(\d+).*「河風月」=(\d+).*「山月」=(\d+)/);assert.ok(m,`${q.id}: triple-sum system`);
+    const s1=Number(m[1]),s2=Number(m[2]),s3=Number(m[3]),target=(s1+s2-s3)/2;
+    assert.strictEqual(String(target),answer(q),`${q.id}: triple-sum elimination`);
+  }
 }
 for(const q of bank.filter(q=>q.taskFamily==='set-overlap'&&q.difficulty==='hard')){
   if(q.constructVariant===7){const m=q.q.match(/至少選一項的共有 (\d+) 人；選 B 的有 (\d+) 人，其中兩項都選的有 (\d+) 人/);assert.ok(m);assert.strictEqual(String(Number(m[1])-Number(m[2])+Number(m[3])),answer(q),`${q.id}: inverse inclusion-exclusion`);}
@@ -69,4 +110,4 @@ const positions=[0,0,0,0];for(const q of bank){positions[q.a]++;assert.strictEqu
 assert.deepStrictEqual(positions,[1281,1281,1281,1281]);assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT?.cueRiskItems,0,'hard integrity must leave option audit clean');
 const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);assert.strictEqual(new Set(bank.map(sig)).size,5124,'final hard rewrites must retain concrete uniqueness');
 const spatial=bank.filter(q=>q.d==='視覺空間');assert.strictEqual(spatial.length,1008);assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')));
-console.log('Hard Construct Integrity v1 PASS');console.log('360 weak hard items strengthened across 11 targeted families/variants; final answers independently rechecked from stems.');
+console.log('Hard Construct Integrity v2 PASS');console.log('432 hard items strengthened across 13 targeted families/variants; all seven fluid-reasoning families now have hard-specific production surfaces.');

@@ -89,12 +89,17 @@ assert.strictEqual(speed.length,392);
 assert.ok(speed.every(q=>Number(q.limit)===18&&q.processingSpeedIntegrity==='PSI-2026.09.1'));
 
 assert.strictEqual(meta.memoryIntegrity,'WMI-2026.09.1');
-assert.strictEqual(meta.hardConstructIntegrity,'HCI-2026.09.1');
+assert.strictEqual(meta.hardConstructIntegrity,'HCI-2026.09.2');
 assert.strictEqual(meta.processingSpeedIntegrity,'PSI-2026.09.1');
 assert.strictEqual(meta.memoryUsability,'MUI-2026.09.2');
 assert.strictEqual(meta.spatialReliability,'SRI-2026.09.1');
 assert.strictEqual(meta.fullBankSweep,'FBQ-2026.09.1');
 assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.3');
+const hardFluid=bank.filter(q=>q.d==='流體推理'&&q.difficulty==='hard');
+assert.ok(hardFluid.filter(q=>q.taskFamily==='ordering-constraints').every(q=>/緊接|恰好隔 1 個位置/.test(q.q)),'hard ordering must use multi-relation constraints');
+assert.ok(hardFluid.filter(q=>q.taskFamily==='code-deduction').every(q=>/固定整數/.test(q.q)&&/相加/.test(q.q)),'hard code deduction must use equation elimination');
+assert.ok(hardFluid.filter(q=>q.taskFamily==='machine-composition').every(q=>/已知最後/.test(q.q)),'hard machine items must require reverse/branch inference');
+
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.totalItems,2058);
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.cueRiskItems,0);
 

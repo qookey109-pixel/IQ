@@ -23,10 +23,12 @@ assert.ok(html.includes('id="question" class="question" tabindex="-1"'),
 assert.ok(html.includes('id="options" class="options" role="group" aria-labelledby="question"'),
   'answer options must be grouped under the current question');
 
-for (const id of ['startBtn','aboutBtn','prevBtn','skipBtn','restartBtn','reviewBtn','copyResultBtn','shareResultBtn']) {
+for (const id of ['startBtn','aboutBtn','prevBtn','skipBtn','restartBtn','reviewBtn']) {
   assert.ok(new RegExp('<button type="button"[^>]*id="' + id + '"').test(html),
     id + ': static action buttons need type=button');
 }
+assert.ok(!html.includes('id="copyResultBtn"')&&!html.includes('id="shareResultBtn"'),
+  'removed public share controls must not return');
 
 for (const source of [app,timing]) {
   assert.ok(source.includes('type="button" class="${cls}" aria-label="第 '),

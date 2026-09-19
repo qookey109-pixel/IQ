@@ -117,6 +117,8 @@ jobs:
           node tests/result-title-engine-validation.js
           node tests/replay-history-validation.js
           node tests/accessibility-interaction-validation.js
+          node tests/natural-language-validation.js
+          node tests/hard-construct-integrity-validation.js
           node tests/matrix-layout-validation.js
           node tests/navigation-layout-validation.js
           node tests/compact-final-production-validation.js

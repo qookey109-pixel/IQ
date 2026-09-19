@@ -5,20 +5,25 @@ const vm = require('vm');
 const assert = require('assert');
 
 const app = fs.readFileSync('app.js', 'utf8');
+const timing = fs.readFileSync('timeout-lock.js', 'utf8');
 const quality = fs.readFileSync('assessment-quality.js', 'utf8');
 const readme = fs.readFileSync('README.md', 'utf8');
 const scoring = fs.readFileSync('scoring-v2.js', 'utf8');
 
-for (const forbidden of [
-  'Math.max(70',
-  'Math.min(130',
-  '70 + overall * 0.6',
-  'index >= 120',
-  'index >= 110',
-  'index < 90'
-]) {
-  assert.ok(!app.includes(forbidden), 'legacy pseudo-IQ mapping must be absent: ' + forbidden);
+for (const [file, source] of [['app.js', app], ['timeout-lock.js', timing], ['assessment-quality.js', quality]]) {
+  for (const forbidden of [
+    'Math.max(70',
+    'Math.min(130',
+    '70 + overall * 0.6',
+    'index >= 120',
+    'index >= 110',
+    'index < 90'
+  ]) {
+    assert.ok(!source.includes(forbidden), file + ': legacy pseudo-IQ mapping must be absent: ' + forbidden);
+  }
 }
+assert.ok(timing.includes('const timingBaseFinishTest = finishTest;'), 'timing layer must delegate result rendering to the CPI-only base fallback');
+assert.ok(timing.includes('return timingBaseFinishTest();'), 'timing layer must not maintain an independent result scorer');
 
 assert.ok(app.includes('scale: "0-100-experimental"'));
 assert.ok(app.includes('iqEstimate: null'));

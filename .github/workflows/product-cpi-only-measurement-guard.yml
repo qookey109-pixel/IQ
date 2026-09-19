@@ -5,6 +5,7 @@ on:
     paths:
       - 'app.js'
       - 'assessment-quality.js'
+      - 'timeout-lock.js'
       - 'scoring-v2.js'
       - 'README.md'
       - 'tests/cpi-only-runtime-validation.js'
@@ -32,6 +33,7 @@ jobs:
         run: |
           node --check app.js
           node --check assessment-quality.js
+          node --check timeout-lock.js
           node --check tests/cpi-only-runtime-validation.js
           node tests/cpi-only-runtime-validation.js
           node tests/scoring-v2-validation.js

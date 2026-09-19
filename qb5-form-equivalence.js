@@ -1,5 +1,5 @@
 // QB5 form-equivalence layer.
-// Keeps the fixed 6×5 / 2 easy + 2 medium + 1 hard blueprint, then minimizes
+// Keeps the fixed 6×7 / 2 easy + 3 medium + 2 hard blueprint, then minimizes
 // residual load differences between random forms using only design metadata.
 (() => {
   'use strict';
@@ -50,7 +50,7 @@
       const easy = mean('easy'), medium = mean('medium'), hard = mean('hard');
       targets[domain] = {
         easy, medium, hard,
-        total: 2 * easy + 2 * medium + hard
+        total: 2 * easy + 3 * medium + 2 * hard
       };
     }
     window.IQ_FORM_EQUIVALENCE_TARGETS = targets;
@@ -101,6 +101,6 @@
     evaluate,
     pickBest,
     trials: 64,
-    principle: 'fixed quotas plus minimum residual design-load deviation'
+    principle: 'fixed 6x7 quotas plus minimum residual design-load deviation'
   };
 })();

@@ -31,7 +31,7 @@
     const ids=new Set(bank.map(q=>q.id));
     try{
       const raw=JSON.parse(localStorage.getItem(key)||'[]');
-      if(Array.isArray(raw))history=raw.filter(form=>Array.isArray(form)&&form.length===30&&form.every(id=>ids.has(id))).slice(-7);
+      if(Array.isArray(raw))history=raw.filter(form=>Array.isArray(form)&&form.length===42&&form.every(id=>ids.has(id))).slice(-7);
     }catch{}
     const form=selectCompact({history});
     window.IQ_QUESTIONS=form;
@@ -45,7 +45,7 @@
   const memory=bank.filter(q=>q.d==='工作記憶').length;
   window.IQ_BANK_VALIDATION={...(window.IQ_BANK_VALIDATION||{}),ok:true,errors:[],total:bank.length,uniqueTaskSignatures:signatures.size,semanticTemplates:semanticCounts.size};
   window.IQ_BANK_META={
-    ...(window.IQ_BANK_META||{}),totalItems:bank.length,selectedItems:30,semanticTemplates:semanticCounts.size,
+    ...(window.IQ_BANK_META||{}),totalItems:bank.length,selectedItems:42,semanticTemplates:semanticCounts.size,
     spatialSvgItems:spatial,memoryItems:memory,
     generation:'compact-stage-14x6-verbal-plus-280x7-nonverbal',bankTopologyStage:'2044-before-verbal-seventh-surface'
   };

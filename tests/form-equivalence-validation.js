@@ -13,6 +13,7 @@ const bank=window.IQ_QUESTION_BANK;
 const EQ=window.QB5_FORM_EQUIVALENCE;
 assert.ok(EQ);
 assert.strictEqual(EQ.version,'1.0');
+assert.strictEqual(window.IQ_QUESTIONS.length,42,'source-stage form must already use the production 42-item blueprint');
 assert.strictEqual(bank.length,5124);
 assert.ok(bank.every(q=>Number.isFinite(Number(q.formLoad))&&q.formLoad>0),'every item must have a finite design-load score');
 assert.strictEqual(Object.keys(window.IQ_FORM_EQUIVALENCE_TARGETS).length,6);
@@ -26,6 +27,15 @@ for(let i=0;i<24;i++){
   const form=window.IQ_DIVERSITY.selectForm({history,random,pool:bank});
   const valid=window.IQ_DIVERSITY.validateForm(form);
   assert.strictEqual(valid.ok,true,valid.errors.join('; '));
+  assert.strictEqual(form.length,42);
+  for(const domain of ['語文理解','流體推理','視覺空間','工作記憶','處理速度','量化推理']){
+    const group=form.filter(q=>q.d===domain);
+    assert.strictEqual(group.length,7,`${domain}: seven items`);
+    assert.strictEqual(new Set(group.map(q=>q.taskFamily)).size,7,`${domain}: full family coverage`);
+    assert.strictEqual(group.filter(q=>q.difficulty==='easy').length,2,`${domain}: easy quota`);
+    assert.strictEqual(group.filter(q=>q.difficulty==='medium').length,3,`${domain}: medium quota`);
+    assert.strictEqual(group.filter(q=>q.difficulty==='hard').length,2,`${domain}: hard quota`);
+  }
   const report=EQ.evaluate(form);
   assert.ok(report.maxAbsPct<=20,`form ${i+1} max domain load deviation ${report.maxAbsPct}%`);
   assert.ok(report.rmsPct<=12,`form ${i+1} RMS load deviation ${report.rmsPct}%`);
@@ -35,4 +45,4 @@ for(let i=0;i<24;i++){
 
 assert.strictEqual(window.IQ_BANK_META.formEquivalence,'64-candidate-design-load-matching');
 console.log('QB5 form-equivalence validation PASS');
-console.log('Fixed quotas retained; 64-candidate design-load matching keeps residual domain load within guardrails.');
+console.log('42-item fixed quotas retained; all seven families/domain are covered and 64-candidate design-load matching stays within guardrails.');

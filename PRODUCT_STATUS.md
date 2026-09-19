@@ -1,7 +1,7 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-2**  
+Release candidate: **RC-2026.09.19-3**  
 Repository authority: **current `main` after merge; this branch is the proposed RC2 change set**  
 Branch base: `52272ddfd61127ea133fbd5f718b7b528efa9c6a`
 
@@ -16,6 +16,8 @@ Branch base: `52272ddfd61127ea133fbd5f718b7b528efa9c6a`
 - Public result: **qualitative playful title + attempt-specific cues**
 - Public numeric score: **none**
 - Public age input: **none**
+- Public practice questions: **none**
+- Entry flow: **homepage → 42-item formal assessment**
 - Internal scoring engine: **Scoring v2 / CPI 0–100**, retained only for engineering consistency, QA, and research lineage
 - Processing-speed refinement: retained internally; not shown as a public score
 
@@ -50,6 +52,8 @@ Public-result metadata additionally requires:
 - `publicScoreVisible=false`
 - `publicQuantitativeStandard=false`
 - `ageInputRequired=false`
+- `practiceEnabled=false`
+- `practiceCount=0`
 
 ## Release-candidate evidence
 
@@ -63,10 +67,10 @@ RC2 is expected to preserve:
 - timing deadline / timeout regression
 - no pseudo-IQ fallback
 - qualitative-result public-surface guard
-- age-free pretest / practice isolation validation
+- direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc2`
+- cache-busted RC assets: `20260919-rc3`
 
 ## Frozen research lineage
 

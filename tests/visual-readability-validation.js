@@ -42,14 +42,15 @@ const stable = bank.map(q => [
 // production grid-displacement surfaces are static S/E relative-position questions with no route arrows;
 // hard matrix surfaces now use multi-attribute relations or XOR+orientation composition instead of one-step arithmetic;
 // hard fluid-reasoning surfaces now also use reverse/branch inference, multi-constraint ordering, and equation elimination;
-// quant-average update items explicitly state that the new value is added to the previous observations.
+// quant-average update items explicitly state that the new value is added to the previous observations;
+// compass diagrams use concise total-degree labels instead of repeated per-turn wording.
 // Before this baseline
 // is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
 // screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
 // Future presentation-only changes must preserve this reviewed content, answer keys,
 // timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, '779f7a3cb97de3511e79c3e6d91fca7756d6403245e40dc8c8618ce50e9d1be7',
+assert.strictEqual(digest, '2bcaca18b1e48adfab841d2e69c0f0974d8bba6dbdfd8bb1655f3effff789abc',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

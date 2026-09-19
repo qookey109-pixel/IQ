@@ -108,6 +108,12 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 - CI 會用固定 seed 反覆產生合法 42 題 forms，檢查 blueprint、form-load、CPI 邊界、速度影響上限與 deterministic synthetic profile 的跨 form 波動。
 - 這些是 **measurement engineering / anti-regression**，不是 population reliability、validity、IRT equating 或 IQ 常模證據。
 
+### Release UX QA（2026-09-19）
+
+- timing layer 不再保留獨立的舊版結果計算器；它只負責 deadline、timeout lock 與總時間，再委派給 CPI-only 結果路徑。
+- CI 會直接檢查 production script order、前測 42 題入口、forward navigation、modal Escape 關閉，以及「沒有 assessment-quality.js 接管時」的 CPI-only fallback。
+- 這是 release smoke / regression QA；不是聲稱所有實體 Safari／手機型號都已人工驗收。
+
 ## Product mainline — CPI only（2026-09-19）
 
 目前產品主線聚焦在 **IQ-style 認知測驗體驗與測量品質**，不再把 IRB／真人常模送審當作目前產品開發的前置條件。

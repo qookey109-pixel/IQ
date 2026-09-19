@@ -65,6 +65,7 @@ jobs:
           node --check tests/form-equivalence-validation.js
           node --check tests/product-42-spec-validation.js
           node --check tests/measurement-hardening-validation.js
+          node --check tests/release-ux-smoke-validation.js
           node --check tests/scoring-v2-validation.js
           node --check tests/calibration-readiness-validation.js
           node --check tests/calibration-toolchain-validation.js
@@ -110,6 +111,9 @@ jobs:
 
       - name: Validate runtime timing deadlines and answer submission
         run: node tests/timing-runtime-validation.js
+
+      - name: Validate release UX path and CPI-only timing fallback
+        run: node tests/release-ux-smoke-validation.js
 
       - name: Validate Calibration Readiness v1
         run: node tests/calibration-readiness-validation.js

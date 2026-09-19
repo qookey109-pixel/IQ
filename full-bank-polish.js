@@ -8,7 +8,7 @@
   if(!bank.length)return;
 
   const report={
-    version:'FBP-2026.09.2',
+    version:'FBP-2026.09.3',
     scopeBalanced:0,
     necessaryBalanced:0,
     fractionDisplayFixed:0,
@@ -39,9 +39,84 @@
     return {fn:(a,b)=>(a+b)/2,desc:'前兩格的平均'};
   }
 
+  const MATRIX_SHAPES_OUT=['△','□','○'];
+  const MATRIX_SHAPES_FILL=['▲','■','●'];
+  const MATRIX_ARROWS_8=['↑','↗','→','↘','↓','↙','←','↖'];
+  const MATRIX_ARROWS_4=['↑','→','↓','←'];
+  const MATRIX_FEATURES=['○','△','□','◇'];
+
+  function hardMatrixToken({shapeIndex,filled,arrowIndex,dotCount}){
+    const shape=(filled?MATRIX_SHAPES_FILL:MATRIX_SHAPES_OUT)[mod(shapeIndex,3)];
+    return shape+MATRIX_ARROWS_8[mod(arrowIndex,8)]+'•'.repeat(dotCount);
+  }
+
+  function rebuildHardMultiRuleMatrix(q,n){
+    const phase=mod(n,6);
+    const cell=(r,col)=>hardMatrixToken({
+      shapeIndex:r+col+phase,
+      filled:mod(r+col+phase,2)===1,
+      arrowIndex:2*r+col+phase,
+      dotCount:1+mod(r+2*col+phase,3)
+    });
+    const cells=[];for(let r=0;r<3;r++)for(let col=0;col<3;col++)cells.push(cell(r,col));
+    const correct=cells[8];
+    const shapeIndex=2+2+phase,filled=mod(2+2+phase,2)===1,arrowIndex=2*2+2+phase,dotCount=1+mod(2+4+phase,3);
+    const wrong=[
+      hardMatrixToken({shapeIndex:shapeIndex+1,filled,arrowIndex,dotCount}),
+      hardMatrixToken({shapeIndex,filled,arrowIndex:arrowIndex+1,dotCount}),
+      hardMatrixToken({shapeIndex,filled,arrowIndex,dotCount:1+mod(dotCount,3)})
+    ];
+    install(q,correct,wrong,'matrix-hard-four-attribute');
+    q.q='觀察 3×3 符號矩陣。形狀、填色、箭頭方向與點數各自依固定規則變化；缺失格應是哪一項？';
+    q.type='matrix';
+    q.cells=[...cells.slice(0,8),'?'];
+    q.e='四種屬性必須同時成立：形狀循環、填色交替、箭頭依固定角度推進，點數依 1–3 循環。';
+    q.matrixClarityVersion='MC-2026.09.2';
+    q.matrixClarityData={kind:'hard-multi-rule',relations:4,phase,ruleVariant:6};
+    report.matrixClarityRebuilt++;
+  }
+
+  function featureText(mask){
+    let out='';for(let i=0;i<MATRIX_FEATURES.length;i++)if(mask&(1<<i))out+=MATRIX_FEATURES[i];
+    return out||'∅';
+  }
+
+  function xorCell(mask,arrow){return featureText(mask)+MATRIX_ARROWS_4[mod(arrow,4)];}
+
+  function rebuildHardXorMatrix(q,n){
+    const pairs=[[3,5],[6,10],[9,12],[7,11],[13,14],[5,14],[11,6],[10,7],[12,5]];
+    const phase=mod(n,4),surface=mod(n,18),rows=[];
+    for(let r=0;r<3;r++){
+      const [m1,m2]=pairs[mod(surface+r*3,pairs.length)];
+      const a1=mod(phase+r,4),a2=mod(phase+2*r+1,4),m3=m1^m2,a3=mod(a1+a2,4);
+      rows.push([{mask:m1,arrow:a1},{mask:m2,arrow:a2},{mask:m3,arrow:a3}]);
+    }
+    const target=rows[2][2],correct=xorCell(target.mask,target.arrow);
+    const left=rows[2][0],right=rows[2][1],union=left.mask|right.mask,intersect=left.mask&right.mask;
+    const wrong=[
+      xorCell(target.mask,target.arrow+1),
+      xorCell(union,target.arrow),
+      xorCell(intersect,target.arrow)
+    ];
+    install(q,correct,wrong,'matrix-hard-xor-orientation');
+    q.q='觀察 3×3 符號矩陣。每一列都遵循同一組規則；符號集合與箭頭方向會同時變化。缺失格應是哪一項？';
+    q.type='matrix';
+    q.cells=[
+      xorCell(rows[0][0].mask,rows[0][0].arrow),xorCell(rows[0][1].mask,rows[0][1].arrow),xorCell(rows[0][2].mask,rows[0][2].arrow),
+      xorCell(rows[1][0].mask,rows[1][0].arrow),xorCell(rows[1][1].mask,rows[1][1].arrow),xorCell(rows[1][2].mask,rows[1][2].arrow),
+      xorCell(rows[2][0].mask,rows[2][0].arrow),xorCell(rows[2][1].mask,rows[2][1].arrow),'?'
+    ];
+    q.e='每列第三格的符號保留「只出現在前兩格其中一格」的元素（XOR）；箭頭方向則依前兩格方向的固定合成規則得到。';
+    q.matrixClarityVersion='MC-2026.09.2';
+    q.matrixClarityData={kind:'hard-xor-orientation',relations:2,phase,ruleVariant:7};
+    report.matrixClarityRebuilt++;
+  }
+
   function rebuildMatrixClarity(q){
     const n=itemIndex(q);
     const v=Math.max(0,Number(q.constructVariant||1)-1);
+    if(q.difficulty==='hard'&&v===6){rebuildHardMultiRuleMatrix(q,n);return;}
+    if(q.difficulty==='hard'&&v===7){rebuildHardXorMatrix(q,n);return;}
     const surface=mod(n,18);
     const x=6+surface*2+v,y=2+mod(surface+v,5);
     const {fn,desc}=matrixRule(v);
@@ -58,7 +133,7 @@
     q.type='matrix';
     q.cells=[...rows[0],...rows[1],...rows[2],rows[3][0],rows[3][1],'?'].map(String);
     q.e=`前三列都符合「${desc}」。把同一規則套到最後一列，缺失格為 ${c}。`;
-    q.matrixClarityVersion='MC-2026.09.1';
+    q.matrixClarityVersion='MC-2026.09.2';
     q.matrixClarityData={examples:3,targetRow:[rows[3][0],rows[3][1]],ruleVariant:v};
     report.matrixClarityRebuilt++;
   }

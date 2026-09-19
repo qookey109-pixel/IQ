@@ -310,43 +310,66 @@ function finishTest() {
   $("result").classList.remove("hidden");
 
   const domains = [...new Set(questions.map(q => q.d))];
-  const stats = {};
+  const scoring = window.IQ_SCORING_V2 || null;
+  const report = scoring
+    ? scoring.scoreAssessment(questions, answers, elapsedTimes)
+    : (() => {
+        const domainRows = {};
+        for (const d of domains) {
+          const ids = questions.map((q, i) => q.d === d ? i : -1).filter(i => i >= 0);
+          const correct = ids.filter(i => answers[i] === questions[i].a).length;
+          const rawAccuracy = ids.length ? Math.round((correct / ids.length) * 1000) / 10 : 0;
+          domainRows[d] = {
+            score: rawAccuracy,
+            rawAccuracy,
+            weightedAccuracy: rawAccuracy,
+            speedEfficiency: null,
+            timed: false
+          };
+        }
+        const rawCorrect = questions.filter((q, i) => answers[i] === q.a).length;
+        const rawAccuracy = questions.length ? Math.round((rawCorrect / questions.length) * 1000) / 10 : 0;
+        return {
+          version: "fallback-cpi-only",
+          scale: "0-100-experimental",
+          performanceIndex: rawAccuracy,
+          rawCorrect,
+          rawTotal: questions.length,
+          rawAccuracy,
+          skipped: answers.filter(a => a == null).length,
+          domains: domainRows,
+          calibrated: false
+        };
+      })();
 
+  const stats = {};
   domains.forEach(d => {
     const ids = questions.map((q, i) => q.d === d ? i : -1).filter(i => i >= 0);
-    const correct = ids.filter(i => answers[i] === questions[i].a).length;
-    const accuracy = correct / ids.length;
-    const avgTime = ids.reduce((sum, i) => sum + elapsedTimes[i], 0) / ids.length;
-    const avgLimit = ids.reduce((sum, i) => sum + (questions[i].limit || 30), 0) / ids.length;
-    const speed = Math.max(0, Math.min(1, 1 - (avgTime / avgLimit)));
-    const perf = Math.round((accuracy * 0.9 + speed * 0.1) * 100);
+    const avgTime = ids.reduce((sum, i) => sum + elapsedTimes[i], 0) / Math.max(1, ids.length);
+    const row = report.domains[d];
     stats[d] = {
-      perf,
-      accuracy: Math.round(accuracy * 100),
+      perf: Math.round(row.score),
+      accuracy: row.rawAccuracy,
       avgTime
     };
   });
 
-  const overall = domains.reduce((sum, d) => sum + stats[d].perf, 0) / domains.length;
-  const correctCount = questions.filter((q, i) => answers[i] === q.a).length;
-  const skippedCount = answers.filter(a => a === null).length;
+  const correctCount = report.rawCorrect;
+  const skippedCount = report.skipped;
   const wrongCount = totalQuestions - correctCount - skippedCount;
-  const index = Math.max(70, Math.min(130, Math.round(70 + overall * 0.6)));
+  const performanceIndex = Math.max(0, Math.min(100, Number(report.performanceIndex) || 0));
 
-  $("indexScore").textContent = index;
-  $("resultSummary").textContent = `答對 ${correctCount} / ${totalQuestions} 題；整體構面表現 ${Math.round(overall)}%。`;
-
-  let desc = "這次整體表現位於本站題庫的中間區間。";
-  if (index >= 120) desc = "這次呈現非常強的綜合推理表現。";
-  else if (index >= 110) desc = "這次在多個認知構面中呈現偏強表現。";
-  else if (index < 90) desc = "這次部分構面較吃力，也可能受疲勞或時間壓力影響。";
-  $("resultDesc").textContent = desc;
+  $("indexScore").textContent = Math.round(performanceIndex);
+  $("resultSummary").textContent =
+    `答對 ${correctCount} / ${totalQuestions} 題（原始正確率 ${report.rawAccuracy}%）；Cognitive Performance Index 為 ${performanceIndex} / 100。`;
+  $("resultDesc").textContent =
+    "這是本站題庫與透明計分規則下的實驗性表現分數，只描述本次作答，不代表 IQ、人口百分位或同齡排名。";
 
   $("metrics").innerHTML = domains.map(d => `
     <div class="metric">
       <div class="metricTop"><strong>${d}</strong><strong>${stats[d].perf}</strong></div>
       <div class="track"><div class="fill" style="width:${stats[d].perf}%"></div></div>
-      <div class="metricMeta">正確率 ${stats[d].accuracy}% · 平均 ${stats[d].avgTime.toFixed(1)} 秒</div>
+      <div class="metricMeta">原始正確率 ${stats[d].accuracy}% · 平均 ${stats[d].avgTime.toFixed(1)} 秒</div>
     </div>
   `).join("");
 
@@ -367,6 +390,18 @@ function finishTest() {
       </div>
     `;
   }).join("");
+
+  window.IQ_LAST_RESULT = {
+    scoringVersion: report.version,
+    scale: report.scale,
+    performanceIndex,
+    iqEstimate: null,
+    iqStatus: "disabled-cpi-only",
+    rawAccuracy: report.rawAccuracy,
+    correct: correctCount,
+    total: totalQuestions,
+    calibrated: false
+  };
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }

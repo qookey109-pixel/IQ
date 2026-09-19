@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-3** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-4** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -95,7 +95,7 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 
 ## Scoring v2
 
-底層仍使用 **Cognitive Performance Index：0–100** 作為工程／QA／研究診斷量尺，但 **RC2 公開結果頁不再顯示 CPI、總分、正確率百分比、人口排名或任何數字化能力標準**。Scoring v2 保留在 runtime 內部，用來維持抽卷、計時與測量工程的一致性。
+底層仍使用 **Cognitive Performance Index：0–100** 作為工程／QA／研究診斷量尺，但 **目前公開結果頁不再顯示 CPI、總分、正確率百分比、人口排名或任何數字化能力標準**。Scoring v2 保留在 runtime 內部，用來維持抽卷、計時與測量工程的一致性。
 
 - 同時保留原始正確率
 - easy / medium / hard 權重為 `1.0 / 1.25 / 1.5`
@@ -187,7 +187,7 @@ GitHub Actions 目前驗證：
 
 QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題幹自然度、抽卷負荷、答案 oracle、透明評分與校準資料準備，但仍沒有做人口樣本常模、IRT／CAT、reliability、criterion validity 或臨床效度驗證。
 
-因此 CPI 0–100 只保留為內部工程／研究診斷值；RC2 公開介面不顯示這個數字。公開的趣味稱號也不能視為正式 IQ、人口百分位、能力等級、固定人格、教育／就業判斷或診斷結果。
+因此 CPI 0–100 只保留為內部工程／研究診斷值；公開介面不顯示這個數字。公開的趣味稱號也不能視為正式 IQ、人口百分位、能力等級、固定人格、教育／就業判斷或診斷結果。
 
 > **不構成任何標準，好玩就好。**
 
@@ -198,3 +198,13 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - 首頁按「直接開始 42 題」後直接進正式測驗，不再有前置步驟。
 - 不收集年齡或人口資料。
 - 正式 42 題、記憶曝光、速度題倒數、內部 Scoring v2 與趣味稱號邏輯均維持不變。
+
+
+### Result Experience v1（RC-2026.09.19-4）
+
+- 結果頁仍維持完全定性化：不顯示 CPI、IQ、正確率百分比、人口排名、能力等級或腦齡數字。
+- 主稱號旁新增「主線索 × 副線索」文字簽名，讓這次結果更有辨識度。
+- 六構面只用「主線／副線」角色標示呈現，不畫數值刻度、不顯示長條分數，也不形成新的量化標準。
+- 結果卡加入輕量出場動畫；尊重 `prefers-reduced-motion`。
+- 新增「複製結果」與「分享結果」；分享內容只有稱號、定性線索、摘要與網站資訊，不包含任何內部 CPI 或作答分數。
+- 手機版壓縮為截圖友善的一屏式結果摘要；逐題解析仍留在 modal，不塞進分享卡。

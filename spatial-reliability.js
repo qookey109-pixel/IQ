@@ -59,16 +59,16 @@
   }
   function viewpoint(q,n,v,t){const s18=mod(n,18),start=mod(s18,8),a=1+Math.floor(s18/8),b=1+mod(Math.floor(s18/4)+v,2);let delta,desc;
     const deg=steps=>steps*45;
-    if(v===0){delta=a;desc=`順時針旋轉 ${deg(a)}°`;}
-    else if(v===1){delta=-a;desc=`逆時針旋轉 ${deg(a)}°`;}
-    else if(v===2){delta=a+1-b;desc=`先順時針旋轉 ${deg(a+1)}°，再逆時針旋轉 ${deg(b)}°`;}
-    else if(v===3){delta=2*a;desc=`順時針轉 ${a*90}°`;}
-    else if(v===4){delta=4+(a-1);desc=a===1?'旋轉到正後方（180°）':`先旋轉到正後方（180°），再順時針旋轉 ${deg(a-1)}°`;}
-    else if(v===5){delta=-2*a;desc=`逆時針轉 ${a*90}°`;}
-    else if(v===6){delta=a+2-b;desc=`先順時針旋轉 ${deg(a+3)}°，再逆時針旋轉 ${deg(b+1)}°`;}
-    else {delta=-(a+2)+b;desc=`先逆時針旋轉 ${deg(a+2)}°，再順時針旋轉 ${deg(b)}°`;}
+    if(v===0){delta=a;desc=`順時針轉 ${deg(a)}°`;}
+    else if(v===1){delta=-a;desc=`逆時針轉 ${deg(a)}°`;}
+    else if(v===2){delta=a+1-b;desc=`先順時針轉 ${deg(a+1)}°，再逆時針轉 ${deg(b)}°`;}
+    else if(v===3){delta=2*a;desc=`向右轉 ${a*90}°`;}
+    else if(v===4){delta=4+(a-1);desc=a===1?'轉 180°':`先轉 180°，再順時針轉 ${deg(a-1)}°`;}
+    else if(v===5){delta=-2*a;desc=`向左轉 ${a*90}°`;}
+    else if(v===6){delta=a+2-b;desc=`先順時針轉 ${deg(a+3)}°，再逆時針轉 ${deg(b+1)}°`;}
+    else {delta=-(a+2)+b;desc=`先逆時針轉 ${deg(a+2)}°，再順時針轉 ${deg(b)}°`;}
     const end=mod(start+delta,8),correct=DIRS[end],wrong=[DIRS[mod(end+1,8)],DIRS[mod(end-1,8)],DIRS[mod(end+4,8)]];
-    q.q=`觀察羅盤。箭頭目前指向「${DIRS[start]}」。依照圖中的旋轉角度操作後，最後指向哪個方向？`;q.e=`從 ${DIRS[start]} 依序按標示角度旋轉，最後指向 ${correct}。`;
+    q.q=`箭頭目前指向「${DIRS[start]}」。依圖示旋轉後，最後指向哪個方向？`;q.e=`從 ${DIRS[start]} 按圖示旋轉，最後指向 ${correct}。`;
     install(q,correct,wrong,'spatial-heading-mental-rotation',{kind:'viewpoint-heading',start,delta,end,steps:desc},compassSvg(start,desc),'heading-rotation');
   }
 

@@ -16,8 +16,11 @@ assert(nav.includes('question.focus({ preventScroll: true })'), 'question focus 
 
 assert(nav.includes('function formatQuestionPrompt()'), 'long prompts need presentation-only formatting');
 assert(nav.includes('questionText-medium')&&nav.includes('questionText-long')&&nav.includes('questionText-very-long'), 'prompt length classes must exist');
-assert(nav.includes('replace(/([。；])\\s*/g, "$1\\n")'), 'long multi-step prompts must break at complete sentence boundaries');
-assert(nav.includes('question.textContent = formatted'), 'visual line breaks must not rewrite the source question object');
+assert(nav.includes('length >= 92'), 'forced paragraphing must be reserved for genuinely long prompts');
+assert(nav.includes('parts.length >= 3'), 'paragraphing must require several complete clauses');
+assert(nav.includes('bestDistance'), 'long prompts should choose one balanced paragraph break instead of splitting every sentence');
+assert(!nav.includes('replace(/([。；])\\s*/g, "$1\\n")'), 'every-sentence forced line breaks must not return');
+assert(nav.includes('question.textContent = formatted'), 'visual paragraph breaks must not rewrite the source question object');
 
 assert(css.includes('.matrixCell.density-4'), 'dense matrix CSS missing');
 assert(css.includes('overflow: hidden'), 'matrix symbols must be contained');

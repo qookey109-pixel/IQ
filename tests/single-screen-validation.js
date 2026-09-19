@@ -27,6 +27,9 @@ assert.ok(css.includes('@media (max-width: 760px)'), 'mobile layout breakpoint m
 assert.ok(css.includes('@media (max-height: 680px)'), 'short viewport safety breakpoint missing');
 assert.ok(css.includes('#itemQaPanel:not(.hidden)'), 'QA panel must be converted to viewport overlay');
 assert.ok(js.includes('detailPanelsUseViewportModal'), 'single-screen runtime metadata missing');
+assert.ok(js.includes('modalFocusManagement: true'), 'modal focus management metadata missing');
+assert.ok(js.includes('modalFocusTrap: true'), 'modal focus trap metadata missing');
+assert.ok(js.includes('restoresOpenerFocus: true'), 'modal opener-focus restoration metadata missing');
 
 console.log('Single-screen layout validation PASS');
 console.log('Required controls, mobile/short-height rules, disclaimer, and modal detail surfaces are present.');

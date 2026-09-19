@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-10** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-11** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -269,3 +269,12 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - 結果頁移除「主線索」「副線索」「今天的玩法」三張卡片，並移除稱號旁的方向簽名 badge。
 - 六構面六邊形仍保留，但只顯示六個構面名稱與定性視覺強調，不再印出「主線／副線」角色文字。
 - 不改 42 題規格、Scoring v2、計時、校準資料、replay storage schema 或 IQ／常模治理鎖。
+
+
+### Hard-only Matrix Reasoning（RC-2026.09.19-11）
+
+- 新增內容只進 hard matrix surfaces，不新增簡單版新題型。
+- Hard variant 7：3×3 多規則矩陣，同時追蹤形狀、空心／實心、箭頭方向、點數四個屬性。
+- Hard variant 8：3×3 XOR + 方向合成矩陣；圖形集合採 exclusive-or 邏輯，箭頭另外遵循第二條關係。
+- Easy／medium 的矩陣仍保留三個完整示例列，避免把閱讀歧義誤當難度。
+- 這一輪不改 42 題 blueprint、Scoring v2、計時、校準資料或 IQ／常模治理鎖。

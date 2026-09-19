@@ -22,23 +22,27 @@ for (const [file, source] of [['app.js', app], ['timeout-lock.js', timing], ['as
     assert.ok(!source.includes(forbidden), file + ': legacy pseudo-IQ mapping must be absent: ' + forbidden);
   }
 }
-assert.ok(timing.includes('const timingBaseFinishTest = finishTest;'), 'timing layer must delegate result rendering to the CPI-only base fallback');
+assert.ok(timing.includes('const timingBaseFinishTest = finishTest;'), 'timing layer must delegate result rendering');
 assert.ok(timing.includes('return timingBaseFinishTest();'), 'timing layer must not maintain an independent result scorer');
 
-assert.ok(app.includes('scale: "0-100-experimental"'));
+assert.ok(app.includes('scale: "0-100-experimental"'), 'internal fallback scoring may remain for engineering');
 assert.ok(app.includes('iqEstimate: null'));
-assert.ok(app.includes('iqStatus: "disabled-cpi-only"'));
-assert.ok(app.includes('不代表 IQ、人口百分位或同齡排名'));
+assert.ok(app.includes('publicScoreVisible: false'));
+assert.ok(app.includes('公開結果不顯示總分、IQ、百分比、排名或同齡換算'));
 
-assert.ok(quality.includes('CPI ONLY'));
-assert.ok(quality.includes('不提供 IQ、百分位或同齡排名'));
-assert.ok(!/performanceIndex\s*(?:>=|<=|>|<)\s*\d+/.test(quality), 'uncalibrated CPI thresholds must not drive qualitative labels');
-assert.ok(quality.includes("productMode: 'cpi-only'"));
+for (const marker of [
+  '文字解碼師','規律捕手','空間導航員','記憶收藏家','閃電掃描員','數字拆解師','多線探索者'
+]) assert.ok(quality.includes(marker), 'missing playful result profile: ' + marker);
+
+assert.ok(quality.includes("productMode: 'qualitative-playful'") || quality.includes('productMode: "qualitative-playful"'));
+assert.ok(quality.includes('internalScoringMode: "cpi-only"'));
+assert.ok(quality.includes('publicScoreVisible: false'));
+assert.ok(quality.includes('publicQuantitativeStandard: false'));
+assert.ok(quality.includes('ageInputRequired: false'));
 assert.ok(quality.includes('iqConversionEnabled: false'));
 assert.ok(quality.includes('populationPercentileAvailable: false'));
-
-assert.ok(readme.includes('Product mainline — CPI only'));
-assert.ok(readme.includes('IRB／真人常模送審當作目前產品開發的前置條件'));
+assert.ok(readme.includes('Product mainline — playful qualitative result'));
+assert.ok(readme.includes('不用填年齡'));
 assert.ok(readme.includes('productIqUnlocked=false'));
 
 const window = {};
@@ -56,5 +60,5 @@ assert.strictEqual(report.scale,'0-100-experimental');
 assert.strictEqual(report.calibrated,false);
 assert.ok(report.performanceIndex >= 0 && report.performanceIndex <= 100);
 
-console.log('CPI-only runtime measurement hardening PASS');
-console.log('No legacy 70-130 fallback; no uncalibrated qualitative thresholds; IQ conversion remains disabled.');
+console.log('Qualitative public-result / internal-CPI guard PASS');
+console.log('Internal CPI remains available for engineering; public result exposes no quantitative score, IQ, percentile, age rank, or norm.');

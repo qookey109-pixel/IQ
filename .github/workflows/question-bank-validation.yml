@@ -90,6 +90,7 @@ jobs:
           node --check tests/result-experience-validation.js
           node --check tests/result-title-engine-validation.js
           node --check tests/replay-history-validation.js
+          node --check tests/accessibility-interaction-validation.js
           node --check tests/runtime-bundle-helper.js
           node --check tests/runtime-bundle-validation.js
 
@@ -173,6 +174,9 @@ jobs:
 
       - name: Validate privacy-bounded local replay history
         run: node tests/replay-history-validation.js
+
+      - name: Validate keyboard and semantic interaction accessibility
+        run: node tests/accessibility-interaction-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js

@@ -35,6 +35,12 @@ assert.ok(transfer.some(q=>q.q.includes('甲、乙、丙三個容器分別有'))
 // in the production runtime. Their actor/system-boundary wording is guarded in
 // tests/hard-construct-integrity-validation.js, not in this earlier language-stage test.
 
+const averages=bank.filter(q=>q.taskFamily==='quant-average');
+const addObservation=averages.filter(q=>Number(q.constructVariant)===3);
+assert.ok(addObservation.length>0,'expected add-observation average items');
+assert.ok(addObservation.every(q=>/現在再加入第 \d+ 個數 \d+/.test(q.q)),'average update items must explicitly say the new value is added');
+assert.ok(addObservation.every(q=>!/第 \d+ 次是 \d+/.test(q.q)),'average update items must not use ambiguous occurrence wording');
+
 const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');
 assert.ok(unit.every(q=>!q.q.includes('個信封')),'mail unit-rate should not use generic 個信封 wording');

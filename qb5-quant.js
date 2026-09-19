@@ -33,7 +33,7 @@
     const a=10+mod(n,20);let c,p,ex;
     if(v===0){const x=a-2,y=a+5;c=3*a-x-y;p=`三天平均每天 ${a} 頁，前兩天讀 ${x}、${y} 頁。第三天多少？`;ex=`總量 ${3*a}，扣掉前兩天 ${x+y}，剩 ${c}。`;}
     else if(v===1){const x=a-3,y=a+1,z=a+2;c=(x+y+z)/3;p=`三次成績為 ${x}、${y}、${z}，平均是多少？`;ex=`(${x}+${y}+${z})÷3=${c}。`;}
-    else if(v===2){const count=4,newVal=a+8;c=(a*count+newVal)/(count+1);p=`前 ${count} 次平均 ${a}，第 ${count+1} 次是 ${newVal}。新的平均是多少？`;ex=`(${a*count}+${newVal})÷${count+1}=${c}。`;}
+    else if(v===2){const count=4,newVal=a+8;c=(a*count+newVal)/(count+1);p=`前 ${count} 個數的平均是 ${a}。現在再加入第 ${count+1} 個數 ${newVal}，${count+1} 個數的新平均是多少？`;ex=`前 ${count} 個數的總和是 ${a}×${count}=${a*count}；再加入 ${newVal} 後，總和變成 ${a*count+newVal}，所以新平均是 ${a*count+newVal}÷${count+1}=${c}。`;}
     else if(v===3){const total=a*4,known=[a-2,a,a+1];c=total-known.reduce((s,x)=>s+x,0);p=`4 個數平均為 ${a}；其中三個是 ${known.join('、')}。第四個是多少？`;ex=`總和 ${total} 扣掉已知三數，得到 ${c}。`;}
     else if(v===4){const b=a+6;c=(a+b)/2;p=`兩組人數相同，第一組平均 ${a}，第二組平均 ${b}。合併後平均是多少？`;ex=`兩組人數相同，合併平均為 (${a}+${b})÷2=${c}。`;}
     else if(v===5){const remove=a-4;c=(a*5-remove)/4;p=`5 個數平均 ${a}。移除其中一個數 ${remove} 後，剩下 4 個數的平均是多少？`;ex=`(${a*5}−${remove})÷4=${c}。`;}

@@ -94,13 +94,20 @@ assert.strictEqual(meta.processingSpeedIntegrity,'PSI-2026.09.1');
 assert.strictEqual(meta.memoryUsability,'MUI-2026.09.2');
 assert.strictEqual(meta.spatialReliability,'SRI-2026.09.1');
 assert.strictEqual(meta.fullBankSweep,'FBQ-2026.09.1');
-assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.2');
+assert.strictEqual(meta.fullBankPolish,'FBP-2026.09.3');
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.totalItems,2058);
 assert.strictEqual(window.IQ_OPTION_QUALITY_REPORT.cueRiskItems,0);
 
 const matrices=bank.filter(q=>q.taskFamily==='matrix-difference');
 assert.strictEqual(matrices.length,56);
-assert.ok(matrices.every(q=>q.matrixClarityVersion==='MC-2026.09.1'&&q.cells?.length===12&&q.cells[11]==='?'));
+assert.ok(matrices.every(q=>q.matrixClarityVersion==='MC-2026.09.2'));
+const hardMatrices=matrices.filter(q=>q.difficulty==='hard');
+assert.strictEqual(hardMatrices.length,14);
+assert.ok(hardMatrices.every(q=>q.cells?.length===9&&q.cells[8]==='?'),'hard matrices must be 3×3 abstract relation items');
+assert.ok(hardMatrices.filter(q=>q.constructVariant===7).every(q=>q.matrixClarityData?.kind==='hard-multi-rule'&&q.matrixClarityData?.relations===4));
+assert.ok(hardMatrices.filter(q=>q.constructVariant===8).every(q=>q.matrixClarityData?.kind==='hard-xor-orientation'&&q.matrixClarityData?.relations===2));
+const nonHardMatrices=matrices.filter(q=>q.difficulty!=='hard');
+assert.ok(nonHardMatrices.every(q=>q.cells?.length===12&&q.cells[11]==='?'),'easy/medium matrix surfaces keep three worked example rows');
 
 assert.strictEqual(form.length,42);
 assert.strictEqual(new Set(form.map(q=>q.id)).size,42);

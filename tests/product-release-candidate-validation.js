@@ -21,8 +21,8 @@ const titleEngine=fs.readFileSync('result-title-engine.js','utf8');
 const replay=fs.readFileSync('replay-history.js','utf8');
 const spatialCss=fs.readFileSync('spatial-visual-fix.css','utf8');
 
-assert.ok(html.includes('styles.bundle.css?v=20260919-rc10'),'RC CSS cache key must be current');
-assert.ok(html.includes('runtime.bundle.js?v=20260919-rc10'),'RC runtime cache key must be current');
+assert.ok(html.includes('styles.bundle.css?v=20260919-rc11'),'RC CSS cache key must be current');
+assert.ok(html.includes('runtime.bundle.js?v=20260919-rc11'),'RC runtime cache key must be current');
 assert.strictEqual((html.match(/<script\b[^>]*\bsrc=/g)||[]).length,1,'release page must request one JS bundle');
 assert.strictEqual((html.match(/<link\b[^>]*\brel="stylesheet"/g)||[]).length,1,'release page must request one CSS bundle');
 assert.ok(!/<script\b[^>]*\bsrc="https?:\/\//i.test(html),'release runtime must not depend on a remote script CDN');
@@ -38,7 +38,7 @@ const renderedStyles=renderJekyllIncludes('styles.bundle.css');
 assert.ok(renderedStyles.length>1000);
 
 for(const marker of [
-  'RC-2026.09.19-10',
+  'RC-2026.09.19-11',
   '2,058 items',
   '42 items = 6 domains × 7 families',
   'Public result: **clean qualitative title card + 30 deterministic directional combination titles**',
@@ -57,7 +57,7 @@ for(const marker of [
   'frozen'
 ]) assert.ok(status.includes(marker),'PRODUCT_STATUS missing authority marker: '+marker);
 
-assert.ok(readme.includes('RC-2026.09.19-10'));
+assert.ok(readme.includes('RC-2026.09.19-11'));
 assert.ok(readme.includes('Product mainline — playful qualitative result'));
 assert.ok(readme.includes('不用填年齡'));
 assert.ok(readme.includes('沒有前置練習題'));
@@ -98,6 +98,10 @@ assert.ok(quality.includes('replayHistoryVisible: false'));
 assert.ok(!html.includes('id="recentModes"'),'public replay strip must stay removed');
 assert.ok(html.includes('id="brainConstellation"'));
 assert.ok(!html.includes('id="profileHighlights"')&&!html.includes('id="resultSignature"'),'public clue/signature blocks must stay removed');
+const hardMatrixSource=fs.readFileSync('full-bank-polish.js','utf8');
+assert.ok(hardMatrixSource.includes('hard-multi-rule')&&hardMatrixSource.includes('relations:4'),'RC11 hard matrix must include the four-attribute relation surface');
+assert.ok(hardMatrixSource.includes('hard-xor-orientation')&&hardMatrixSource.includes('XOR'),'RC11 hard matrix must include logical XOR plus orientation composition');
+
 assert.ok(!html.includes('id="shareResultBtn"'),'public share button must stay removed');
 assert.ok(html.includes('publicResultActions')&&html.includes('id="restartBtn"')&&html.includes('id="reviewBtn"'),'public result keeps replay and review actions');
 assert.ok(!html.includes('navigator compactNavigator" aria-hidden="true"'));
@@ -115,4 +119,4 @@ assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)
 
 
 console.log('Product Release Candidate validation PASS');
-console.log('RC-2026.09.19-10: static relative-position spatial tasks, simplified qualitative result, accessibility, governance locks, and fallback boundaries are consistent.');
+console.log('RC-2026.09.19-11: static relative-position spatial tasks, simplified qualitative result, accessibility, governance locks, and fallback boundaries are consistent.');

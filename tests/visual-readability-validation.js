@@ -39,14 +39,15 @@ const stable = bank.map(q => [
 // viewpoint-heading instructions use explicit degree values instead of ambiguous "格" counts;
 // stack-height tasks now count unit cubes directly instead of requiring front/side projection;
 // mirror-coordinate tasks are restricted to explicit x-axis / y-axis reflection only;
-// production grid-displacement surfaces are static S/E relative-position questions with no route arrows.
+// production grid-displacement surfaces are static S/E relative-position questions with no route arrows;
+// hard matrix surfaces now use multi-attribute relations or XOR+orientation composition instead of one-step arithmetic.
 // Before this baseline
 // is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
 // screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
 // Future presentation-only changes must preserve this reviewed content, answer keys,
 // timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, '26829b024244b693a01c35019a518cae7cd43596f78c2cefcf151e8aab8d186c',
+assert.strictEqual(digest, '84b1c55a9279c676fed48358cdf7b8437f77c476ba2bce62c2e9ddb0a203154f',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

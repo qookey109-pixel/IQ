@@ -112,7 +112,7 @@ jobs:
       - name: Validate runtime timing deadlines and answer submission
         run: node tests/timing-runtime-validation.js
 
-      - name: Validate release UX path and CPI-only timing fallback
+      - name: Validate release UX path and non-quantitative public fallback
         run: node tests/release-ux-smoke-validation.js
 
       - name: Validate Calibration Readiness v1
@@ -157,7 +157,7 @@ jobs:
       - name: Validate coordinate spatial task refinement and Safari scrollability
         run: node tests/spatial-task-refinement-validation.js
 
-      - name: Validate screenshot-reported question clarity and IQ result status
+      - name: Validate screenshot-reported question clarity and qualitative result status
         run: node tests/screenshot-qa-validation.js
 
       - name: Validate QB5 construct-linked difficulty
@@ -187,7 +187,7 @@ jobs:
       - name: Validate final 2,058-item / 42-question production runtime
         run: node tests/compact-final-production-validation.js
 
-      - name: Validate age selection and unscored practice entry flow
+      - name: Validate age-free unscored practice entry flow
         run: node tests/pretest-flow-validation.js
 
       - name: Validate visual readability against reviewed content baseline

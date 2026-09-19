@@ -1,10 +1,13 @@
-name: Product — CPI Only Measurement Guard
+name: Product — Qualitative Result Guard
 
 on:
   pull_request:
     paths:
+      - 'index.html'
       - 'app.js'
       - 'assessment-quality.js'
+      - 'pretest-flow.js'
+      - 'single-screen.css'
       - 'timeout-lock.js'
       - 'scoring-v2.js'
       - 'README.md'
@@ -15,8 +18,11 @@ on:
     branches:
       - main
     paths:
+      - 'index.html'
       - 'app.js'
       - 'assessment-quality.js'
+      - 'pretest-flow.js'
+      - 'single-screen.css'
       - 'timeout-lock.js'
       - 'scoring-v2.js'
       - 'README.md'
@@ -39,11 +45,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate CPI-only measurement boundary
+      - name: Validate qualitative public-result boundary
         run: |
           node --check app.js
           node --check assessment-quality.js
+          node --check pretest-flow.js
           node --check timeout-lock.js
           node --check tests/cpi-only-runtime-validation.js
           node tests/cpi-only-runtime-validation.js
+          node tests/pretest-flow-validation.js
+          node tests/single-screen-validation.js
           node tests/scoring-v2-validation.js

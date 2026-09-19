@@ -361,9 +361,9 @@ function finishTest() {
 
   $("indexScore").textContent = Math.round(performanceIndex);
   $("resultSummary").textContent =
-    `答對 ${correctCount} / ${totalQuestions} 題（原始正確率 ${report.rawAccuracy}%）；Cognitive Performance Index 為 ${performanceIndex} / 100。`;
+    "這次測驗已完成；正式結果頁會把作答輪廓翻成趣味稱號。";
   $("resultDesc").textContent =
-    "這是本站題庫與透明計分規則下的實驗性表現分數，只描述本次作答，不代表 IQ、人口百分位或同齡排名。";
+    "公開結果不顯示總分、IQ、百分比、排名或同齡換算。";
 
   $("metrics").innerHTML = domains.map(d => `
     <div class="metric">
@@ -400,7 +400,10 @@ function finishTest() {
     rawAccuracy: report.rawAccuracy,
     correct: correctCount,
     total: totalQuestions,
-    calibrated: false
+    calibrated: false,
+    publicResultMode: "qualitative-playful-fallback",
+    publicScoreVisible: false,
+    publicQuantitativeStandard: false
   };
 
   window.scrollTo({ top: 0, behavior: "smooth" });

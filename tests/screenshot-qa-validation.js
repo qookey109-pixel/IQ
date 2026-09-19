@@ -43,18 +43,24 @@ for(const q of packing){
   assert.ok(q.q.includes('剩餘不足一箱不計'),`${q.id}: packing remainder policy must be explicit`);
 }
 
-// Result QA: CPI-only product mode must not fabricate or promise IQ output.
+// Result QA: public surface is playful and qualitative while IQ governance stays locked.
 const assessment=fs.readFileSync('assessment-quality.js','utf8');
-assert.ok(assessment.includes('SCORE STATUS'),'result must expose an explicit score-status area');
-assert.ok(assessment.includes('CPI ONLY'),'result must identify the current product as CPI-only');
+const index=fs.readFileSync('index.html','utf8');
+const resultCss=fs.readFileSync('single-screen.css','utf8');
+for(const marker of ['文字解碼師','規律捕手','空間導航員','記憶收藏家','閃電掃描員','數字拆解師','多線探索者']){
+  assert.ok(assessment.includes(marker),'result title profile missing: '+marker);
+}
+assert.ok(assessment.includes('publicScoreVisible: false'),'public score must stay hidden');
+assert.ok(assessment.includes('publicQuantitativeStandard: false'),'public quantitative standard must stay disabled');
+assert.ok(assessment.includes('ageInputRequired: false'),'age input must stay disabled');
 assert.ok(assessment.includes('iqEstimate: null'),'current result must not invent a numeric IQ');
-assert.ok(assessment.includes("iqStatus: 'not-population-normed'"),'result metadata must retain the norming limitation');
 assert.ok(assessment.includes('iqEstimateAvailable: false'),'quality metadata must disable IQ estimates');
-assert.ok(assessment.includes("productMode: 'cpi-only'"),'quality metadata must freeze CPI-only product mode');
 assert.ok(assessment.includes('iqConversionEnabled: false'),'IQ conversion must remain disabled');
 assert.ok(assessment.includes('populationPercentileAvailable: false'),'population percentile must remain unavailable');
-assert.ok(assessment.includes('不提供 IQ、百分位或同齡排名'),'result copy must state the CPI-only interpretation boundary');
-assert.ok(!assessment.includes('常模完成後，這裡才會顯示 IQ 估計、百分位與信賴區間'),'current product must not promise future IQ output');
+assert.ok(index.includes('id="playfulTitle"'),'public result needs a playful title slot');
+assert.ok(index.includes('id="profileHighlights"'),'public result needs qualitative highlight cards');
+assert.ok(index.includes('沒有分數，只有這次作答的趣味輪廓。'),'public result must state the no-score direction');
+assert.ok(resultCss.includes('.internalResultDiagnostics')&&resultCss.includes('display: none !important'),'internal quantitative diagnostics must be hidden from the public surface');
 
 console.log('Screenshot QA regression validation PASS');
-console.log('Matrix evidence, explicit speed/packing wording, and CPI-only result integrity are protected.');
+console.log('Matrix evidence, explicit speed/packing wording, and qualitative public-result integrity are protected.');

@@ -23,8 +23,10 @@ assert.ok(pos('assessment-quality.js') > pos('scoring-v2.js'));
 assert.ok(pos('navigation-layout-fix.js') > pos('assessment-quality.js'));
 
 assert.ok(pretest.includes('totalQuestions !== 42'),'formal entry must reject non-42 production forms');
-assert.ok(pretest.includes("setOnlyVisible('pretestAge')"),'start path must enter age step');
+assert.ok(pretest.includes("document.getElementById('startBtn').onclick = showIntroStep"),'start path must enter instructions without age intake');
+assert.ok(pretest.includes("setOnlyVisible('pretestIntro')"),'instructions must be the first pretest state');
 assert.ok(pretest.includes("setOnlyVisible('pretestPractice')"),'practice must have its own release state');
+assert.ok(!pretest.includes('ageSelect'),'release path must not collect age');
 assert.ok(pretest.includes('window.location.reload()'),'restart must reset the full pretest/form attempt');
 
 assert.ok(nav.includes('skipQuestion = nextQuestion'),'forward control must not be a destructive skip');
@@ -39,12 +41,13 @@ for(const forbidden of ['Math.max(70','Math.min(130','70 + overall * 0.6','index
 }
 assert.ok(timing.includes('const timingBaseFinishTest = finishTest;'));
 assert.ok(timing.includes('return timingBaseFinishTest();'));
-assert.ok(quality.includes('CPI ONLY'));
+assert.ok(quality.includes('publicScoreVisible: false'));
+assert.ok(quality.includes('publicQuantitativeStandard: false'));
 assert.ok(quality.includes('iqConversionEnabled: false'));
 
 // Exercise the fallback chain without assessment-quality.js.
 // Production normally loads assessment-quality later; this proves the lower timing fallback
-// still returns CPI-only output if that final layer does not take over.
+// still returns a non-quantitative public message if that final layer does not take over.
 function element(){
   return {
     textContent:'', innerHTML:'', className:'', disabled:false, onclick:null,
@@ -93,7 +96,7 @@ assert.strictEqual(c.IQ_LAST_RESULT.scale,'0-100-experimental');
 assert.strictEqual(c.IQ_LAST_RESULT.iqEstimate,null);
 assert.strictEqual(c.IQ_LAST_RESULT.iqStatus,'disabled-cpi-only');
 assert.ok(c.IQ_LAST_RESULT.performanceIndex>=0&&c.IQ_LAST_RESULT.performanceIndex<=100);
-assert.ok(String(nodes.get('resultDesc').textContent).includes('不代表 IQ'));
+assert.ok(String(nodes.get('resultDesc').textContent).includes('公開結果不顯示總分'));
 
 console.log('Release UX smoke validation PASS');
-console.log('Release path order, pretest/form entry, non-destructive navigation, modal close behavior, and CPI-only timing fallback are protected.');
+console.log('Release path order, age-free pretest/form entry, non-destructive navigation, modal close behavior, and non-quantitative timing fallback are protected.');

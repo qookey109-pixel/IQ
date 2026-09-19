@@ -24,6 +24,7 @@ on:
       - 'index.html'
       - 'app.js'
       - 'assessment-quality.js'
+      - 'result-title-engine.js'
       - 'pretest-flow.js'
       - 'single-screen.css'
       - 'timeout-lock.js'
@@ -31,6 +32,8 @@ on:
       - 'README.md'
       - 'PRODUCT_STATUS.md'
       - 'tests/cpi-only-runtime-validation.js'
+      - 'tests/result-experience-validation.js'
+      - 'tests/result-title-engine-validation.js'
       - '.github/workflows/product-cpi-only-measurement-guard.yml'
 
 permissions:

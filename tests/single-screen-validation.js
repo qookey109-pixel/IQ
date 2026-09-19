@@ -7,7 +7,7 @@ assert.ok(css.includes('container-type: inline-size'), 'dial must size text agai
 assert.ok(css.includes('font-size: 24cqw'), 'bank count must fit compact and landscape dials');
 const js = fs.readFileSync('single-screen.js', 'utf8');
 
-for (const id of ['start','quiz','result','startBtn','aboutBtn','counter','domain','timer','totalTimer','question','options','prevBtn','skipBtn','resultShareCard','resultSignature','playfulTitle','profileHighlights','brainConstellation','indexScore','metrics','restartBtn','reviewBtn']) {
+for (const id of ['start','quiz','result','startBtn','aboutBtn','counter','domain','timer','totalTimer','question','options','prevBtn','skipBtn','resultShareCard','playfulTitle','brainConstellation','indexScore','metrics','restartBtn','reviewBtn']) {
   assert.ok(html.includes(`id="${id}"`), `required UI id missing: ${id}`);
 }
 
@@ -19,6 +19,7 @@ assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'), 
 assert.ok(css.includes('.internalResultDiagnostics') && css.includes('display: none !important'), 'internal quantitative diagnostics must be hidden');
 assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'result motion must respect reduced-motion preference');
 assert.ok(css.includes('.brainConstellation') && css.includes('.brainHexagonMap') && css.includes('.brainHexPrimary'), 'qualitative six-domain hexagon must be styled');
+assert.ok(!html.includes('id="resultSignature"')&&!html.includes('id="profileHighlights"'),'public clue/signature blocks must stay removed');
 assert.ok(!html.includes('id="replayPrompt"')&&!html.includes('id="recentModes"'), 'public replay strip must stay removed');
 assert.ok(!html.includes('id="copyResultBtn"')&&!html.includes('id="shareResultBtn"'), 'public copy/share controls must stay removed');
 assert.ok(html.includes('publicResultActions'), 'minimal public result action row must be present');

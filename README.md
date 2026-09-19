@@ -2,7 +2,7 @@
 
 Cognitive IQ Lab 是一個原創、多構面的 IQ-style 認知測驗網站。定位是認知遊戲／自我探索工具，不是臨床、教育或就業用的正式智力鑑定。
 
-> **Product RC：RC-2026.09.19-9** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
+> **Product RC：RC-2026.09.19-10** — active product authority 與 release gates 見 `PRODUCT_STATUS.md`。研究／IRB lineage 保留但 freeze，不是目前產品發布前置條件。
 
 ## Question Bank v5.0
 
@@ -123,7 +123,7 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 
 - 一開始 **不用填年齡，也沒有前置練習題**；首頁按下開始後直接進入正式 42 題
 - 公開結果 **不顯示 CPI、總分、正確率百分比、IQ、人口百分位、同齡排名或腦齡數字**
-- 公開結果只給「今天的大腦稱號」與本次作答的主線索／副線索；稱號由獨立的 30 組方向組合引擎產生。結果頁底部只保留「抽新題／逐題解析／校準」三個主要操作
+- 公開結果只保留「今天的大腦稱號」與六構面圖；不再顯示主線索／副線索／今天的玩法卡片，也不顯示方向簽名 badge。結果頁底部只保留「抽新題／逐題解析／校準」三個主要操作
 - 稱號由同一份測驗內的相對作答輪廓產生：6 個主線構面 × 其餘 5 個副線構面 = 30 種方向組合；相同排序一定得到相同稱號，不使用人口常模門檻，也不宣稱能力等級或固定人格
 - CPI 0–100 仍保留在內部 runtime，供工程 QA、回歸檢查與未來研究使用
 - `productNormEligible=false`、`productIqUnlocked=false`、`autoCpiToIq=false` 持續維持
@@ -260,3 +260,12 @@ QB5 已改善 construct diversity、題目唯一性、視覺空間呈現、題�
 - `mirror-coordinate` 只保留 x 軸或 y 軸鏡射，不再出現 `y=x`、`y=-x`、偏移軸或混合旋轉。
 - 結果頁移除最近模式小框、複製／分享、題庫 QA 與研究匯出按鈕；公開底部只保留「抽新題／逐題解析／校準」。
 - 內部 QA、研究資料結構與 replay storage schema 仍保留，不改計分、計時、常模治理鎖或 42 題表單規格。
+
+
+### Spatial / Result simplification（RC-2026.09.19-10）
+
+- `grid-displacement` 最終產品題不再要求沿多段箭頭追路徑、計算 E 的座標；改成只看 S 與 E 的靜態相對位置，判斷 E 位於 S 的哪個方向。
+- 新題面不畫路徑箭頭，也不要求逐段位移計算。
+- 結果頁移除「主線索」「副線索」「今天的玩法」三張卡片，並移除稱號旁的方向簽名 badge。
+- 六構面六邊形仍保留，但只顯示六個構面名稱與定性視覺強調，不再印出「主線／副線」角色文字。
+- 不改 42 題規格、Scoring v2、計時、校準資料、replay storage schema 或 IQ／常模治理鎖。

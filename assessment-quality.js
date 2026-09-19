@@ -133,22 +133,20 @@ function renderBrainConstellation(domains, profile) {
     const p = points[index];
     const isPrimary = domain === profile.primaryDomain;
     const isSecondary = domain === profile.secondaryDomain && !isPrimary;
-    const role = isPrimary ? "主線" : (isSecondary ? (profile.coLead ? "並列主線" : "副線") : "");
     const cls = isPrimary ? "brainHexNode brainHexPrimary" :
       (isSecondary ? (profile.coLead ? "brainHexNode brainHexPrimary" : "brainHexNode brainHexSecondary") : "brainHexNode");
     const radius = isPrimary ? 10 : (isSecondary ? 8 : 6);
     return `
-      <g class="${cls}" aria-label="${domain}${role ? `，${role}` : ""}">
+      <g class="${cls}" aria-label="${domain}">
         <circle cx="${p.x}" cy="${p.y}" r="${radius}"></circle>
         <text class="brainHexLabel" x="${p.lx}" y="${p.ly}" text-anchor="${p.anchor}">${domain}</text>
-        ${role ? `<text class="brainHexRole" x="${p.lx}" y="${p.ly + 12}" text-anchor="${p.anchor}">${role}</text>` : ""}
       </g>
     `;
   }).join("");
   const spokes = points.map(p => `<line class="brainHexSpoke" x1="160" y1="110" x2="${p.x}" y2="${p.y}"></line>`).join("");
 
   holder.innerHTML = `
-    <svg class="brainHexagonMap" viewBox="0 0 320 230" role="img" aria-label="六構面定性六邊形。只標示本次主線與副線，不表示分數高低。">
+    <svg class="brainHexagonMap" viewBox="0 0 320 230" role="img" aria-label="六構面定性六邊形，不表示分數高低。">
       <polygon class="brainHexGrid" points="${polygon}"></polygon>
       ${spokes}
       ${nodes}
@@ -289,13 +287,10 @@ finishTest = function () {
 
   const emoji = $("resultEmoji");
   const title = $("playfulTitle");
-  const signature = $("resultSignature");
   if (emoji) emoji.textContent = playful.emoji;
   if (title) title.textContent = playful.title;
-  if (signature) signature.textContent = playful.signature;
   $("resultDesc").textContent = playful.description;
   $("resultSummary").textContent = playful.summary;
-  renderPlayfulHighlights(playful);
   renderBrainConstellation(domains, playful);
   // Keep replay history as an internal/local continuity signal, but do not render
   // the compact replay strip or public copy/share controls on the result surface.
@@ -386,7 +381,7 @@ window.IQ_QUALITY_META = {
   publicScoreVisible: false,
   publicQuantitativeStandard: false,
   publicDomainVisualization: "qualitative-hexagon-no-scale",
-  resultExperienceVersion: "1.3",
+  resultExperienceVersion: "1.4",
   titleEngineMode: "deterministic-30-directional-combinations",
   titleCombinationCount: 30,
   resultShareEnabled: false,

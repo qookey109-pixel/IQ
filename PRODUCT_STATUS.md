@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-9**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC9 UX/spatial cleanup change set**  
-Branch base: `b3df57b2d21a7be00c410b2a3ec3473b21a7e3bf`
+Release candidate: **RC-2026.09.19-10**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC10 spatial/result simplification change set**  
+Branch base: `e1ae61470bf1a5c08647c955fa56445c44610099`
 
 ## Active product
 
@@ -20,7 +20,7 @@ Branch base: `b3df57b2d21a7be00c410b2a3ec3473b21a7e3bf`
 - Replay comparison: **retained internally; no public replay strip**
 - Keyboard access: **named question navigation, pressed/current states, question focus handoff, modal focus containment**
 - Focus visibility: **explicit focus-visible + forced-colors support**
-- Public six-domain view: **qualitative hexagon (主線／副線), no scale and no numeric values**
+- Public six-domain view: **qualitative hexagon, no main/secondary text labels, no scale and no numeric values**
 - Public sharing controls: **hidden; public result actions are 抽新題 / 逐題解析 / 校準 only**
 - Public numeric score: **none**
 - Public age input: **none**
@@ -65,7 +65,7 @@ Public-result metadata additionally requires:
 
 ## Release-candidate evidence
 
-RC8 is expected to preserve:
+RC10 is expected to preserve:
 
 - 2,058-item / 42-item production validation
 - independent answer oracle and answer-position balance
@@ -91,22 +91,22 @@ RC8 is expected to preserve:
 - 4×3 matrix tasks stay compact in the final Safari visual cascade
 - review modal shows **your answer + correct answer + explanation** as separate fields
 - public result exposes no copy/share controls; internal share text helper remains non-numeric
-- six-domain public visualization is a role-only qualitative hexagon with no score scale
+- six-domain public visualization is a qualitative hexagon with no score scale or main/secondary text labels
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc9`
+- cache-busted RC assets: `20260919-rc10`
 
 ## Previous maintenance convergence
 
-RC8 was the converged real-play baseline. RC9 was intentionally reopened after another Safari play-through exposed four concrete UX issues: overly aggressive sentence-by-sentence line breaks, low-value stack projection tasks, diagonal-axis mirror tasks, and a cluttered result footer/replay strip.
+RC9 was the converged Safari cleanup baseline. RC10 was reopened after another play-through identified the route-following coordinate task as low-value and the result-page 主線索／副線索／今天的玩法 cards as unnecessary.
 
-- `main` at RC8 remains the formal authority until this RC9 branch is merged.
+- `main` at RC9 remains the formal authority until this RC10 branch is merged.
 - Repository size remains modest; frozen calibration / research evidence is retained for audit and reproducibility rather than deleted.
 - Six frozen research workflows are path-scoped so ordinary product/UI-only changes do not re-run unrelated R/research validation.
 - Product changes continue to be protected by Question Bank Validation, Product Release Candidate Gate, and Product Qualitative Result Guard.
 - Research workflows still run whenever their calibration files, scripts, tests, or workflow definitions change.
-- No scoring thresholds, governance locks, timing, title-selection logic, replay storage schema, or norming boundaries are changed; RC9 changes spatial task surfaces and public-result presentation only.
+- No scoring thresholds, governance locks, timing, title-selection logic, replay storage schema, or norming boundaries are changed; RC10 changes one production spatial task surface and removes redundant public result labels/cards only.
 
 ## Frozen research lineage
 
@@ -119,3 +119,10 @@ Historical calibration workflows and evidence remain reproducibility/audit recor
 This is an engineering release candidate. It does **not** establish population reliability, criterion validity, IRT/CAT equating, clinical validity, IQ norms, or a validated brain-age model.
 
 The playful title system deliberately avoids a public quantitative standard while keeping internal measurement diagnostics available for engineering and future research.
+
+## RC10 delta
+
+- Production `grid-displacement` surfaces no longer ask users to follow multi-segment arrows to calculate an endpoint coordinate; they are converted to static S/E relative-position questions with no route arrows.
+- Public result removes the 主線索／副線索／今天的玩法 cards and the small directional signature badge.
+- The six-domain hexagon keeps the six domain names and qualitative emphasis only; it no longer prints 主線／副線 role text.
+- Scoring, timing, 42-item form structure, calibration data, replay storage schema and all IQ/norming governance locks remain unchanged.

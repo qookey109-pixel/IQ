@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-8**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC8 real-play QA change set**  
-Branch base: `e000e5adfb226f36f800d10f01f581e32e7387ea`
+Release candidate: **RC-2026.09.19-9**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC9 UX/spatial cleanup change set**  
+Branch base: `b3df57b2d21a7be00c410b2a3ec3473b21a7e3bf`
 
 ## Active product
 
@@ -13,15 +13,15 @@ Branch base: `e000e5adfb226f36f800d10f01f581e32e7387ea`
 - Task families: **42**
 - Production form: **42 items = 6 domains × 7 families**
 - Difficulty blueprint per domain: **2 easy + 3 medium + 2 hard**
-- Public result: **share-friendly qualitative title card + 30 deterministic directional combination titles**
+- Public result: **clean qualitative title card + 30 deterministic directional combination titles**
 - Title engine: **6 primary domains × 5 secondary domains = 30 unique combinations**
 - Title selection: **deterministic; identical domain ordering yields identical title**
-- Replay history: **local browser only, last 4 qualitative titles, no scores or answers**
-- Replay comparison: **same-route / changed-route qualitative prompt only**
+- Replay history: **internal/local continuity only; not shown on the public result surface**
+- Replay comparison: **retained internally; no public replay strip**
 - Keyboard access: **named question navigation, pressed/current states, question focus handoff, modal focus containment**
 - Focus visibility: **explicit focus-visible + forced-colors support**
 - Public six-domain view: **qualitative hexagon (主線／副線), no scale and no numeric values**
-- Public sharing: **copy/share qualitative text only; no internal score is included**
+- Public sharing controls: **hidden; public result actions are 抽新題 / 逐題解析 / 校準 only**
 - Public numeric score: **none**
 - Public age input: **none**
 - Public practice questions: **none**
@@ -90,23 +90,23 @@ RC8 is expected to preserve:
 - pairing-capacity items do not use irrelevant random-place prefixes
 - 4×3 matrix tasks stay compact in the final Safari visual cascade
 - review modal shows **your answer + correct answer + explanation** as separate fields
-- share text contains no CPI / IQ / percentile / numeric ability output
+- public result exposes no copy/share controls; internal share text helper remains non-numeric
 - six-domain public visualization is a role-only qualitative hexagon with no score scale
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc8`
+- cache-busted RC assets: `20260919-rc9`
 
 ## Previous maintenance convergence
 
-RC7 was the converged baseline. RC8 was intentionally reopened after real Safari play-through exposed concrete product issues: ambiguous external-transfer wording, decorative place prefixes, oversized matrix presentation, answer-review clarity, and the desired six-domain hexagon result view.
+RC8 was the converged real-play baseline. RC9 was intentionally reopened after another Safari play-through exposed four concrete UX issues: overly aggressive sentence-by-sentence line breaks, low-value stack projection tasks, diagonal-axis mirror tasks, and a cluttered result footer/replay strip.
 
-- `main` at RC7 remains the formal authority until this RC8 branch is merged.
+- `main` at RC8 remains the formal authority until this RC9 branch is merged.
 - Repository size remains modest; frozen calibration / research evidence is retained for audit and reproducibility rather than deleted.
 - Six frozen research workflows are path-scoped so ordinary product/UI-only changes do not re-run unrelated R/research validation.
 - Product changes continue to be protected by Question Bank Validation, Product Release Candidate Gate, and Product Qualitative Result Guard.
 - Research workflows still run whenever their calibration files, scripts, tests, or workflow definitions change.
-- No scoring thresholds, governance locks, question content, runtime measurement behavior, title logic, replay storage, or public-result boundaries are changed by this convergence pass.
+- No scoring thresholds, governance locks, timing, title-selection logic, replay storage schema, or norming boundaries are changed; RC9 changes spatial task surfaces and public-result presentation only.
 
 ## Frozen research lineage
 

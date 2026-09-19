@@ -41,14 +41,15 @@ const stable = bank.map(q => [
 // mirror-coordinate tasks are restricted to explicit x-axis / y-axis reflection only;
 // production grid-displacement surfaces are static S/E relative-position questions with no route arrows;
 // hard matrix surfaces now use multi-attribute relations or XOR+orientation composition instead of one-step arithmetic;
-// hard fluid-reasoning surfaces now also use reverse/branch inference, multi-constraint ordering, and equation elimination.
+// hard fluid-reasoning surfaces now also use reverse/branch inference, multi-constraint ordering, and equation elimination;
+// quant-average update items explicitly state that the new value is added to the previous observations.
 // Before this baseline
 // is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
 // screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
 // Future presentation-only changes must preserve this reviewed content, answer keys,
 // timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, 'e207abd8111311c78f8419a7ac46f93a870a5a0e34b13df0d726ecdeb55bb15a',
+assert.strictEqual(digest, '779f7a3cb97de3511e79c3e6d91fca7756d6403245e40dc8c8618ce50e9d1be7',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

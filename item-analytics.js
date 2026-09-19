@@ -284,24 +284,9 @@
   }
 
   function installUI() {
-    const resultActions = document.querySelector("#result .actions");
-    if (!resultActions || document.getElementById("itemQaBtn")) return;
-
-    const button = document.createElement("button");
-    button.id = "itemQaBtn";
-    button.className = "btn secondary";
-    button.textContent = "題庫品質 QA";
-    resultActions.appendChild(button);
-
-    const panel = document.createElement("div");
-    panel.id = "itemQaPanel";
-    panel.className = "itemQaPanel hidden";
-    resultActions.insertAdjacentElement("afterend", panel);
-
-    button.addEventListener("click", () => {
-      panel.classList.toggle("hidden");
-      if (!panel.classList.contains("hidden")) renderDashboard();
-    });
+    // QA analytics remain available through the runtime API, but the public result
+    // surface intentionally stays limited to replay, review and calibration.
+    return;
   }
 
   const analyticsBaseInitState = initState;

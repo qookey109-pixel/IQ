@@ -297,8 +297,10 @@ finishTest = function () {
   $("resultSummary").textContent = playful.summary;
   renderPlayfulHighlights(playful);
   renderBrainConstellation(domains, playful);
-  const replayRecord = renderReplayTrail(playful);
-  const publicShareText = bindResultSharing(playful);
+  // Keep replay history as an internal/local continuity signal, but do not render
+  // the compact replay strip or public copy/share controls on the result surface.
+  renderReplayTrail(playful);
+  const publicShareText = null;
   revealResultExperience();
 
   // Keep quantitative diagnostics available to the internal runtime only.
@@ -362,8 +364,8 @@ finishTest = function () {
     publicSignature: playful.signature,
     publicSummary: playful.summary,
     publicShareText,
-    publicReplayHistoryAvailable: Boolean(replayRecord?.available),
-    publicReplayHistoryCount: replayRecord?.entries?.length || 0,
+    publicReplayHistoryAvailable: false,
+    publicReplayHistoryCount: 0,
     focusDomains: [playful.primaryDomain, playful.secondaryDomain]
   };
 
@@ -387,9 +389,10 @@ window.IQ_QUALITY_META = {
   resultExperienceVersion: "1.3",
   titleEngineMode: "deterministic-30-directional-combinations",
   titleCombinationCount: 30,
-  resultShareEnabled: true,
+  resultShareEnabled: false,
   shareIncludesNumericScore: false,
   replayHistoryEnabled: true,
+  replayHistoryVisible: false,
   replayHistoryStorage: "local-browser-only",
   replayHistoryMaxEntries: 4,
   replayHistoryStoresNumericScores: false,

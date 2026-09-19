@@ -21,8 +21,8 @@ const titleEngine=fs.readFileSync('result-title-engine.js','utf8');
 const replay=fs.readFileSync('replay-history.js','utf8');
 const spatialCss=fs.readFileSync('spatial-visual-fix.css','utf8');
 
-assert.ok(html.includes('styles.bundle.css?v=20260919-rc8'),'RC CSS cache key must be current');
-assert.ok(html.includes('runtime.bundle.js?v=20260919-rc8'),'RC runtime cache key must be current');
+assert.ok(html.includes('styles.bundle.css?v=20260919-rc9'),'RC CSS cache key must be current');
+assert.ok(html.includes('runtime.bundle.js?v=20260919-rc9'),'RC runtime cache key must be current');
 assert.strictEqual((html.match(/<script\b[^>]*\bsrc=/g)||[]).length,1,'release page must request one JS bundle');
 assert.strictEqual((html.match(/<link\b[^>]*\brel="stylesheet"/g)||[]).length,1,'release page must request one CSS bundle');
 assert.ok(!/<script\b[^>]*\bsrc="https?:\/\//i.test(html),'release runtime must not depend on a remote script CDN');
@@ -38,13 +38,13 @@ const renderedStyles=renderJekyllIncludes('styles.bundle.css');
 assert.ok(renderedStyles.length>1000);
 
 for(const marker of [
-  'RC-2026.09.19-8',
+  'RC-2026.09.19-9',
   '2,058 items',
   '42 items = 6 domains × 7 families',
-  'Public result: **share-friendly qualitative title card + 30 deterministic directional combination titles**',
+  'Public result: **clean qualitative title card + 30 deterministic directional combination titles**',
   'Title engine: **6 primary domains × 5 secondary domains = 30 unique combinations**',
   'Public six-domain view: **qualitative hexagon (主線／副線), no scale and no numeric values**',
-  'Public sharing: **copy/share qualitative text only; no internal score is included**',
+  'Public sharing controls: **hidden; public result actions are 抽新題 / 逐題解析 / 校準 only**',
   'Public numeric score: **none**',
   'Public age input: **none**',
   'Public practice questions: **none**',
@@ -57,7 +57,7 @@ for(const marker of [
   'frozen'
 ]) assert.ok(status.includes(marker),'PRODUCT_STATUS missing authority marker: '+marker);
 
-assert.ok(readme.includes('RC-2026.09.19-8'));
+assert.ok(readme.includes('RC-2026.09.19-9'));
 assert.ok(readme.includes('Product mainline — playful qualitative result'));
 assert.ok(readme.includes('不用填年齡'));
 assert.ok(readme.includes('沒有前置練習題'));
@@ -83,7 +83,7 @@ assert.ok(quality.includes('populationPercentileAvailable: false'));
 assert.ok(quality.includes('publicDomainVisualization: "qualitative-hexagon-no-scale"'));
 assert.ok(quality.includes('const correctAnswer = q.o[q.a]'));
 assert.ok(quality.includes('class="brainHexagonMap"'));
-assert.ok(quality.includes('resultShareEnabled: true'));
+assert.ok(quality.includes('resultShareEnabled: false'));
 assert.ok(quality.includes('shareIncludesNumericScore: false'));
 assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
 assert.ok(quality.includes('titleCombinationCount: 30'));
@@ -94,9 +94,11 @@ assert.ok(replay.includes("storesNumericScores: false"));
 assert.ok(replay.includes("storesAnswers: false"));
 assert.ok(replay.includes("uploadsAutomatically: false"));
 assert.ok(quality.includes('replayHistoryEnabled: true'));
-assert.ok(html.includes('id="recentModes"'));
+assert.ok(quality.includes('replayHistoryVisible: false'));
+assert.ok(!html.includes('id="recentModes"'),'public replay strip must stay removed');
 assert.ok(html.includes('id="brainConstellation"'));
-assert.ok(html.includes('id="shareResultBtn"'));
+assert.ok(!html.includes('id="shareResultBtn"'),'public share button must stay removed');
+assert.ok(html.includes('publicResultActions')&&html.includes('id="restartBtn"')&&html.includes('id="reviewBtn"'),'public result keeps replay and review actions');
 assert.ok(!html.includes('navigator compactNavigator" aria-hidden="true"'));
 assert.ok(html.includes('id="quizProgress" class="progress" role="progressbar"'));
 assert.ok(html.includes('id="question" class="question" tabindex="-1"'));
@@ -112,4 +114,4 @@ assert.ok(spatialCss.includes('grid-template-columns: max-content minmax(0, 1fr)
 
 
 console.log('Product Release Candidate validation PASS');
-console.log('RC-2026.09.19-8: direct entry, real-play wording/layout QA, qualitative hexagon results, replay history, accessibility, governance locks, and fallback boundaries are consistent.');
+console.log('RC-2026.09.19-9: direct entry, real-play wording/layout QA, qualitative hexagon results, replay history, accessibility, governance locks, and fallback boundaries are consistent.');

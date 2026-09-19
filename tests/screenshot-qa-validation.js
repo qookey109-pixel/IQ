@@ -63,11 +63,13 @@ assert.ok(index.includes('id="playfulTitle"'),'public result needs a playful tit
 assert.ok(index.includes('id="profileHighlights"'),'public result needs qualitative highlight cards');
 assert.ok(index.includes('id="resultSignature"'),'public result needs a qualitative signature');
 assert.ok(index.includes('id="brainConstellation"'),'public result needs a no-scale six-domain view');
-assert.ok(index.includes('id="copyResultBtn"')&&index.includes('id="shareResultBtn"'),'public result needs copy/share actions');
+assert.ok(!index.includes('id="copyResultBtn"')&&!index.includes('id="shareResultBtn"'),'public result copy/share actions must stay removed');
+assert.ok(index.includes('publicResultActions')&&index.includes('id="restartBtn"')&&index.includes('id="reviewBtn"'),'public result keeps only the minimal static action row');
 assert.ok(index.includes('沒有分數，只有這次作答的趣味輪廓。'),'public result must state the no-score direction');
 assert.ok(resultCss.includes('.internalResultDiagnostics')&&resultCss.includes('display: none !important'),'internal quantitative diagnostics must be hidden from the public surface');
 assert.ok(resultCss.includes('.brainHexagonMap')&&resultCss.includes('.brainHexPrimary')&&resultCss.includes('.brainHexSecondary'),'public domain view must use role-only hexagon styling');
-assert.ok(assessment.includes('shareIncludesNumericScore: false'),'shared result must exclude numeric scores');
+assert.ok(assessment.includes('resultShareEnabled: false'),'public sharing controls must stay disabled');
+assert.ok(assessment.includes('shareIncludesNumericScore: false'),'internal share helper must exclude numeric scores');
 assert.ok(assessment.includes('publicDomainVisualization: "qualitative-hexagon-no-scale"'),'public domain hexagon must remain scale-free');
 
 console.log('Screenshot QA regression validation PASS');

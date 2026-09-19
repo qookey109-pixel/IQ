@@ -81,15 +81,15 @@
       const x=ox+c*cell,y=oy+r*cell;
       z+=`<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="none" stroke="currentColor" stroke-width="1.4"/><text x="${x+cell/2}" y="${y+cell/2+8}" text-anchor="middle" font-size="24" font-weight="600">${g[r][c]}</text>`;
     }
-    z+=`<text x="${width/2}" y="${bottom+28}" text-anchor="middle" font-size="15">前方 ↑ 看入圖中</text><text x="${width/2}" y="${bottom+54}" text-anchor="middle" font-size="14">數字＝該位置堆疊高度</text>`;
-    return svg(z,'方塊柱投影高度圖',`0 0 ${width} ${bottom+68}`);
+    z+=`<text x="${width/2}" y="${bottom+32}" text-anchor="middle" font-size="14">數字＝該位置堆疊的單位方塊數</text>`;
+    return svg(z,'方塊堆疊高度圖',`0 0 ${width} ${bottom+48}`);
   }
-  function stackHidden(q,n,v,t){const g=heightMap(n,v,t),front=v%2===0;let skyline;
-    if(front){skyline=Array.from({length:g[0].length},(_,c)=>Math.max(...g.map(r=>r[c])));}
-    else {skyline=[...g].reverse().map(r=>Math.max(...r));}
-    const correct=skyline.join('–');const candidates=[];for(let i=0;i<skyline.length;i++){for(const d of [-1,1]){const z=[...skyline];z[i]=Math.max(1,z[i]+d);const s=z.join('–');if(s!==correct&&!candidates.includes(s))candidates.push(s);}}const rev=[...skyline].reverse().join('–');if(rev!==correct&&!candidates.includes(rev))candidates.push(rev);
-    q.q=front?'依俯視高度圖，從圖下方「前方」朝上看，輪廓由左到右的高度是哪一列？':'依俯視高度圖，從右側觀看，輪廓由前到後的高度是哪一列？';q.e=`每個視線方向取可遮蔽後的最高柱，得到 ${correct}。`;
-    install(q,correct,candidates,'spatial-stack-projection',{kind:'stack-projection',grid:g,view:front?'front':'right',skyline},stackSvg(g),'stack-projection');
+  function stackHidden(q,n,v,t){
+    const g=heightMap(n,v,t);
+    const total=g.flat().reduce((sum,h)=>sum+h,0);
+    q.q='圖中的數字表示每個位置堆疊的單位方塊數。整個模型一共用了多少個單位方塊？';
+    q.e=`把各位置的堆疊高度相加，共有 ${total} 個單位方塊。`;
+    install(q,total,[total-1,total+1,total+2,total+g.length],'spatial-stack-height-count',{kind:'stack-height-count',grid:g,total},stackSvg(g),'stack-height-count');
   }
 
   function perimeter(grid){const R=grid.length,C=grid[0].length;let p=0;for(let r=0;r<R;r++)for(let c=0;c<C;c++)if(grid[r][c])for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){const rr=r+dr,cc=c+dc;if(rr<0||cc<0||rr>=R||cc>=C||!grid[rr][cc])p++;}return p;}
@@ -120,25 +120,16 @@
     install(q,`(${ex}, ${ey})`,[`(${ex+1}, ${ey})`,`(${ex-1}, ${ey})`,`(${ex}, ${ey+1})`,`(${ex}, ${ey-1})`,`(${ey}, ${ex})`],'spatial-scale-coordinate-transform',{kind:'scale-drawing',w,h,sx,sy,tx,ty,end:[ex,ey]},scaleSvg2(w,h,sx,sy,tx,ty),'scale-drawing');
   }
 
-  function axesSvg(x,y,mode,c){const sx=a=>180+a*18,sy=a=>110-a*18;let z='<line x1="25" y1="110" x2="335" y2="110" stroke="currentColor" stroke-opacity=".2"/><line x1="180" y1="18" x2="180" y2="202" stroke="currentColor" stroke-opacity=".2"/>';
-    if(mode==='y')z+='<line x1="180" y1="18" x2="180" y2="202" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>';
-    if(mode==='x')z+='<line x1="25" y1="110" x2="335" y2="110" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>';
-    if(mode==='yx')z+='<line x1="90" y1="200" x2="270" y2="20" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>';
-    if(mode==='ynx')z+='<line x1="90" y1="20" x2="270" y2="200" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>';
-    if(mode==='xc')z+=`<line x1="${sx(c)}" y1="18" x2="${sx(c)}" y2="202" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/><text x="${sx(c)+5}" y="30" font-size="12">x=${c}</text>`;
-    if(mode==='yc')z+=`<line x1="25" y1="${sy(c)}" x2="335" y2="${sy(c)}" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/><text x="30" y="${sy(c)-5}" font-size="12">y=${c}</text>`;
-    z+=`<circle cx="${sx(x)}" cy="${sy(y)}" r="6" fill="currentColor"/><text x="${sx(x)+(x>=5?-8:8)}" y="${sy(y)-10}" text-anchor="${x>=5?'end':'start'}" font-size="14">P(${x},${y})</text>`;return svg(z,'座標鏡射圖','12 0 336 220');}
-  function mirrorCoordinate(q,n,v,t){const s18=mod(n,18);let x=2+mod(s18,6),y=1+Math.floor(s18/6),c=1+mod(s18+v,2),a,mode,rule;
-    if(v===0){a=[-x,y];mode='y';rule='對 y 軸鏡射';}
-    else if(v===1){a=[x,-y];mode='x';rule='對 x 軸鏡射';}
-    else if(v===2){a=[-x,-y];mode='origin';rule='以原點旋轉 180°';}
-    else if(v===3){a=[y,x];mode='yx';rule='對 y=x 鏡射';}
-    else if(v===4){a=[-y,-x];mode='ynx';rule='對 y=−x 鏡射';}
-    else if(v===5){a=[2*c-x,y];mode='xc';rule=`對 x=${c} 鏡射`;}
-    else if(v===6){const yy=2*c-y;a=[-x,yy];mode='yc';rule=`先對 y=${c} 鏡射，再對 y 軸鏡射`;}
-    else {a=[-y,-x];mode='y';rule='先對 y 軸鏡射，再順時針旋轉 90°';}
-    q.q=`依右側座標圖，將點 P「${rule}」。最後座標是？`;q.e=`逐步執行圖示幾何變換，最後得到 (${a[0]}, ${a[1]})。`;
-    install(q,`(${a[0]}, ${a[1]})`,[`(${-a[0]}, ${a[1]})`,`(${a[0]}, ${-a[1]})`,`(${a[1]}, ${a[0]})`,`(${a[0]+1}, ${a[1]})`,`(${a[0]}, ${a[1]+1})`],'spatial-mirror-diagram-grounded',{kind:'mirror-coordinate',point:[x,y],rule,answer:a,mode,c},axesSvg(x,y,mode,c),'mirror-coordinate');
+  function axesSvg(x,y,mode){const sx=a=>180+a*18,sy=a=>110-a*18;let z='<line x1="25" y1="110" x2="335" y2="110" stroke="currentColor" stroke-opacity=".2"/><line x1="180" y1="18" x2="180" y2="202" stroke="currentColor" stroke-opacity=".2"/><text x="330" y="104" font-size="12">x</text><text x="187" y="28" font-size="12">y</text>';
+    if(mode==='y')z+='<line x1="180" y1="18" x2="180" y2="202" stroke="currentColor" stroke-width="2.5" stroke-dasharray="6 5"/><text x="188" y="44" font-size="12" font-weight="700">y 軸</text>';
+    if(mode==='x')z+='<line x1="25" y1="110" x2="335" y2="110" stroke="currentColor" stroke-width="2.5" stroke-dasharray="6 5"/><text x="302" y="102" font-size="12" font-weight="700">x 軸</text>';
+    z+=`<circle cx="${sx(x)}" cy="${sy(y)}" r="6" fill="currentColor"/><text x="${sx(x)+(x>=5?-8:8)}" y="${sy(y)-10}" text-anchor="${x>=5?'end':'start'}" font-size="14">P(${x},${y})</text>`;return svg(z,'x 或 y 軸座標鏡射圖','12 0 336 220');}
+  function mirrorCoordinate(q,n,v,t){
+    const s18=mod(n,18),coords=[-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7],k=s18*8+v;
+    const x=coords[k%coords.length],y=coords[Math.floor(k/coords.length)%coords.length];
+    const mode=v%2===0?'y':'x',a=mode==='y'?[-x,y]:[x,-y],rule=mode==='y'?'對 y 軸鏡射':'對 x 軸鏡射';
+    q.q=`依右側座標圖，將點 P「${rule}」。最後座標是？`;q.e=`鏡射後，與 ${mode==='y'?'y':'x'} 軸垂直方向的座標改變正負號，得到 (${a[0]}, ${a[1]})。`;
+    install(q,`(${a[0]}, ${a[1]})`,[`(${-a[0]}, ${a[1]})`,`(${a[0]}, ${-a[1]})`,`(${a[1]}, ${a[0]})`,`(${a[0]+1}, ${a[1]})`,`(${a[0]}, ${a[1]+1})`],'spatial-axis-mirror',{kind:'mirror-coordinate',point:[x,y],rule,answer:a,mode,axis:mode},axesSvg(x,y,mode),'mirror-coordinate');
   }
 
   function bfs(N,S,T,B){const q=[[...S,0]],seen=new Set([S.join(',')]);for(let i=0;i<q.length;i++){const [r,c,d]=q[i];if(r===T[0]&&c===T[1])return d;for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){const rr=r+dr,cc=c+dc,k=`${rr},${cc}`;if(rr<0||cc<0||rr>=N||cc>=N||B.has(k)||seen.has(k))continue;seen.add(k);q.push([rr,cc,d+1]);}}return null;}

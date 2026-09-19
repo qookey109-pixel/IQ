@@ -206,23 +206,9 @@
   }
 
   function installUi() {
-    const actions = document.querySelector('#result .actions');
-    if (!actions || document.getElementById('calibrationStudyExportBtn')) return;
-
-    const csv = document.createElement('button');
-    csv.id = 'calibrationStudyExportBtn';
-    csv.className = 'btn secondary';
-    csv.textContent = '匯出研究資料 CSV';
-    csv.title = '僅下載到本機；不會自動上傳。包含年齡層與題目層級匿名研究資料。';
-    csv.addEventListener('click', exportCsv);
-    actions.appendChild(csv);
-
-    const json = document.createElement('button');
-    json.id = 'calibrationStudyExportJsonBtn';
-    json.className = 'btn ghost';
-    json.textContent = '研究 JSON';
-    json.addEventListener('click', exportJson);
-    actions.appendChild(json);
+    // Research exports remain available through IQ_CALIBRATION_STUDY, but are not
+    // shown as public result-page actions.
+    return;
   }
 
   if (typeof finishTest === 'function') {

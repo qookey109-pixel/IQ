@@ -36,14 +36,16 @@ const stable = bank.map(q => [
 // scaling-only from scale-then-translate and expose every translation vector;
 // speed-boundary and full-box packing wording is explicit; transfer-system boundaries,
 // one-to-one matching assumptions and reserved-capacity wording are now unambiguous;
-// viewpoint-heading instructions use explicit degree values instead of ambiguous "格" counts.
+// viewpoint-heading instructions use explicit degree values instead of ambiguous "格" counts;
+// stack-height tasks now count unit cubes directly instead of requiring front/side projection,
+// and mirror-coordinate tasks are restricted to explicit x-axis / y-axis reflection only.
 // Before this baseline
 // is accepted, independent oracle, option-quality, full-bank sweep, spatial v2,
 // screenshot QA, final 2,058-item / 42-form runtime and age/practice gates all pass.
 // Future presentation-only changes must preserve this reviewed content, answer keys,
 // timing, stimuli and spatial models.
 const digest = crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-assert.strictEqual(digest, 'a97597a7820cdf52dd01b9c139f5d1a0d27fa1b471eaef96791f85540f7f0948',
+assert.strictEqual(digest, '32bfffade67924393240934a8f3efec676a7de3356878951002470dd57d5fadc',
   'readability changes must not alter reviewed assessment content or timing');
 
 const spatial = bank.filter(q => q.d === '視覺空間');

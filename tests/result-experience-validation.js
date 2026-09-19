@@ -12,22 +12,26 @@ const replay = fs.readFileSync('replay-history.js','utf8');
 
 for (const id of [
   'resultShareCard','resultSignature','playfulTitle','profileHighlights',
-  'brainConstellation','replayPrompt','recentModes','copyResultBtn','shareResultBtn','shareStatus'
+  'brainConstellation','restartBtn','reviewBtn'
 ]) {
   assert.ok(html.includes(`id="${id}"`), 'missing qualitative result UI id: ' + id);
 }
 
 assert.ok(html.includes('沒有分數，只有這次作答的趣味輪廓。'));
 assert.ok(html.includes('六個頂點代表六個構面；只標示本次主線與副線，不以距離或長短表示分數。'));
+assert.ok(!html.includes('id="replayPrompt"')&&!html.includes('id="recentModes"'),'public replay strip must stay removed');
+assert.ok(!html.includes('id="copyResultBtn"')&&!html.includes('id="shareResultBtn"'),'public copy/share controls must stay removed');
+assert.ok(html.includes('publicResultActions'),'result footer must use the minimal public action row');
 
 for (const marker of [
   'renderBrainConstellation',
   'resultShareText',
   'bindResultSharing',
   'publicDomainVisualization: "qualitative-hexagon-no-scale"',
-  'resultShareEnabled: true',
+  'resultShareEnabled: false',
   'shareIncludesNumericScore: false',
   'replayHistoryEnabled: true',
+  'replayHistoryVisible: false',
   'replayHistoryStoresNumericScores: false',
   'replayHistoryStoresAnswers: false',
   'replayHistoryUploadsAutomatically: false'
@@ -49,9 +53,6 @@ for (const marker of [
   '.brainHexagonMap',
   '.brainHexPrimary',
   '.brainHexSecondary',
-  '.shareStatus',
-  '.replayTrail',
-  '.recentModeChip',
   '@keyframes resultCardIn',
   '@media (prefers-reduced-motion: reduce)'
 ]) {
@@ -76,4 +77,4 @@ assert.ok(replay.includes("uploadsAutomatically: false"));
 assert.ok(readme.includes('不包含任何內部 CPI 或作答分數'));
 
 console.log('Result Experience v1 validation PASS');
-console.log('Share-friendly qualitative card, no-scale six-domain hexagon, explicit answer review, and reduced-motion support are protected.');
+console.log('Minimal qualitative card, no-scale six-domain hexagon, explicit answer review, and reduced-motion support are protected.');

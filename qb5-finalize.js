@@ -84,7 +84,7 @@
         const base=String(q.q).replace(/^在[^，]+的這個案例中，/,'');q.q=`${contexts[s]}的調查：${base}`;
       }
       else if(q.taskFamily==='pairing-capacity'){
-        const base=String(q.q).replace(/^在[^，]+的這個案例中，/,'');q.q=`${contexts[s]}：${base}`;
+        q.q=String(q.q).replace(/^在[^，]+的這個案例中，/,'');
       }
     }
   }

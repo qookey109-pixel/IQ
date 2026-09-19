@@ -1,0 +1,49 @@
+name: Calibration v13 — Taiwan Board Verification Inquiry
+
+on:
+  pull_request:
+    paths:
+      - 'calibration/v13-taiwan-irb-rec-candidate-matrix.json'
+      - 'calibration/V13_TAIWAN_BOARD_VERIFICATION_INQUIRY.md'
+      - 'calibration/v13-taiwan-board-verification-response.template.json'
+      - 'scripts/check-v13-taiwan-board-verification.js'
+      - 'tests/calibration-v13-taiwan-board-verification-validation.js'
+      - '.github/workflows/calibration-v13-taiwan-board-verification.yml'
+  push:
+    branches:
+      - research/calibration-v13-taiwan-board-verification-inquiry-20260919
+
+permissions:
+  contents: read
+
+jobs:
+  validate-board-verification-inquiry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate freshness correction and inquiry guard
+        run: |
+          node --check scripts/check-v13-taiwan-board-verification.js
+          node --check tests/calibration-v13-taiwan-board-verification-validation.js
+          node tests/calibration-v13-taiwan-board-verification-validation.js
+
+      - name: Prove no contact selection submission or collection activation
+        run: |
+          node scripts/check-v13-taiwan-board-verification.js > /tmp/board-verification.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/board-verification.json', 'utf8'));
+          if (r.valid !== true) process.exit(1);
+          if (r.boardSelectable !== false) process.exit(1);
+          if (r.contactAuthorized !== false) process.exit(1);
+          if (r.submissionAuthorized !== false) process.exit(1);
+          if (r.collectionAuthorized !== false) process.exit(1);
+          console.log('v13 Taiwan board verification inquiry lock PASS');
+          NODE

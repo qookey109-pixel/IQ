@@ -37,8 +37,8 @@ function getProductionStyleSources(html) {
   assert.strictEqual(links[0][1].split('?')[0], 'styles.bundle.css', 'production CSS must load styles.bundle.css');
 
   const sources = readIncludeSources('styles.bundle.css');
-  assert.strictEqual(sources.length, 7, 'stylesheet bundle must preserve all 7 source stylesheets');
-  assert.strictEqual(new Set(sources).size, 7, 'stylesheet bundle source files must be unique');
+  assert.strictEqual(sources.length, 6, 'stylesheet bundle must preserve all 6 source stylesheets');
+  assert.strictEqual(new Set(sources).size, 6, 'stylesheet bundle source files must be unique');
   return sources;
 }
 

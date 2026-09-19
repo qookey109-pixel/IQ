@@ -1,9 +1,9 @@
 # Cognitive IQ Lab — Product Status
 
 Status date: **2026-09-19 Asia/Taipei**  
-Release candidate: **RC-2026.09.19-4**  
-Repository authority: **`main` remains formal authority; this branch is the proposed RC4 result-experience change set**  
-Branch base: `c203cd6dbf110e772a7c3e48e238eb29c92d9a75`
+Release candidate: **RC-2026.09.19-5**  
+Repository authority: **`main` remains formal authority; this branch is the proposed RC5 combination-title change set**  
+Branch base: `4777adcbaf98a9dde62ed0868d7a1e8288254349`
 
 ## Active product
 
@@ -13,7 +13,9 @@ Branch base: `c203cd6dbf110e772a7c3e48e238eb29c92d9a75`
 - Task families: **42**
 - Production form: **42 items = 6 domains × 7 families**
 - Difficulty blueprint per domain: **2 easy + 3 medium + 2 hard**
-- Public result: **share-friendly qualitative title card + attempt-specific cues**
+- Public result: **share-friendly qualitative title card + 30 deterministic directional combination titles**
+- Title engine: **6 primary domains × 5 secondary domains = 30 unique combinations**
+- Title selection: **deterministic; identical domain ordering yields identical title**
 - Public six-domain view: **role-only constellation (主線／副線), no scale and no numeric values**
 - Public sharing: **copy/share qualitative text only; no internal score is included**
 - Public numeric score: **none**
@@ -34,7 +36,7 @@ The result page does **not** publish:
 - brain-age / cognitive-age number
 - diagnostic, educational-placement, or employment conclusions
 
-Instead, the result page converts the relative shape of the current attempt into a playful title such as **規律捕手、空間導航員、文字解碼師、記憶收藏家、閃電掃描員、數字拆解師** or **多線探索者**.
+Instead, the result page maps the two most prominent directions of the current attempt into one of **30 directional combination titles**. Examples include **論點拼圖師、結構偵探、腦內製圖師、快閃記錄員、快速估算手**. The same relative ordering always produces the same title.
 
 These titles describe only this attempt. They are not a calibrated ability level, personality type, or population comparison.
 
@@ -59,7 +61,7 @@ Public-result metadata additionally requires:
 
 ## Release-candidate evidence
 
-RC4 is expected to preserve:
+RC5 is expected to preserve:
 
 - 2,058-item / 42-item production validation
 - independent answer oracle and answer-position balance
@@ -69,12 +71,15 @@ RC4 is expected to preserve:
 - timing deadline / timeout regression
 - no pseudo-IQ fallback
 - qualitative-result public-surface guard
+- 30/30 directional title-combination coverage and uniqueness
+- deterministic title selection with a stable tie-break order
+- title mapping isolated in `result-title-engine.js` rather than embedded in the result renderer
 - share text contains no CPI / IQ / percentile / numeric ability output
 - six-domain public visualization is role-only and has no score scale
 - direct-entry / no-practice validation
 - single-screen / navigation / matrix viewport guards
 - Jekyll production bundle render validation
-- cache-busted RC assets: `20260919-rc4`
+- cache-busted RC assets: `20260919-rc5`
 
 ## Frozen research lineage
 

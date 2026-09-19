@@ -297,13 +297,17 @@ saveElapsedBeforeLeave = function () {
 
 renderMiniNav = function () {
   const html = questions.map((q, i) => {
+    const answered = answers[i] !== null;
+    const expired = expiredQuestionsLock[i];
     const cls = [
       "dot",
       i === currentIndex ? "current" : "",
-      answers[i] !== null ? "done" : "",
-      expiredQuestionsLock[i] ? "expired" : ""
+      answered ? "done" : "",
+      expired ? "expired" : ""
     ].join(" ").trim();
-    return `<button class="${cls}" onclick="jumpTo(${i})">${i + 1}</button>`;
+    const state = expired ? "已逾時" : (answered ? "已作答" : "未作答");
+    const current = i === currentIndex ? ' aria-current="step"' : "";
+    return `<button type="button" class="${cls}" aria-label="第 ${i + 1} 題，${q.d}，${state}"${current} onclick="jumpTo(${i})">${i + 1}</button>`;
   }).join("");
   $("miniNav").innerHTML = html;
 };
@@ -390,8 +394,10 @@ renderQuestion = function (animationClass = "") {
   const q = questions[currentIndex];
   $("counter").textContent = `第 ${currentIndex + 1} 題 / ${totalQuestions}`;
   $("domain").textContent = q.d;
-  $("progressBar").style.width = `${(currentIndex / totalQuestions) * 100}%`;
+  $("progressBar").style.width = `${((currentIndex + 1) / totalQuestions) * 100}%`;
   $("progressText").textContent = `${currentIndex + 1} / ${totalQuestions}`;
+  const progress = $("quizProgress");
+  if (progress) progress.setAttribute("aria-valuenow", String(currentIndex + 1));
   $("prevBtn").disabled = currentIndex === 0;
   renderMiniNav();
   updateQuestionTimeIndicator();
@@ -480,8 +486,8 @@ renderQuestion = function (animationClass = "") {
     optionsEl.innerHTML = q.o.map((opt, idx) => {
       const selected = answers[currentIndex] === idx ? "selected" : "";
       return `
-        <button class="option ${selected}" ${submittedTimedQuestions[currentIndex] ? 'disabled' : ''} onclick="selectAnswer(${idx})">
-          <span style="opacity:.55;margin-right:8px">${String.fromCharCode(65 + idx)}.</span>${opt}
+        <button type="button" class="option ${selected}" aria-pressed="${answers[currentIndex] === idx ? "true" : "false"}" ${submittedTimedQuestions[currentIndex] ? 'disabled' : ''} onclick="selectAnswer(${idx})">
+          <span aria-hidden="true" style="opacity:.55;margin-right:8px">${String.fromCharCode(65 + idx)}.</span>${opt}
         </button>
       `;
     }).join("");
@@ -508,7 +514,9 @@ selectAnswer = function (choice) {
   renderMiniNav();
 
   document.querySelectorAll(".option").forEach((el, idx) => {
-    el.classList.toggle("selected", idx === choice);
+    const selected = idx === choice;
+    el.classList.toggle("selected", selected);
+    el.setAttribute("aria-pressed", selected ? "true" : "false");
   });
 
   const answeredIndex = currentIndex;

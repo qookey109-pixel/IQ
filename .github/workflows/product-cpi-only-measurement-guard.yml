@@ -8,11 +8,21 @@ on:
       - 'timeout-lock.js'
       - 'scoring-v2.js'
       - 'README.md'
+      - 'PRODUCT_STATUS.md'
       - 'tests/cpi-only-runtime-validation.js'
       - '.github/workflows/product-cpi-only-measurement-guard.yml'
   push:
     branches:
-      - product/cpi-only-measurement-hardening-20260919
+      - main
+    paths:
+      - 'app.js'
+      - 'assessment-quality.js'
+      - 'timeout-lock.js'
+      - 'scoring-v2.js'
+      - 'README.md'
+      - 'PRODUCT_STATUS.md'
+      - 'tests/cpi-only-runtime-validation.js'
+      - '.github/workflows/product-cpi-only-measurement-guard.yml'
 
 permissions:
   contents: read

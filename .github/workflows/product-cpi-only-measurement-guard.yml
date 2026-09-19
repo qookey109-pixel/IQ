@@ -6,6 +6,7 @@ on:
       - 'index.html'
       - 'app.js'
       - 'assessment-quality.js'
+      - 'result-title-engine.js'
       - 'pretest-flow.js'
       - 'single-screen.css'
       - 'timeout-lock.js'
@@ -14,6 +15,7 @@ on:
       - 'PRODUCT_STATUS.md'
       - 'tests/cpi-only-runtime-validation.js'
       - 'tests/result-experience-validation.js'
+      - 'tests/result-title-engine-validation.js'
       - '.github/workflows/product-cpi-only-measurement-guard.yml'
   push:
     branches:
@@ -50,12 +52,15 @@ jobs:
         run: |
           node --check app.js
           node --check assessment-quality.js
+          node --check result-title-engine.js
           node --check pretest-flow.js
           node --check timeout-lock.js
           node --check tests/cpi-only-runtime-validation.js
           node --check tests/result-experience-validation.js
+          node --check tests/result-title-engine-validation.js
           node tests/cpi-only-runtime-validation.js
           node tests/pretest-flow-validation.js
           node tests/single-screen-validation.js
           node tests/result-experience-validation.js
+          node tests/result-title-engine-validation.js
           node tests/scoring-v2-validation.js

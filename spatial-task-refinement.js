@@ -1,6 +1,6 @@
 // Cognitive IQ Lab — Spatial Task Refinement v2
 // Follow-up to SRI v1 for coordinate and transform families reported in real Safari use.
-// Grid displacement measures path integration from a known start instead of direct endpoint reading.
+// Grid displacement is converted into a static S/E relative-position task; no route-following arrows remain in production.
 // Mirror diagrams expose explicit axes/ticks. Scale/translation wording now states every operation.
 (() => {
   'use strict';
@@ -9,56 +9,93 @@
   const selected=Array.isArray(window.IQ_QUESTIONS)?window.IQ_QUESTIONS:[];
   if(!bank.length)return;
 
-  const VERSION='STR-2026.09.2';
+  const VERSION='STR-2026.09.3';
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const svg=(inner,label,viewBox='0 0 360 270')=>{
     const [, , width, height]=viewBox.split(' ').map(Number);
     return `<svg class="qb5-spatial-svg refined-spatial-svg" viewBox="${viewBox}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
   };
 
-  function arrowSegment(x1,y1,x2,y2){
-    const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,px=-uy,py=ux;
-    const sx=x1+ux*7,sy=y1+uy*7,tipX=x2-ux*8,tipY=y2-uy*8,baseX=tipX-ux*9,baseY=tipY-uy*9;
-    return `<line x1="${sx}" y1="${sy}" x2="${tipX}" y2="${tipY}" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`+
-      `<polygon points="${tipX},${tipY} ${baseX+px*5.5},${baseY+py*5.5} ${baseX-px*5.5},${baseY-py*5.5}" fill="currentColor"/>`;
+  const REL_DIRS=[
+    {dx:1,dy:0,label:'右方'},
+    {dx:1,dy:1,label:'右上方'},
+    {dx:0,dy:1,label:'上方'},
+    {dx:-1,dy:1,label:'左上方'},
+    {dx:-1,dy:0,label:'左方'},
+    {dx:-1,dy:-1,label:'左下方'},
+    {dx:0,dy:-1,label:'下方'},
+    {dx:1,dy:-1,label:'右下方'}
+  ];
+
+  function setFourOptions(q,correct,wrong){
+    const target=Number.isInteger(q.a)&&q.a>=0&&q.a<4?q.a:0;
+    const clean=[],seen=new Set([String(correct)]);
+    for(const value of wrong){
+      const s=String(value);
+      if(!seen.has(s)){seen.add(s);clean.push(s);}
+    }
+    if(clean.length<3)throw new Error('spatial refinement: insufficient relative-position distractors for '+q.id);
+    const out=[];let wi=0;
+    for(let i=0;i<4;i++)out.push(i===target?String(correct):clean[wi++]);
+    q.o=out;q.a=target;q.correctContent=String(correct);
   }
 
-  function gridPathVisual(data){
-    const [sx0,sy0]=data.start,[ex,ey]=data.end;
-    let x=sx0,y=sy0;
-    const pts=[[x,y]];
-    for(const [dx,dy] of data.moves){x+=dx;y+=dy;pts.push([x,y]);}
-    const maxCoord=Math.max(6,...pts.flat());
-    const N=maxCoord+2;
-    const cell=Math.max(14,Math.min(26,Math.floor(178/Math.max(1,N-1))));
-    const ox=66,oy=216,right=ox+(N-1)*cell,top=oy-(N-1)*cell;
+  function relativePositionData(q){
+    const match=String(q.id||'').match(/-(\d{3})$/);
+    const n=Math.max(0,(match?Number(match[1]):1)-1);
+    const variant=Math.max(0,Number(q.constructVariant||1)-1);
+    const tier=q.difficulty==='hard'?2:(q.difficulty==='medium'?1:0);
+    const dirIndex=(n+variant*3+tier*5)%REL_DIRS.length;
+    const dir=REL_DIRS[dirIndex];
+    const distance=2+((Math.floor(n/8)+variant+tier)%3);
+    const seedX=Math.floor(n/8)+variant*7+tier*11;
+    const seedY=Math.floor(n/4)+variant*5+tier*13;
+    const chooseStart=(seed,delta)=>{
+      if(delta>0){const span=10-distance;return 1+(seed%span);}
+      if(delta<0){const span=10-distance;return distance+1+(seed%span);}
+      return 1+(seed%10);
+    };
+    const sx=chooseStart(seedX,dir.dx),sy=chooseStart(seedY,dir.dy);
+    const ex=sx+dir.dx*distance,ey=sy+dir.dy*distance;
+    return {kind:'relative-position',start:[sx,sy],end:[ex,ey],direction:dir.label,directionIndex:dirIndex,distance,measurement:'static-relative-position'};
+  }
+
+  function relativePositionVisual(data){
+    const [sx,sy]=data.start,[ex,ey]=data.end;
+    const cell=22,ox=58,oy=244,N=10,right=ox+N*cell,top=oy-N*cell;
     let z='';
-
-    for(let k=0;k<N;k++){
+    for(let k=0;k<=N;k++){
       const X=ox+k*cell,Y=oy-k*cell;
-      z+=`<line x1="${X}" y1="${oy}" x2="${X}" y2="${top}" stroke="currentColor" stroke-opacity=".16"/>`;
-      z+=`<line x1="${ox}" y1="${Y}" x2="${right}" y2="${Y}" stroke="currentColor" stroke-opacity=".16"/>`;
+      z+=`<line x1="${X}" y1="${oy}" x2="${X}" y2="${top}" stroke="currentColor" stroke-opacity=".14"/>`;
+      z+=`<line x1="${ox}" y1="${Y}" x2="${right}" y2="${Y}" stroke="currentColor" stroke-opacity=".14"/>`;
     }
-    z+=`<line x1="${ox}" y1="${oy}" x2="${right+16}" y2="${oy}" stroke="currentColor" stroke-width="2"/>`;
-    z+=`<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${top-16}" stroke="currentColor" stroke-width="2"/>`;
-    z+=`<text x="${right+22}" y="${oy+5}" font-size="15" font-weight="700">x</text>`;
-    z+=`<text x="${ox-5}" y="${top-22}" font-size="15" font-weight="700">y</text>`;
-    z+=`<text x="${ox}" y="250" font-size="13" fill="currentColor" opacity=".72">每格 = 1；座標數字不直接標在終點旁</text>`;
+    const px=x=>ox+x*cell,py=y=>oy-y*cell;
+    z+=`<circle cx="${px(sx)}" cy="${py(sy)}" r="7" fill="currentColor"/>`;
+    z+=`<rect x="${px(sx)-13}" y="${py(sy)+10}" width="26" height="20" rx="7" fill="white" fill-opacity=".94"/>`;
+    z+=`<text x="${px(sx)}" y="${py(sy)+25}" text-anchor="middle" font-size="14" font-weight="700">S</text>`;
+    z+=`<circle cx="${px(ex)}" cy="${py(ey)}" r="8" fill="white" stroke="currentColor" stroke-width="3"/>`;
+    const eAbove=py(ey)>top+34;
+    z+=`<rect x="${px(ex)-13}" y="${eAbove?py(ey)-32:py(ey)+10}" width="26" height="20" rx="7" fill="white" fill-opacity=".94"/>`;
+    z+=`<text x="${px(ex)}" y="${eAbove?py(ey)-17:py(ey)+25}" text-anchor="middle" font-size="14" font-weight="700">E</text>`;
+    return svg(z,'S 與 E 的相對位置圖','0 0 340 280');
+  }
 
-    for(let i=0;i<pts.length-1;i++){
-      const [x1,y1]=pts[i],[x2,y2]=pts[i+1];
-      z+=arrowSegment(ox+x1*cell,oy-y1*cell,ox+x2*cell,oy-y2*cell);
-    }
-
-    const startX=ox+sx0*cell,startY=oy-sy0*cell,endX=ox+ex*cell,endY=oy-ey*cell;
-    z+=`<circle cx="${startX}" cy="${startY}" r="6" fill="currentColor"/>`;
-    z+=`<rect x="${startX-28}" y="${startY+9}" width="25" height="20" rx="7" fill="white" fill-opacity=".9"/>`;
-    z+=`<text x="${startX-15}" y="${startY+24}" text-anchor="middle" font-size="14" font-weight="700">S</text>`;
-    z+=`<circle cx="${endX}" cy="${endY}" r="7" fill="white" stroke="currentColor" stroke-width="3"/>`;
-    const eLeft=endX>right-30;
-    z+=`<rect x="${eLeft?endX-35:endX+9}" y="${Math.max(top+2,endY-25)}" width="26" height="20" rx="7" fill="white" fill-opacity=".92"/>`;
-    z+=`<text x="${eLeft?endX-22:endX+22}" y="${Math.max(top+17,endY-10)}" text-anchor="middle" font-size="14" font-weight="700">E</text>`;
-    return svg(z,'座標路徑整合圖','0 0 360 270');
+  function refineRelativePosition(q){
+    const data=relativePositionData(q);
+    const correct=data.direction;
+    const i=data.directionIndex;
+    setFourOptions(q,correct,[
+      REL_DIRS[(i+4)%8].label,
+      REL_DIRS[(i+2)%8].label,
+      REL_DIRS[(i+6)%8].label
+    ]);
+    q.q='觀察圖中 S 與 E 的位置。E 位於 S 的哪個方向？';
+    q.e=`由 S 看向 E，E 位於 S 的${correct}。`;
+    q.visual=relativePositionVisual(data);
+    q.diagramType='relative-position';
+    q.spatialIntegrityReason='spatial-static-relative-position';
+    q.spatialIntegrityData=data;
+    q.spatialTaskRefinement=VERSION;
   }
 
   function mirrorVisual(data){
@@ -121,14 +158,8 @@
       if(!q||seen.has(q)||q.d!=='視覺空間')continue;
       seen.add(q);
       const data=q.spatialIntegrityData;
-      if(q.taskFamily==='grid-displacement'&&data?.kind==='grid-displacement'){
-        const [sx,sy]=data.start,[ex,ey]=data.end;
-        q.q=`起點 S = (${sx}, ${sy})。依圖中的箭頭逐段移動，每格代表 1 單位。最後 E 的座標是？`;
-        q.e=`從已知起點 (${sx}, ${sy}) 依箭頭逐段更新位置，最後得到 (${ex}, ${ey})。`;
-        q.visual=gridPathVisual(data);
-        q.spatialIntegrityReason='spatial-grid-path-integration';
-        q.spatialIntegrityData={...data,measurement:'path-integration-from-known-start',endpointCoordinatesShown:false,gridUnit:1};
-        q.spatialTaskRefinement=VERSION;
+      if(q.taskFamily==='grid-displacement'){
+        refineRelativePosition(q);
         report.total++;report.gridDisplacement++;
       }else if(q.taskFamily==='mirror-coordinate'&&data?.kind==='mirror-coordinate'){
         q.visual=mirrorVisual(data);

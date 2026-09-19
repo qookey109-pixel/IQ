@@ -129,13 +129,26 @@
     else if (length >= 78) card.classList.add("questionText-long");
     else if (length >= 48) card.classList.add("questionText-medium");
 
-    // Long multi-step prompts read more clearly when each complete action starts
-    // on its own visual line. The source question text and answer logic stay unchanged.
-    if (length >= 56 && /[。；]/.test(text)) {
-      const formatted = text.replace(/([。；])\s*/g, "$1\n").replace(/\n+$/g, "");
-      if (formatted !== text) {
-        question.textContent = formatted;
-        question.classList.add("questionSentenceBreaks");
+    // Keep roomy text natural. Only genuinely long prompts get one deliberate
+    // paragraph break near the middle; do not put every sentence on its own line.
+    if (length >= 92 && /[。；]/.test(text)) {
+      const parts = text.match(/[^。；]+[。；]?/g)?.map(x => x.trim()).filter(Boolean) || [];
+      if (parts.length >= 3) {
+        let splitAt = 1;
+        let bestDistance = Infinity;
+        for (let i = 1; i < parts.length; i++) {
+          const leftLength = Array.from(parts.slice(0, i).join("")).length;
+          const distance = Math.abs(leftLength - length / 2);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            splitAt = i;
+          }
+        }
+        const formatted = parts.slice(0, splitAt).join("") + "\n" + parts.slice(splitAt).join("");
+        if (formatted !== text) {
+          question.textContent = formatted;
+          question.classList.add("questionSentenceBreaks");
+        }
       }
     }
   }

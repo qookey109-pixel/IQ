@@ -7,6 +7,7 @@ const html = fs.readFileSync('index.html','utf8');
 const quality = fs.readFileSync('assessment-quality.js','utf8');
 const css = fs.readFileSync('single-screen.css','utf8');
 const readme = fs.readFileSync('README.md','utf8');
+const titleEngine = fs.readFileSync('result-title-engine.js','utf8');
 
 for (const id of [
   'resultShareCard','resultSignature','playfulTitle','profileHighlights',
@@ -52,6 +53,9 @@ for (const marker of [
 assert.ok(css.includes('.internalResultDiagnostics') && css.includes('display: none !important'),
   'internal quantitative diagnostics must stay hidden');
 assert.ok(readme.includes('Result Experience v1（RC-2026.09.19-4）'));
+assert.ok(readme.includes('Combination Title Engine v1（RC-2026.09.19-5）'));
+assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"));
+assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
 assert.ok(readme.includes('不包含任何內部 CPI 或作答分數'));
 
 console.log('Result Experience v1 validation PASS');

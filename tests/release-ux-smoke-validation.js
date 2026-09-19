@@ -38,8 +38,11 @@ assert.ok(nav.includes('skipQuestion = nextQuestion'),'forward control must not 
 assert.ok(!nav.includes('answers[currentIndex] = null'),'forward control must preserve an existing answer');
 assert.ok(nav.includes('button.disabled = false'),'expired timed items must remain navigable');
 
-assert.ok(single.includes("event.key === 'Escape'"),'Escape must close viewport detail panels');
-assert.ok(single.includes("['about', 'review', 'itemQaPanel']"),'about/review/QA panels must share close behavior');
+assert.ok(single.includes("event.key === 'Escape'"),'Escape must close the active viewport detail panel');
+assert.ok(single.includes("handleOpener('#aboutBtn', 'about'"),'about dialog must participate in shared modal focus handling');
+assert.ok(single.includes("handleOpener('#reviewBtn', 'review'"),'review dialog must participate in shared modal focus handling');
+assert.ok(single.includes("focusPanel(byId('itemQaPanel'), qaButton)"),'QA panel must participate in shared modal focus handling');
+assert.ok(single.includes("opener.focus({ preventScroll: true })"),'closing a modal must restore focus to its opener');
 
 for(const forbidden of ['Math.max(70','Math.min(130','70 + overall * 0.6','index >= 120','index >= 110','index < 90']){
   assert.ok(!timing.includes(forbidden),'timing fallback must not contain pseudo-IQ logic: '+forbidden);

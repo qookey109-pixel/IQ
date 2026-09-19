@@ -11,6 +11,8 @@ assert(!nav.includes('answers[currentIndex] = null'), 'forward navigation must n
 assert(nav.includes('button.disabled = false'), 'expired items must still allow navigation forward');
 assert(nav.includes('density-6') && nav.includes('density-5') && nav.includes('density-4'), 'matrix cells need density classes');
 assert(nav.includes('buildMatrix = function'), 'matrix renderer must be upgraded');
+assert(nav.includes('function focusQuestionPrompt()'), 'question transitions must manage focus');
+assert(nav.includes('question.focus({ preventScroll: true })'), 'question focus handoff must avoid page jumps');
 
 assert(css.includes('.matrixCell.density-4'), 'dense matrix CSS missing');
 assert(css.includes('overflow: hidden'), 'matrix symbols must be contained');

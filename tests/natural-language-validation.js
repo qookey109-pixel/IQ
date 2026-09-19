@@ -31,6 +31,11 @@ assert.ok(negation.every(q=>/邏輯|等價/.test(q.q)),'scope-negation should us
 const transfer=bank.filter(q=>q.taskFamily==='invariant-transfer');
 assert.ok(transfer.every(q=>!q.q.includes('三個容器中共有')),'invariant-transfer should use natural container wording');
 assert.ok(transfer.some(q=>q.q.includes('甲、乙、丙三個容器分別有')));
+const hardExternalTransfer=transfer.filter(q=>q.difficulty==='hard'&&[7,8].includes(Number(q.constructVariant)));
+assert.ok(hardExternalTransfer.every(q=>q.q.includes('丁')),
+  'external add/remove transfer items must name the external actor');
+assert.ok(hardExternalTransfer.every(q=>q.q.includes('不再放回')),
+  'removed objects must be explicitly outside the counted system');
 
 const unit=bank.filter(q=>q.taskFamily==='quant-unit-rate');
 assert.ok(unit.every(q=>!q.q.includes('這組資料為情境')),'unit-rate items should integrate the concrete noun into the sentence');
@@ -45,6 +50,9 @@ assert.ok(overlap.some(q=>q.q.includes('閱讀課')||q.q.includes('公車')||q.q
 
 const pairing=bank.filter(q=>q.taskFamily==='pairing-capacity');
 assert.ok(pairing.every(q=>!q.q.includes('的這個案例中')));
+const decorativePlaces=['圖書館','車站','展館','劇院','球館','工坊','書店','碼頭','畫廊','山屋','市集','茶館','教室','工作室','博物館','實驗室','運動中心','社區中心'];
+assert.ok(pairing.every(q=>!decorativePlaces.some(place=>q.q.startsWith(place+'：'))),
+  'pairing-capacity must not use irrelevant random-place prefixes');
 
 const memUpdate=bank.filter(q=>q.taskFamily==='memory-update');
 assert.ok(memUpdate.every(q=>q.q==='照剛才的順序計算，最後是多少？'));

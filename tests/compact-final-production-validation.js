@@ -72,14 +72,14 @@ assert.ok(pairingV6.every(q=>q.q.includes('保留席')&&q.q.includes('不開放�
 const spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(spatial.length,392);
 assert.ok(spatial.every(q=>String(q.visual||'').includes('<svg')&&String(q.visual||'').includes('preserveAspectRatio="xMidYMid meet"')&&q.spatialReliability==='SRI-2026.09.1'));
-assert.strictEqual(meta.spatialTaskRefinement,'STR-2026.09.2');
+assert.strictEqual(meta.spatialTaskRefinement,'STR-2026.09.3');
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.total,168);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.gridDisplacement,56);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.mirrorCoordinate,56);
 assert.strictEqual(window.IQ_SPATIAL_TASK_REFINEMENT.scaleDrawing,56);
-assert.ok(bank.filter(q=>q.taskFamily==='grid-displacement').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.endpointCoordinatesShown===false));
-assert.ok(bank.filter(q=>q.taskFamily==='mirror-coordinate').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.axesLabeled===true));
-assert.ok(bank.filter(q=>q.taskFamily==='scale-drawing').every(q=>q.spatialTaskRefinement==='STR-2026.09.2'&&q.spatialIntegrityData?.translationExplicit===true));
+assert.ok(bank.filter(q=>q.taskFamily==='grid-displacement').every(q=>q.spatialTaskRefinement==='STR-2026.09.3'&&q.spatialIntegrityData?.kind==='relative-position'&&q.spatialIntegrityData?.measurement==='static-relative-position'&&!/箭頭|逐段移動|最後 E 的座標/.test(q.q)));
+assert.ok(bank.filter(q=>q.taskFamily==='mirror-coordinate').every(q=>q.spatialTaskRefinement==='STR-2026.09.3'&&q.spatialIntegrityData?.axesLabeled===true));
+assert.ok(bank.filter(q=>q.taskFamily==='scale-drawing').every(q=>q.spatialTaskRefinement==='STR-2026.09.3'&&q.spatialIntegrityData?.translationExplicit===true));
 const memory=bank.filter(q=>q.d==='工作記憶');
 assert.strictEqual(memory.length,392);
 assert.ok(memory.every(q=>q.type==='memory'&&String(q.stim||'').trim().length>0&&q.limit==null));

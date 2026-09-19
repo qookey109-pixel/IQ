@@ -101,6 +101,13 @@ QB5 不再把「同一模板換數字」當成真正的題型多樣性：
 - 快速答錯不會得到速度加分
 - `calibrated: false`
 
+### Measurement Hardening v1（2026-09-19）
+
+- 缺少、非有限值或負數的處理速度作答時間，一律視為「沒有可用的速度證據」，不給 5% speed bonus；不會再把缺失時間誤當成 0 秒。
+- `skipped` 依正式題目槽位計算，即使 answers 陣列不完整也不會漏算未作答。
+- CI 會用固定 seed 反覆產生合法 42 題 forms，檢查 blueprint、form-load、CPI 邊界、速度影響上限與 deterministic synthetic profile 的跨 form 波動。
+- 這些是 **measurement engineering / anti-regression**，不是 population reliability、validity、IRT equating 或 IQ 常模證據。
+
 ## Product mainline — CPI only（2026-09-19）
 
 目前產品主線聚焦在 **IQ-style 認知測驗體驗與測量品質**，不再把 IRB／真人常模送審當作目前產品開發的前置條件。

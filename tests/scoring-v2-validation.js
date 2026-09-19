@@ -38,5 +38,23 @@ r=S.scoreAssessment(timed,[1,1],[0,0]);
 assert.strictEqual(r.domains['處理速度'].score,0);
 assert.strictEqual(r.performanceIndex,0);
 
+r=S.scoreAssessment(timed,[0,0],[undefined,NaN]);
+assert.strictEqual(r.domains['處理速度'].speedEfficiency,0,'missing/invalid elapsed time must not receive a speed bonus');
+assert.strictEqual(r.domains['處理速度'].score,95,'accuracy remains, but missing timing evidence gets no 5% speed refinement');
+
+assert.strictEqual(S.speedEfficiency(timed[0],0,-1),0,'negative elapsed time is invalid and must not receive a bonus');
+assert.strictEqual(S.speedEfficiency(timed[0],0,null),0,'null elapsed time must not receive a bonus');
+assert.strictEqual(S.speedEfficiency(timed[0],0,0),1,'a valid zero-second controlled input remains the upper boundary');
+
+r=S.scoreAssessment([q1,q2,q3],[0],[]);
+assert.strictEqual(r.rawCorrect,1);
+assert.strictEqual(r.skipped,2,'missing answer slots must count as skipped');
+assert.strictEqual(r.rawTotal,3);
+
+r=S.scoreAssessment([],[],[]);
+assert.strictEqual(r.performanceIndex,0);
+assert.strictEqual(r.rawTotal,0);
+assert.strictEqual(r.skipped,0);
+
 console.log('Scoring v2 validation PASS');
 console.log('0–100 transparent performance scale; raw accuracy retained; speed contributes only after correct timed responses.');

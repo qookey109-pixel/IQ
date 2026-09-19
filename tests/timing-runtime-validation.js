@@ -20,7 +20,7 @@ function runtime() {
     { id:'normal', d:'推理', difficulty:'easy', type:'normal', q:'Think', o:['A','B','C','D'], a:0, limit:null },
     { id:'speed2', d:'處理速度', difficulty:'easy', type:'normal', q:'Find', o:['A','B','C','D'], a:0, limit:18 }
   ];
-  const c = { console, document, Date:{now:()=>now},
+  const c = { console, document, Math, Number, Object, Array, Set, Map, Date:{now:()=>now},
     setTimeout(fn, ms) {const id=nextId++; jobs.set(id,{fn,at:now+ms}); return id;},
     clearTimeout(id){jobs.delete(id);},
     setInterval(fn, ms){const id=nextId++; jobs.set(id,{fn,at:now+ms,ms}); return id;},
@@ -29,7 +29,7 @@ function runtime() {
   };
   c.window = c;
   vm.createContext(c);
-  for(const file of ['app.js','timeout-lock.js','memory-exposure.js','scoring-v2.js','assessment-quality.js']) {
+  for(const file of ['app.js','timeout-lock.js','memory-exposure.js','scoring-v2.js','result-title-engine.js','assessment-quality.js']) {
     vm.runInContext(fs.readFileSync(file,'utf8'),c,{filename:file});
   }
   const run = code => vm.runInContext(code,c);

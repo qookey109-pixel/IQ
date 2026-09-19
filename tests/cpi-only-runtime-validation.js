@@ -9,6 +9,7 @@ const timing = fs.readFileSync('timeout-lock.js', 'utf8');
 const quality = fs.readFileSync('assessment-quality.js', 'utf8');
 const readme = fs.readFileSync('README.md', 'utf8');
 const scoring = fs.readFileSync('scoring-v2.js', 'utf8');
+const titleEngine = fs.readFileSync('result-title-engine.js', 'utf8');
 
 for (const [file, source] of [['app.js', app], ['timeout-lock.js', timing], ['assessment-quality.js', quality]]) {
   for (const forbidden of [
@@ -30,9 +31,10 @@ assert.ok(app.includes('iqEstimate: null'));
 assert.ok(app.includes('publicScoreVisible: false'));
 assert.ok(app.includes('公開結果不顯示總分、IQ、百分比、排名或同齡換算'));
 
-for (const marker of [
-  '文字解碼師','規律捕手','空間導航員','記憶收藏家','閃電掃描員','數字拆解師','多線探索者'
-]) assert.ok(quality.includes(marker), 'missing playful result profile: ' + marker);
+assert.ok(titleEngine.includes("const COMBINATIONS = {"), 'qualitative title mapping must live in its dedicated engine');
+assert.ok(titleEngine.includes("combinationCount: Object.keys(COMBINATIONS).length"), 'title engine must expose finite combination count');
+assert.ok(quality.includes('titleEngineMode: "deterministic-30-directional-combinations"'));
+assert.ok(quality.includes('titleCombinationCount: 30'));
 
 assert.ok(quality.includes("productMode: 'qualitative-playful'") || quality.includes('productMode: "qualitative-playful"'));
 assert.ok(quality.includes('internalScoringMode: "cpi-only"'));

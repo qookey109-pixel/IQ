@@ -52,6 +52,7 @@ jobs:
           node --check spatial-task-refinement.js
           node --check presentation-clarity.js
           node --check assessment-quality.js
+          node --check result-title-engine.js
           node --check item-analytics.js
           node --check item-quality-v2.js
           node --check single-screen.js
@@ -86,6 +87,7 @@ jobs:
           node --check tests/pretest-flow-validation.js
           node --check tests/screenshot-qa-validation.js
           node --check tests/result-experience-validation.js
+          node --check tests/result-title-engine-validation.js
           node --check tests/runtime-bundle-helper.js
           node --check tests/runtime-bundle-validation.js
 
@@ -163,6 +165,9 @@ jobs:
 
       - name: Validate share-friendly qualitative result experience
         run: node tests/result-experience-validation.js
+
+      - name: Validate all 30 deterministic directional result titles
+        run: node tests/result-title-engine-validation.js
 
       - name: Validate QB5 construct-linked difficulty
         run: node tests/qb5-difficulty-validation.js

@@ -57,19 +57,24 @@
     lines.forEach((text,i)=>{z+=`<text x="180" y="${234+i*22}" text-anchor="middle" font-size="14">${esc(text)}</text>`;});
     return svg(z,'羅盤心像旋轉圖',`25 -4 310 ${lines.length>1?278:256}`);
   }
-  function viewpoint(q,n,v,t){const s18=mod(n,18),start=mod(s18,8),a=1+Math.floor(s18/8),b=1+mod(Math.floor(s18/4)+v,2);let delta,desc;
-    const deg=steps=>steps*45;
-    if(v===0){delta=a;desc=`順時針轉 ${deg(a)}°`;}
-    else if(v===1){delta=-a;desc=`逆時針轉 ${deg(a)}°`;}
-    else if(v===2){delta=a+1-b;desc=`先順時針轉 ${deg(a+1)}°，再逆時針轉 ${deg(b)}°`;}
-    else if(v===3){delta=2*a;desc=`向右轉 ${a*90}°`;}
-    else if(v===4){delta=4+(a-1);desc=a===1?'轉 180°':`先轉 180°，再順時針轉 ${deg(a-1)}°`;}
-    else if(v===5){delta=-2*a;desc=`向左轉 ${a*90}°`;}
-    else if(v===6){delta=a+2-b;desc=`先順時針轉 ${deg(a+3)}°，再逆時針轉 ${deg(b+1)}°`;}
-    else {delta=-(a+2)+b;desc=`先逆時針轉 ${deg(a+2)}°，再順時針轉 ${deg(b)}°`;}
-    const end=mod(start+delta,8),correct=DIRS[end],wrong=[DIRS[mod(end+1,8)],DIRS[mod(end-1,8)],DIRS[mod(end+4,8)]];
-    q.q=`箭頭目前指向「${DIRS[start]}」。依圖示旋轉後，最後指向哪個方向？`;q.e=`從 ${DIRS[start]} 按圖示旋轉，最後指向 ${correct}。`;
-    install(q,correct,wrong,'spatial-heading-mental-rotation',{kind:'viewpoint-heading',start,delta,end,steps:desc},compassSvg(start,desc),'heading-rotation');
+  function viewpoint(q,n,v,t){
+    const arrows=['↑','→','↓','←'],s18=mod(n,18),start=mod(s18+v,4);
+    const easy=[[1],[-1],[1],[-1],[2],[-2],[1],[-1]];
+    const medium=[[2],[-2],[1,1],[-1,-1],[1,-2],[-1,2],[2,-1],[-2,1]];
+    const hard=[[1,2],[-1,-2],[2,1],[-2,-1],[1,-1,2],[-1,1,-2],[2,-1,1],[-2,1,-1]];
+    const turns=(t===0?easy:t===1?medium:hard)[v];
+    const label=turn=>`${turn>0?'順時針':'逆時針'} ${Math.abs(turn)*90}°`;
+    const desc=turns.map(label).join('，再');
+    const end=mod(start+turns.reduce((sum,turn)=>sum+turn,0),4),correct=arrows[end],wrong=arrows.filter((_,i)=>i!==end);
+    const cx=180,cy=88,ang=(start*90-90)*Math.PI/180;
+    let z=`<circle cx="${cx}" cy="${cy}" r="64" fill="none" stroke="currentColor" stroke-opacity=".22"/>`;
+    z+=arrow(cx,cy,cx+Math.cos(ang)*50,cy+Math.sin(ang)*50);
+    z+=`<text x="180" y="174" text-anchor="middle" font-size="15" font-weight="700">起始 ${arrows[start]}</text>`;
+    desc.split('，').forEach((text,i)=>{z+=`<text x="180" y="${204+i*22}" text-anchor="middle" font-size="14">${esc(text)}</text>`;});
+    q.taskLabel='平面旋轉';
+    q.q='觀察圖中的箭頭。依標示角度旋轉後，最後方向是哪一個？';
+    q.e=`依序旋轉後，箭頭為 ${correct}。`;
+    install(q,correct,wrong,'spatial-plane-rotation',{kind:'plane-rotation',start,end,turns:[...turns],steps:desc},svg(z,'平面箭頭旋轉圖',`40 0 280 ${turns.length>1?270:248}`),'shape-rotation');
   }
 
   function heightMap(n,v,t){const s18=mod(n,18),R=t===0?2:3,C=t===2?4:3;const g=[];for(let r=0;r<R;r++){const row=[];for(let c=0;c<C;c++)row.push(1+mod(s18*3+v*7+r*3+c*5+r*c,4+t));g.push(row);}g[0][0]=1+mod(s18,5);if(C>1)g[0][1]=1+Math.floor(s18/5);if(new Set(g.flat()).size===1)g[R-1][C-1]=g[R-1][C-1]%5+1;return g;}

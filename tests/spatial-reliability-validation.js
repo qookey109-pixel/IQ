@@ -6,7 +6,7 @@ for(const f of runtime)vm.runInContext(fs.readFileSync(f,'utf8'),context,{filena
 const bank=window.IQ_QUESTION_BANK,spatial=bank.filter(q=>q.d==='視覺空間');
 assert.strictEqual(bank.length,5124);assert.strictEqual(spatial.length,1008);assert.strictEqual(window.IQ_SPATIAL_RELIABILITY?.version,'SRI-2026.09.1');assert.strictEqual(window.IQ_SPATIAL_RELIABILITY?.total,1008);assert.strictEqual(window.IQ_BANK_META?.spatialReliability,'SRI-2026.09.1');
 const families=['grid-displacement','mirror-coordinate','viewpoint-heading','rectangle-cut','stack-hidden','scale-drawing','shortest-grid-path'];for(const fam of families)assert.strictEqual(window.IQ_SPATIAL_RELIABILITY.families[fam],144,`${fam}: 144 rewritten items`);
-const mod=(n,m)=>((n%m)+m)%m,DIRS=['北','東北','東','東南','南','西南','西','西北'];
+const mod=(n,m)=>((n%m)+m)%m,ROTATION_ARROWS=['↑','→','↓','←'];
 const sameArray=(a,b)=>JSON.stringify(Array.from(a))===JSON.stringify(Array.from(b));
 function perimeter(g){let p=0,R=g.length,C=g[0].length;for(let r=0;r<R;r++)for(let c=0;c<C;c++)if(g[r][c])for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){const rr=r+dr,cc=c+dc;if(rr<0||cc<0||rr>=R||cc>=C||!g[rr][cc])p++;}return p;}
 function bfs(N,S,T,blocked){const B=new Set(blocked),q=[[...S,0]],seen=new Set([S.join(',')]);for(let i=0;i<q.length;i++){const [r,c,d]=q[i];if(r===T[0]&&c===T[1])return d;for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){const rr=r+dr,cc=c+dc,k=`${rr},${cc}`;if(rr<0||cc<0||rr>=N||cc>=N||B.has(k)||seen.has(k))continue;seen.add(k);q.push([rr,cc,d+1]);}}return null;}
@@ -16,12 +16,15 @@ for(const q of spatial){
   if(q.taskFamily==='grid-displacement'){
     let [x,y]=d.start;for(const [dx,dy] of d.moves){x+=dx;y+=dy;}assert.ok(sameArray([x,y],d.end),`${q.id}: path endpoint`);assert.strictEqual(q.correctContent,`(${x}, ${y})`,`${q.id}: endpoint answer`);assert.ok(!/向右|向左|向上|向下/.test(q.q),`${q.id}: moves belong in diagram, not prose`);
   }else if(q.taskFamily==='viewpoint-heading'){
-    const end=mod(d.start+d.delta,8);assert.strictEqual(end,d.end,`${q.id}: heading index`);assert.strictEqual(q.correctContent,DIRS[end],`${q.id}: heading answer`);assert.ok(!/方位角以正北|最後方位角/.test(q.q),`${q.id}: no arithmetic-angle framing`);
-    assert.ok(q.q.includes('依圖示旋轉後'),`${q.id}: prompt must stay direct and diagram-led`);
-    assert.ok(String(d.steps).includes('°'),`${q.id}: compass operation must be expressed in degrees`);
-    assert.ok(!/\d+\s*格|四分之一圈|每次\s*90°|（共\s*\d+°）|旋轉到正後方/.test(String(d.steps)),`${q.id}: compass instruction must stay concise`);
-    assert.ok(!/依照圖中的旋轉角度操作後|觀察羅盤/.test(q.q),`${q.id}: verbose compass stem must not return`);
-    assert.ok(String(q.visual||'').includes('°'),`${q.id}: diagram instruction must visibly show degree values`);
+    assert.strictEqual(d.kind,'plane-rotation',`${q.id}: planar rotation kind`);
+    assert.ok(Array.isArray(d.turns)&&d.turns.length>=1,`${q.id}: rotation steps`);
+    assert.ok(d.turns.every(x=>Number.isInteger(x)&&Math.abs(x)>=1&&Math.abs(x)<=2),`${q.id}: quarter-turn operations only`);
+    const end=mod(d.start+d.turns.reduce((sum,turn)=>sum+turn,0),4);
+    assert.strictEqual(end,d.end,`${q.id}: rotation endpoint`);
+    assert.strictEqual(q.correctContent,ROTATION_ARROWS[end],`${q.id}: rotation answer`);
+    assert.strictEqual(q.diagramType,'shape-rotation',`${q.id}: no viewpoint/compass diagram`);
+    assert.ok(q.q.includes('依標示角度旋轉後'),`${q.id}: direct rotation prompt`);
+    assert.ok(!/羅盤|方位|正北|東北|東南|西北|西南/.test(String(q.q)+String(q.visual)),`${q.id}: viewpoint/cardinal framing removed`);
   }else if(q.taskFamily==='stack-hidden'){
     const g=d.grid,total=g.flat().reduce((sum,h)=>sum+h,0);assert.strictEqual(d.kind,'stack-height-count',`${q.id}: stack task kind`);assert.strictEqual(d.total,total,`${q.id}: stored cube total`);assert.strictEqual(Number(q.correctContent),total,`${q.id}: cube-count answer`);assert.ok(!/前方|右側觀看|輪廓/.test(q.q),`${q.id}: viewpoint projection wording removed`);
   }else if(q.taskFamily==='rectangle-cut'){
@@ -34,6 +37,6 @@ for(const q of spatial){
     const c=bfs(d.size,d.start,d.end,d.blocked),man=Math.abs(d.start[0]-d.end[0])+Math.abs(d.start[1]-d.end[1]);assert.strictEqual(c,d.shortest,`${q.id}: BFS shortest`);assert.strictEqual(Number(q.correctContent),c,`${q.id}: shortest answer`);assert.ok(c>man,`${q.id}: obstacles must force real detour`);assert.ok(d.shortest>d.manhattan,`${q.id}: stored detour proof`);
   }
 }
-const oldWeird=/方位角以正北|整個造型共有多少個外露面|從圖下方「前方」|從右側觀看，輪廓|對 y=x|對 y=−x|登山客從|棋子從 \(/;assert.ok(spatial.every(q=>!oldWeird.test(String(q.q))), 'retired arithmetic/viewpoint/diagonal-axis wording must be absent');
+const oldWeird=/方位角以正北|羅盤|整個造型共有多少個外露面|從圖下方「前方」|從右側觀看，輪廓|對 y=x|對 y=−x|登山客從|棋子從 \(/;assert.ok(spatial.every(q=>!oldWeird.test(String(q.q))), 'retired arithmetic/viewpoint/diagonal-axis wording must be absent');
 const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281]);const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);assert.strictEqual(new Set(bank.map(sig)).size,5124,'final concrete signatures unique');
 console.log('Spatial Reliability Integrity v1 PASS');console.log('1,008 spatial items are diagram-grounded; all final answers independently recomputed; shortest-path obstacles force detours; old screenshot failure modes absent.');

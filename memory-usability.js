@@ -38,9 +38,58 @@
     const candidates=[[...arr].reverse(),[...arr.slice(1),arr[0]],[arr[1],arr[0],...arr.slice(2)],[...arr.slice(-1),...arr.slice(0,-1)]];
     for(const x of candidates){const s=x.join(' → ');if(!seen.has(s)){seen.add(s);out.push(s);}if(out.length===3)break;}return out;
   }
-  function position(q,n){const len=[4,5,6][tier(q)],seq=twoDigits(q,n,len,101),pos=mod(n*5+Number(q.constructVariant||1),len),correct=String(seq[pos]);q.stim=seq.join('　');q.q=`剛才序列中，第 ${pos+1} 個項目是什麼？`;q.e=`第 ${pos+1} 個項目是 ${correct}。`;installOptions(q,correct,seq.filter((_,i)=>i!==pos).map(String),'two-digit-position-recall');}
-  function pair(q,n){const count=[3,4,5][tier(q)],v=variant(q),order=shuffle(Array.from({length:count},(_,i)=>mod(v*2+i,places.length)),n*31+v*17),names=order.map(i=>places[i]),vals=twoDigits(q,n,count,211),k=mod(n+v,count),correct=String(vals[k]);q.stim=names.map((name,i)=>`${name} ${vals[i]}`).join('　');q.q=`剛才「${names[k]}」配對的編號是？`;q.e=`${names[k]} 配對 ${correct}。`;const wrong=vals.filter((_,i)=>i!==k).map(String);for(let x=10;wrong.length<3&&x<100;x++)if(String(x)!==correct&&!wrong.includes(String(x)))wrong.push(String(x));installOptions(q,correct,wrong,'two-digit-pair-recall');}
-  function filter(q,n){const count=[3,4,5][tier(q)],v=variant(q),names=shuffle(Array.from({length:count},(_,i)=>places[mod(v*2+i,places.length)]),n*43+v*11),nums=twoDigits(q,n,count,307),tokens=[];for(let i=0;i<count;i++)tokens.push(String(nums[i]),names[i]);q.stim=tokens.join('　');const answerPlaces=v%2===0,arr=answerPlaces?names:nums.map(String),correct=arr.join(' → ');q.q=answerPlaces?'忽略數字，只回憶剛才出現的地點，保持原順序。':'忽略地點，只回憶剛才出現的數字，保持原順序。';q.e=`${answerPlaces?'地點':'數字'}依序為 ${correct}。`;installOptions(q,correct,seqDistractors(arr),'low-reading-load-selective-recall');}
+  function position(q,n){
+    const t=tier(q),len=[4,5,6][t],seq=twoDigits(q,n,len,101),pos=mod(n*5+Number(q.constructVariant||1),len);
+    q.stim=seq.join('　');
+    if(t===2){
+      const reversed=[...seq].reverse(),correct=String(reversed[pos]);
+      q.q='把剛才序列在心中反轉後，第 '+(pos+1)+' 個項目是什麼？';
+      q.e='反轉後第 '+(pos+1)+' 個項目是 '+correct+'。';
+      q.memoryManipulation='reverse-then-position';
+      installOptions(q,correct,seq.filter(x=>String(x)!==correct).map(String),'two-digit-reversed-position-recall');
+    }else{
+      const correct=String(seq[pos]);
+      q.q='剛才序列中，第 '+(pos+1)+' 個項目是什麼？';
+      q.e='第 '+(pos+1)+' 個項目是 '+correct+'。';
+      installOptions(q,correct,seq.filter((_,i)=>i!==pos).map(String),'two-digit-position-recall');
+    }
+  }
+  function pair(q,n){
+    const t=tier(q),count=[3,4,5][t],v=variant(q),order=shuffle(Array.from({length:count},(_,i)=>mod(v*2+i,places.length)),n*31+v*17),names=order.map(i=>places[i]),vals=twoDigits(q,n,count,211),k=mod(n+v,count);
+    q.stim=names.map((name,i)=>name+' '+vals[i]).join('　');
+    let correct,wrong,reason;
+    if(t===2){
+      const offset=1+mod(n+v,count-1),j=mod(k+offset,count);
+      correct=String(vals[j]);
+      q.q='若把「'+names[k]+'」與「'+names[j]+'」的配對編號互換，互換後「'+names[k]+'」的編號是？';
+      q.e='互換後，「'+names[k]+'」取得原本「'+names[j]+'」的編號 '+correct+'。';
+      q.memoryManipulation='swap-pair-bindings';
+      wrong=vals.filter((_,i)=>i!==j).map(String);
+      reason='two-digit-pair-swap-manipulation';
+    }else{
+      correct=String(vals[k]);
+      q.q='剛才「'+names[k]+'」配對的編號是？';
+      q.e=names[k]+' 配對 '+correct+'。';
+      wrong=vals.filter((_,i)=>i!==k).map(String);
+      reason='two-digit-pair-recall';
+    }
+    for(let x=10;wrong.length<3&&x<100;x++)if(String(x)!==correct&&!wrong.includes(String(x)))wrong.push(String(x));
+    installOptions(q,correct,wrong,reason);
+  }
+  function filter(q,n){
+    const t=tier(q),count=[3,4,5][t],v=variant(q),names=shuffle(Array.from({length:count},(_,i)=>places[mod(v*2+i,places.length)]),n*43+v*11),nums=twoDigits(q,n,count,307),tokens=[];
+    for(let i=0;i<count;i++)tokens.push(String(nums[i]),names[i]);
+    q.stim=tokens.join('　');
+    const answerPlaces=v%2===0,kept=answerPlaces?names:nums.map(String),arr=t===2?[...kept].reverse():kept,correct=arr.join(' → ');
+    if(t===2){
+      q.q=answerPlaces?'忽略數字，只回憶剛才出現的地點，並由後往前作答。':'忽略地點，只回憶剛才出現的數字，並由後往前作答。';
+      q.memoryManipulation='select-then-reverse';
+    }else{
+      q.q=answerPlaces?'忽略數字，只回憶剛才出現的地點，保持原順序。':'忽略地點，只回憶剛才出現的數字，保持原順序。';
+    }
+    q.e=(answerPlaces?'地點':'數字')+'依序為 '+correct+'。';
+    installOptions(q,correct,seqDistractors(arr),'low-reading-load-selective-recall');
+  }
   function relative(q,n){const len=[5,6,7][tier(q)],v=variant(q),seq=twoDigits(q,n,len,401),right=v%2===1,dist=tier(q)===2&&v>=4?2:1,span=Math.max(1,len-2*dist),k=dist+mod(n+v,span),target=seq[k],ans=seq[k+(right?dist:-dist)];q.stim=seq.join('　');q.q=`剛才序列中，「${target}」${right?'右':'左'}邊第 ${dist} 個項目是什麼？`;q.e=`從 ${target} 往${right?'右':'左'}數 ${dist} 格，得到 ${ans}。`;installOptions(q,String(ans),seq.filter(x=>x!==ans).slice(0,3).map(String),'two-digit-relative-position-recall');}
   function reorder(q,n){const len=[4,5,6][tier(q)],v=variant(q),vals=twoDigits(q,n,len,503);let out,rule;if(v===0){out=[...vals.slice(1),vals[0]];rule='把第一個移到最後';}else if(v===1){out=[vals.at(-1),...vals.slice(0,-1)];rule='把最後一個移到最前';}else if(v===2){out=[...vals].reverse();rule='整列反轉';}else if(v===3){out=[vals[1],vals[0],...vals.slice(2)];rule='交換前兩個';}else if(v===4){out=[...vals];const j=out.length-2;[out[1],out[j]]=[out[j],out[1]];rule='交換第二個與倒數第二個';}else if(v===5){out=[...vals.slice(2),...vals.slice(0,2)];rule='把前兩個整組移到最後';}else if(v===6){out=[vals[0],...vals.slice(1).reverse()];rule='第一個不動，其餘反轉';}else{out=[...vals.slice(-2),...vals.slice(0,-2)];rule='把最後兩個整組移到最前';}const correct=out.join(' → ');q.stim=vals.join('　');q.q=`將剛才的序列依照「${rule}」重排。結果是哪一列？`;q.e=`依規則重排後得到 ${correct}。`;installOptions(q,correct,seqDistractors(out).concat([vals.join(' → ')]),'two-digit-sequence-manipulation');}
   function update(q,n){const t=tier(q),v=variant(q),start=30+mod(n,50),group=Math.floor(n/50),count=[2,3,4][t],patterns=[[-1,1],[1,2],[-1,2],[1,3],[-1,3],[1,1],[-1,2],[1,2]];let cur=start;const ops=[[1,1+group]];cur+=1+group;for(let i=1;i<count;i++){const [sign,val]=patterns[mod(n+v+i,patterns.length)];ops.push([sign,val]);cur+=sign*val;}q.stim=`起始 ${start}；${ops.map(([s,val])=>`${s>0?'增加':'減少'} ${val}`).join('；')}`;q.q='照剛才的順序逐步更新，最後是多少？';q.e=`依序更新後得到 ${cur}。`;installOptions(q,String(cur),[cur-2,cur-1,cur+1,cur+2].filter(x=>x>=10&&x<100).map(String),'low-arithmetic-memory-update');}

@@ -57,7 +57,7 @@
   }
 
   function exact(q,n,v,t){
-    const len=4+t*2+(v===7?1:0),mode=(v===1||v===4||v===7)?1:0,target=code(n+v*31,len,mode);
+    const len=[4,6,9][t]+(v===7?1:0),mode=(v===1||v===4||v===7)?1:0,target=code(n+v*31,len,mode);
     q.taskLabel='精確比對';
     q.q=`快速比對：哪個選項與「${target}」完全相同？`;
     q.e=`逐字比對即可；完全相同的是 ${target}。`;
@@ -67,7 +67,7 @@
   function count(q,n,v,t){
     const groups=[['●','○','◆'],['■','□','▲'],['▲','△','◆'],['◆','◇','●'],['★','☆','■'],['○','●','□'],['□','■','△'],['△','▲','◇']];
     const [target,...others]=groups[v];
-    const len=[12,14,16][t]+mod(v,3)*2,count=[3,5,7][t]+mod(n,2),seq=[];
+    const len=[12,15,20][t]+mod(v,3)*2,count=[3,5,7][t]+mod(n,2),seq=[];
     for(let i=0;i<count;i++)seq.push(target);
     for(let i=count;i<len;i++)seq.push(others[mod(i+n+v,others.length)]);
     const mixed=shuffle(seq,n*97+v*13);
@@ -76,7 +76,7 @@
   }
 
   function pairEquality(q,n,v,t){
-    const len=4+t*2+(v===7?1:0),base=code(n+v*29,len,v%2),pairs=[];
+    const len=[4,6,9][t]+(v===7?1:0),base=code(n+v*29,len,v%2),pairs=[];
     const rightMiss=nearMisses(base,n+v*19);
     const correct=`${base} / ${base}`;
     for(let i=0;i<3;i++)pairs.push(`${base} / ${rightMiss[i]}`);
@@ -134,7 +134,7 @@
   }
 
   function missing(q,n,v,t){
-    const size=[6,8,10][t]+(v===7?2:0),kind=v%3,universe=[];
+    const size=[6,8,12][t]+(v===7?2:0),kind=v%3,universe=[];
     if(kind===0){const start=10+mod(n*3+v*5,70-size);for(let i=0;i<size;i++)universe.push(String(start+i));}
     else if(kind===1){const start=65+mod(n+v,26-size);for(let i=0;i<size;i++)universe.push(String.fromCharCode(start+i));}
     else {for(let i=0;i<size;i++)universe.push(`K${String(10+mod(n*7+v*11+i,80)).padStart(2,'0')}`);}

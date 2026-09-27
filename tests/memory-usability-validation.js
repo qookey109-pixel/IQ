@@ -36,5 +36,9 @@ for(const q of memory.filter(x=>covered.includes(x.taskFamily))){assert.strictEq
   else if(q.taskFamily==='memory-reorder'){const seq=String(q.stim).trim().split(/\s+/);assert.strictEqual(seq.length,expected[q.taskFamily][q.difficulty]);assert.ok(seq.every(two));const m=q.q.match(/「([^」]+)」/);assert.ok(m);const out=applyRule(seq,m[1]);assert.strictEqual(String(q.correctContent),out.join(' → '));for(const opt of q.o)assert.ok(arrow(opt).every(two));}
   else if(q.taskFamily==='memory-update'){const parts=String(q.stim).split('；').map(x=>x.trim()),m=parts[0].match(/^起始 (\d{2})$/);assert.ok(m,`${q.id}: two-digit start`);assert.strictEqual(parts.length-1,expected[q.taskFamily][q.difficulty]);let cur=Number(m[1]);for(const p of parts.slice(1)){const op=p.match(/^(增加|減少) (\d)$/);assert.ok(op,`${q.id}: small update step`);cur+=op[1]==='增加'?Number(op[2]):-Number(op[2]);}assert.strictEqual(String(q.correctContent),String(cur));assert.ok(q.o.every(two));}
 }
-const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281]);const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);assert.strictEqual(new Set(bank.map(sig)).size,5124,'final concrete signatures unique');
+const positions=[0,0,0,0];for(const q of bank)positions[q.a]++;assert.deepStrictEqual(positions,[1281,1281,1281,1281]);const sig=q=>JSON.stringify([q.q,q.stim||'',q.cells||[],q.visual||'',[...q.o].map(String).sort()]);
+const signatureOwners=new Map();for(const q of bank){const s=sig(q),xs=signatureOwners.get(s)||[];xs.push(q.id);signatureOwners.set(s,xs);}
+const duplicateGroups=[...signatureOwners.values()].filter(xs=>xs.length>1);
+if(duplicateGroups.length)console.log('DUPLICATE_SIGNATURE_GROUPS',JSON.stringify(duplicateGroups.slice(0,160)));
+assert.strictEqual(new Set(bank.map(sig)).size,5124,'final concrete signatures unique');
 console.log('Memory Usability Integrity v2 PASS');console.log('864 working-memory items across six families use low-reading-load stimuli; difficulty grows through span/manipulation, not digit length.');
